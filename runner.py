@@ -1,4 +1,5 @@
 from flask import Flask, request
+from helpers import get_handlers
 
 import os, json
 
@@ -15,7 +16,7 @@ if __name__ == '__main__':
     @app.route('/', methods=['POST'])
     def handle_payload():
         payload = request.get_json()
-        # handle payload
+        handlers = get_handlers()
         return 'Yay!', 200
 
     port = int(os.environ.get('PORT', 5000))
