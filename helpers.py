@@ -1,4 +1,4 @@
-import os
+import json, os
 
 
 def get_matching_path_parent(obj, match=[]):
@@ -60,7 +60,18 @@ def get_handlers():
             continue
 
         for handler_name in sorted(os.listdir(event_dir)):
-            path = os.path.join(event_dir, handler_name, '__init__.py')
-            if os.path.exists(path):
-                execfile(path)
-                yield locals().get('method', lambda api: None)
+            handler_dir = os.path.join(event_dir, handler_name)
+            handler_path = os.path.join(handler_dir, '__init__.py')
+            config_path = os.path.join(handler_dir, 'config.json')
+
+            # Every handler should have its own 'config.json'
+            if os.path.exists(handler_path) and os.path.exists(config_path):
+                with open(config_path, 'r') as fd:
+                    handler_config = json.load(fd)
+
+                if not handler_config.get('active'):    # per-handler switch
+                    continue
+
+                execfile(handler_path)
+                for method in locals().get('methods', []):
+                    yield lambda api: method(api, handler_config)

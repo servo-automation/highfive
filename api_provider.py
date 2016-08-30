@@ -19,6 +19,9 @@ class GithubAPIProvider(object):
         node = get_matching_path_parent(payload, ['number'])
         self.issue_number = node.get('number')
 
+    def get_matching_path(self, matches):   # making the helper available for handlers
+        return get_matching_path_parent(payload, matches)
+
     def request(self, method, url, data=None):
         data = None if not data else json.dumps(data)
         headers = {} if not data else {'Content-Type': 'application/json'}
