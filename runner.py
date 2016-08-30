@@ -1,3 +1,4 @@
+from api_provider import GithubAPIProvider
 from flask import Flask, request
 from helpers import get_handlers
 
@@ -16,7 +17,9 @@ if __name__ == '__main__':
     @app.route('/', methods=['POST'])
     def handle_payload():
         payload = request.get_json()
-        handlers = get_handlers()
+        api = GithubAPIProvider(payload, user, auth_token)
+        for handler in get_handlers():
+            handler(api)
         return 'Yay!', 200
 
     port = int(os.environ.get('PORT', 5000))
