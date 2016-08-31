@@ -1,18 +1,13 @@
 from base64 import standard_b64encode as b64_encode
 from gzip import GzipFile
-from helpers import get_matching_path_parent
+
+from methods import get_matching_path_parent
 
 import json, urllib2
 
 
-class GithubAPIProvider(object):
-    base_url = 'https://api.github.com/repos/'
-    comments_post_url = base_url + '%s/%s/issues/%s/comments'
-    labels_get_url = base_url + "%s/%s/issues/%s/labels"
-
-    def __init__(self, payload, user, token):
-        self.user = user
-        self.token = token
+class APIProvider(object):
+    def __init__(self, payload):
         self.payload = payload
 
         node = get_matching_path_parent(payload, ['owner', 'login'])
@@ -27,6 +22,23 @@ class GithubAPIProvider(object):
 
     def get_matching_path(self, matches):   # making the helper available for handlers
         return get_matching_path_parent(self.payload, matches)
+
+    def get_labels(self):
+        raise NotImplementedError
+
+    def post_comment(self, comment):
+        raise NotImplementedError
+
+
+class GithubAPIProvider(APIProvider):
+    base_url = 'https://api.github.com/repos/'
+    comments_post_url = base_url + '%s/%s/issues/%s/comments'
+    labels_get_url = base_url + "%s/%s/issues/%s/labels"
+
+    def __init__(self, payload, user, token):
+        self.user = user
+        self.token = token
+        super(GithubAPIProvider, self).__init__(payload)
 
     def request(self, method, url, data=None):
         data = None if not data else json.dumps(data)

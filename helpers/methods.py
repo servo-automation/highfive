@@ -1,5 +1,7 @@
 import json, os
 
+HANDLERS_DIR = 'handlers'
+
 
 def get_matching_path_parent(obj, match=[]):
     '''
@@ -55,11 +57,11 @@ def get_handlers(accepted_events):
     Execute all the handlers corresponding to the events (specified in the config) and
     yield the methods that process the payload
     '''
-    for event_name in sorted(os.listdir('handlers')):
+    for event_name in sorted(os.listdir(HANDLERS_DIR)):
         if event_name not in accepted_events:
             continue
 
-        event_dir = os.path.join('handlers', event_name)
+        event_dir = os.path.join(HANDLERS_DIR, event_name)
         if not os.path.isdir(event_dir):
             continue
 
@@ -78,4 +80,4 @@ def get_handlers(accepted_events):
 
                 execfile(handler_path)
                 for method in locals().get('methods', []):
-                    yield lambda api: method(api, handler_config)
+                    yield handler_dir, lambda api: method(api, handler_config)

@@ -1,6 +1,7 @@
-from api_provider import GithubAPIProvider
 from flask import Flask, request
-from helpers import get_handlers
+
+from helpers.api_provider import GithubAPIProvider
+from helpers.methods import get_handlers
 
 import os, json
 
@@ -19,7 +20,7 @@ if __name__ == '__main__':
     def handle_payload():
         payload = request.get_json()
         api = GithubAPIProvider(payload, user, auth_token)
-        for handler in get_handlers(events):
+        for _, handler in get_handlers(events):
             handler(api)
         return 'Yay!', 200
 
