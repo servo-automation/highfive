@@ -34,7 +34,7 @@ def get_matching_path_parent(obj, match=[]):
                 if result:
                     return result
 
-    match_path = sep.join(match)
+    match_path = sep.join(match) + sep
     result = get_paths(obj, match_path)
     if not result:      # so that we don't return None
         return {}
