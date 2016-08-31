@@ -3,19 +3,19 @@ from flask import Flask, request
 from helpers.api_provider import GithubAPIProvider
 from helpers.methods import get_handlers
 
-import os, json
+import os, json, random
 
 
 if __name__ == '__main__':
     with open('config.json', 'r') as fd:
         config = json.load(fd)
 
-    # FIXME: multiple accounts with auth tokens, and switch between them randomly
-    # everytime we handle the payload, so that we don't hit the API with traffic
-    # from the same user?
+    # In case we've got multiple accounts, so that we don't hit the API with traffic
+    # from the same user
 
-    user = config['login']['user']
-    auth_token = config['login']['token']
+    choice = random.choice(config['logins'])
+    user = choice['user']
+    auth_token = choice['token']
     events = config.get('enabled_events', [])
 
     app = Flask('highfive')

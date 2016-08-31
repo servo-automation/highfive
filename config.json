@@ -1,8 +1,11 @@
 {
-    "login": {
-        "user": "highfive-test",
-        "token": "foobar123"
-    },
+    "logins": [{
+        "user": "bot_1",
+        "token": "foo123"
+    }, {
+        "user": "bot_2",
+        "token": "bar123"
+    }],
     "enabled_events": [
         "issues"
     ]
