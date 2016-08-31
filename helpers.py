@@ -34,27 +34,31 @@ def get_matching_path_parent(obj, match=[]):
 
     match_path = sep.join(match)
     result = get_paths(obj, match_path)
-    if not result:
+    if not result:      # so that we don't return None
         return {}
 
-    points = result.split(sep)[:-len(match)]
-    if not points:
+    keys = result.split(sep)[:-len(match)]
+    if not keys:        # special case - where the path is a prefix
         return obj
 
-    key = points.pop(0)
-    node = obj[key]
+    parent = keys.pop(0)
+    node = obj[parent]
 
-    for key in points:
-        node = node[key]
+    for child in keys:      # start from the root and get the parent
+        node = node[child]
 
     return node
 
 
-def get_handlers():
+def get_handlers(accepted_events):
     '''
-    Execute all the handlers and yield the methods that process the payload
+    Execute all the handlers corresponding to the events (specified in the config) and
+    yield the methods that process the payload
     '''
     for event_name in sorted(os.listdir('handlers')):
+        if event_name not in accepted_events:
+            continue
+
         event_dir = os.path.join('handlers', event_name)
         if not os.path.isdir(event_dir):
             continue

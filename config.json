@@ -2,5 +2,8 @@
     "login": {
         "user": "highfive-test",
         "token": "foobar123"
-    }
+    },
+    "enabled_events": [
+        "issues"
+    ]
 }

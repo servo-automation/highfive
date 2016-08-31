@@ -11,6 +11,7 @@ if __name__ == '__main__':
 
     user = config['login']['user']
     auth_token = config['login']['token']
+    events = config.get('enabled_events', [])
 
     app = Flask('highfive')
 
@@ -18,7 +19,7 @@ if __name__ == '__main__':
     def handle_payload():
         payload = request.get_json()
         api = GithubAPIProvider(payload, user, auth_token)
-        for handler in get_handlers():
+        for handler in get_handlers(events):
             handler(api)
         return 'Yay!', 200
 
