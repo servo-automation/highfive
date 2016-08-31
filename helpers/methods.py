@@ -3,13 +3,13 @@ import json, os
 HANDLERS_DIR = 'handlers'
 
 
-def get_matching_path_parent(obj, match=[]):
+def get_path_parent(obj, match=[], get_obj=lambda item: item):
     '''
     Recursively traverse through the dictionary to find a matching path.
     Once that's found, get the parent key which triggered that match.
 
     >>> d = {'a': {'b': {'c': {'d': 1}, {'e': 2}}}}
-    >>> node = get_matching_path_parent(d, ['c', 'e'])
+    >>> node = get_path_parent(d, ['c', 'e'])
     >>> print node
     {'c': {'e': 2, 'd': 1}}
     >>> node['c']['e']
@@ -17,25 +17,28 @@ def get_matching_path_parent(obj, match=[]):
 
     It returns the (parent) node on which we can call those matching keys. This is
     useful when we're sure about how a path of a leaf ends, but not how it begins.
+    An optional method specifies how to address the object i.e., whether to do it
+    directly, or call another method to get the underlying object from the wrapper.
     '''
     sep = '->'
     if not match:
         return
 
-    def get_paths(obj, match_path, path=''):
-        if hasattr(obj, '__iter__'):
-            iterator = xrange(len(obj)) if isinstance(obj, list) else obj.keys()
+    def get_path(obj, match_path, path=''):
+        item = get_obj(obj)
+        if hasattr(item, '__iter__'):
+            iterator = xrange(len(item)) if isinstance(item, list) else item
             for key in iterator:
                 new_path = path + str(key) + sep
-                if match_path in new_path:
+                if new_path.endswith(match_path):
                     return new_path.rstrip(sep)
 
-                result = get_paths(obj[key], match_path, new_path)
+                result = get_path(item[key], match_path, new_path)
                 if result:
                     return result
 
     match_path = sep.join(match) + sep
-    result = get_paths(obj, match_path)
+    result = get_path(obj, match_path)
     if not result:      # so that we don't return None
         return {}
 
@@ -44,10 +47,10 @@ def get_matching_path_parent(obj, match=[]):
         return obj
 
     parent = keys.pop(0)
-    node = obj[parent]
+    node = get_obj(obj)[parent]
 
     for child in keys:      # start from the root and get the parent
-        node = node[child]
+        node = get_obj(node)[child]
 
     return node
 

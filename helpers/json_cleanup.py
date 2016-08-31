@@ -44,6 +44,9 @@ class NodeMarker(object):
     # The following methods blindly assume that the method is supported by the
     # particular type (i.e., exceptions should be handled explicitly)
 
+    def get(self, key, default=None):
+        return self[key] if self._node.get(key) else default
+
     def lower(self):
         return str(self).lower()
 

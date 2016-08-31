@@ -10,6 +10,10 @@ if __name__ == '__main__':
     with open('config.json', 'r') as fd:
         config = json.load(fd)
 
+    # FIXME: multiple accounts with auth tokens, and switch between them randomly
+    # everytime we handle the payload, so that we don't hit the API with traffic
+    # from the same user?
+
     user = config['login']['user']
     auth_token = config['login']['token']
     events = config.get('enabled_events', [])

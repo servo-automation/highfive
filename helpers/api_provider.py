@@ -1,7 +1,7 @@
 from base64 import standard_b64encode as b64_encode
 from gzip import GzipFile
 
-from methods import get_matching_path_parent
+from methods import get_path_parent
 
 import json, urllib2
 
@@ -10,18 +10,18 @@ class APIProvider(object):
     def __init__(self, payload):
         self.payload = payload
 
-        node = get_matching_path_parent(payload, ['owner', 'login'])
+        node = self.get_matching_path(['owner', 'login'])
         self.owner = node['owner']['login']
         self.repo = node['name']
 
-        node = get_matching_path_parent(payload, ['number'])
+        node = self.get_matching_path(['number'])
         self.issue_number = node.get('number')
 
-        node = get_matching_path_parent(payload, ['labels'])
+        node = self.get_matching_path(['labels'])
         self.labels = map(lambda obj: obj['name'].lower(), node.get('labels', []))
 
     def get_matching_path(self, matches):   # making the helper available for handlers
-        return get_matching_path_parent(self.payload, matches)
+        return get_path_parent(self.payload, matches)
 
     def get_labels(self):
         raise NotImplementedError
