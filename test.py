@@ -13,10 +13,12 @@ class TestAPIProvider(APIProvider):
         self.expected = expected
 
         for key, val in expected.items():
-            # Initialize with a new instance of the value's type (not the value itself!)
+            # Initialize with a new instance of the expected value's type
+            # (not the value itself!), so that we can check those values
+            # again after running a handler
             setattr(self, key, type(val)())
 
-        for key, val in initial.items():
+        for key, val in initial.items():    # set/override the values
             setattr(self, key, val)
 
     def get_matching_path(self, matches):
@@ -44,11 +46,12 @@ if __name__ == '__main__':
     with open('config.json', 'r') as fd:
         config = json.load(fd)
 
+    # The "tests" directory should have the same structure as that of the "handlers"
     events = config.get('enabled_events', [])
     for path, handler in get_handlers(events):
         test_payloads_dir = TESTS_DIR + path.lstrip(HANDLERS_DIR)
-        if not os.path.exists(test_payloads_dir):
-            print 'Test not found for handler in %r' % path
+        if not os.path.exists(test_payloads_dir):   # a handler should have at least one test
+            print 'Test not found for handler in %r' % test_payloads_dir
             failed += 1
             continue
 
@@ -69,7 +72,7 @@ if __name__ == '__main__':
                 print '\nError while testing %r with payload %r: \n%s\n' % (path, test_path, err)
                 failed += 1
 
-            cleaned = wrapper.clean(warn)
+            cleaned = wrapper.clean(warn)   # final cleanup for unused nodes in JSON
             if warn and wrapper.unused:
                 print 'The file %r has %d unused nodes!' % (test_path, wrapper.unused)
                 dirty += 1

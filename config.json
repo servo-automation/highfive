@@ -6,6 +6,7 @@
         "user": "bot_2",
         "token": "bar123"
     }],
+    "secret": null,
     "enabled_events": [
         "issues"
     ]

@@ -10,19 +10,22 @@ if __name__ == '__main__':
     with open('config.json', 'r') as fd:
         config = json.load(fd)
 
-    # In case we've got multiple accounts, so that we don't hit the API with traffic
-    # from the same user
-
-    choice = random.choice(config['logins'])
+    choice = random.choice(config['logins'])    # pseudo-random choice of bot
     user = choice['user']
     auth_token = choice['token']
     events = config.get('enabled_events', [])
+    secret = config.get('secret')
 
     app = Flask('highfive')
 
     @app.route('/', methods=['POST'])
     def handle_payload():
         payload = request.get_json()
+        if secret:
+            # FIXME: ensure that the payload is from Github
+            # (verify the signature against hash of the secret)
+            pass
+
         api = GithubAPIProvider(payload, user, auth_token)
         for _, handler in get_handlers(events):
             handler(api)

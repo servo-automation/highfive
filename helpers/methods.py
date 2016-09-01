@@ -17,8 +17,10 @@ def get_path_parent(obj, match=[], get_obj=lambda item: item):
 
     It returns the (parent) node on which we can call those matching keys. This is
     useful when we're sure about how a path of a leaf ends, but not how it begins.
+
     An optional method specifies how to address the object i.e., whether to do it
     directly, or call another method to get the underlying object from the wrapper.
+    (the method is overridden when we use JsonCleaner's NodeMarker type)
     '''
     sep = '->'
     if not match:
@@ -60,10 +62,7 @@ def get_handlers(accepted_events):
     Execute all the handlers corresponding to the events (specified in the config) and
     yield the methods that process the payload
     '''
-    for event_name in sorted(os.listdir(HANDLERS_DIR)):
-        if event_name not in accepted_events:
-            continue
-
+    for event_name in sorted(accepted_events):
         event_dir = os.path.join(HANDLERS_DIR, event_name)
         if not os.path.isdir(event_dir):
             continue

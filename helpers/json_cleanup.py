@@ -42,7 +42,7 @@ class NodeMarker(object):
         return obj._node if hasattr(obj, 'mark') else obj
 
     # The following methods blindly assume that the method is supported by the
-    # particular type (i.e., exceptions should be handled explicitly)
+    # underlying type (i.e., exceptions should be handled explicitly)
 
     def get(self, key, default=None):
         return self[key] if self._node.get(key) else default
@@ -50,7 +50,7 @@ class NodeMarker(object):
     def lower(self):
         return str(self).lower()
 
-    # if you access the element in the usual way, then "bam!"
+    # If you access the element in the usual way, then "bam!"
     def __getitem__(self, key):
         self._node[key].mark()      # it will be marked as used!
         return self._node[key]
@@ -76,7 +76,7 @@ class NodeMarker(object):
     def __contains__(self, other):
         stuff = self.get_object(other)
         # since string is also a sequence in python, we shouldn't iterate
-        # over it and check the individual characters
+        # over it and index with the individual characters
         if isinstance(self._node, str) or isinstance(self._node, unicode):
             return other in self._node
 
@@ -129,4 +129,3 @@ class JsonCleaner(object):
                         node.pop(thing)
                         removed += 1
             return node
-        return ()
