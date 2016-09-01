@@ -1,0 +1,27 @@
+{
+  "initial": {},
+  "expected": {
+    "comments": []
+  },
+  "payload": {
+    "issue": {
+      "number": 123,
+      "user": {
+        "login": "Wafflespeanut"
+      }
+    },
+    "sender": {
+      "login": "jdm"
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "label": {
+      "name": "L-python"
+    },
+    "action": "labeled"
+  }
+}

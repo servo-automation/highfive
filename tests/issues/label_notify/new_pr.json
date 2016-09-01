@@ -1,0 +1,27 @@
+{
+  "initial": {},
+  "expected": {
+    "comments": ["cc @wafflespeanut"]
+  },
+  "payload": {
+    "sender": {
+      "login": "test-guy"
+    },
+    "repository": {
+      "owner": {
+        "login": "servo-highfive"
+      },
+      "name": "some-repo"
+    },
+    "label": {
+      "name": "any-label-should-match"
+    },
+    "action": "labeled",
+    "issue": {
+      "number": 84,
+      "user": {
+        "login": "meh?"
+      }
+    }
+  }
+}

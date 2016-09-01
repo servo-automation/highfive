@@ -69,7 +69,7 @@ if __name__ == '__main__':
             try:
                 api.evaluate()
             except AssertionError as err:
-                print '\nError while testing %r with payload %r: \n%s\n' % (path, test_path, err)
+                print '\nError while testing %r with payload %r: \n%s' % (path, test_path, err)
                 failed += 1
 
             cleaned = wrapper.clean(warn)   # final cleanup for unused nodes in JSON

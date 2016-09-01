@@ -1,0 +1,27 @@
+{
+  "expected": {
+    "comments": []
+  },
+  "initial": {},
+  "payload": {
+    "sender": {
+      "login": "nox"
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "label": {
+      "name": "not-watched-label"
+    },
+    "action": "labeled",
+    "issue": {
+      "number": 999,
+      "user": {
+        "login": "jdm"
+      }
+    }
+  }
+}

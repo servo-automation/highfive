@@ -1,0 +1,27 @@
+{
+  "initial": {},
+  "expected": {
+    "comments": []
+  },
+  "payload": {
+    "sender": {
+      "login": "jdm"
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "highfive"
+    },
+    "label": {
+      "name": "enhancement"
+    },
+    "action": "labeled",
+    "issue": {
+      "number": 84,
+      "user": {
+        "login": "nox"
+      }
+    }
+  }
+}
