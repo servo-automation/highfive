@@ -20,29 +20,34 @@ def compare_digest(val_1, val_2):
 
 
 if __name__ == '__main__':
+    # app "secret" key is optional, but it makes sure that you're getting payloads from
+    # Github. If a third-party found your POST URL, then anyone can send a cooked-up payload,
+    # and your bot will respond to it. In python, you can do something like,
+    # `print ''.join(map(chr, random.sample(range(32, 127), 32)))`
+    # (which will generate a 32-byte key in the ASCII range)
+
+    app = Flask('highfive')
     with open('config.json', 'r') as fd:
         config = json.load(fd)
 
     choice = random.choice(config['logins'])    # pseudo-random choice of bot
     user = choice['user']
     auth_token = choice['token']
+    secret = str(config.get('secret'))
     events = config.get('enabled_events', [])
 
-    # `print ''.join(map(chr, random.sample(range(32, 127), 32)))` should work
-    secret = str(config.get('secret'))
-
-    app = Flask('highfive')
 
     @app.route('/', methods=['POST'])
     def handle_payload():
-        if request.method != 'POST':
-            abort(501)
-
         try:
             raw_payload = request.data
             payload = json.loads(raw_payload)
         except:
             abort(400)
+
+        # if we have the event in the header, then run only those handlers corresponding to that event
+        event_name = request.headers.get('X-GitHub-Event')
+        events = [event_name] if event_name in events else events
 
         verify_msg = "Payload's signature can't be verified without the secret key!"
 
@@ -52,7 +57,7 @@ if __name__ == '__main__':
             msg_auth_code = hmac.new(secret, raw_payload, sha1)
             hashed = msg_auth_code.hexdigest()
 
-            verify_msg = "Payload signature has been verified!"
+            verify_msg = "Payload's signature has been verified!"
             if not compare_digest(signature, hashed):
                 print 'Invalid signature!'
                 abort(403)
@@ -62,7 +67,9 @@ if __name__ == '__main__':
         api = GithubAPIProvider(payload, user, auth_token)
         for _, handler in get_handlers(events):
             handler(api)
+
         return 'Yay!', 200
+
 
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=True, host='0.0.0.0', port=port)

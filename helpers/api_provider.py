@@ -11,8 +11,8 @@ class APIProvider(object):
         self.payload = payload
 
         node = self.get_matching_path(['owner', 'login'])
-        self.owner = node['owner']['login']
-        self.repo = node['name']
+        self.owner = node['owner']['login'].lower()
+        self.repo = node['name'].lower()
 
         node = self.get_matching_path(['number'])
         self.issue_number = node.get('number')
@@ -22,6 +22,29 @@ class APIProvider(object):
 
     def get_matching_path(self, matches):   # making the helper available for handlers
         return get_path_parent(self.payload, matches)
+
+    def get_sender_and_creator(self):
+        sender = self.payload['sender']['login'].lower()    # who triggered the payload
+        node = self.get_matching_path(['user', 'login']) or {'user': {'login': ''}}
+        creator = node['user']['login'].lower()     # (optional) creator of issue/pull
+        return sender, creator
+
+    # for config files that support per-repo configuration
+    def get_matching_repos(self, repo_names):
+        for name in repo_names:
+            # Initially, assume that it's a wildcard match (for all owners and repos)
+            watcher_owner, watcher_repo = self.owner, self.repo
+
+            split = name.lower().split('/')
+            if len(split) == 2:
+                watcher_owner = split[0]
+                # match for all repos owned by a particular owner
+                watcher_repo = self.repo if split[1] == '*' else split[1]
+            elif split[0] != '*':
+                continue            # invalid format
+
+            if watcher_owner == self.owner and watcher_repo == self.repo:
+                yield name
 
     def get_labels(self):
         raise NotImplementedError
