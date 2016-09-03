@@ -113,14 +113,15 @@ class JsonCleaner(object):
                 removed = 0
                 iterator = xrange(len(node)) if isinstance(node, list) \
                     else node.keys()
+
                 for thing in iterator:
                     new_path = path + str(thing) + NODE_SEP
                     # since lists maintain order, once we pop them,
                     # we decrement their indices as their length is reduced
                     if isinstance(node, list):
                         thing -= removed
-                    node[thing] = self._filter_nodes(node[thing],
-                                                     warn, new_path)
+                    node[thing] = self._filter_nodes(node[thing], warn, new_path)
+
                     if node[thing] == ():
                         self.unused += 1
                         if warn:

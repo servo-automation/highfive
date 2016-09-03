@@ -38,7 +38,7 @@ class TestAPIProvider(APIProvider):
 
 
 if __name__ == '__main__':
-    tests, failed, dirty = (0,) * 3
+    tests, failed, dirty = 0, 0, 0
     name, args = sys.argv[0], sys.argv[1:]
     overwrite = True if 'write' in args else False
     warn = not overwrite

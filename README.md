@@ -12,7 +12,7 @@ Calling `python runner.py` starts a Flask-based server, which listens to a parti
 
 All the payload handlers live inside `handlers`, grouped into submodules corresponding to each [webhook event](https://developer.github.com/webhooks/#events), so that we'll know which event triggers a handler, or in other words, which events have to be enabled while setting up a new webhook. Most often, we definitely don't wanna go for the "Send me everything" option that Github offers for a webhook, which thrashes your server with payloads related to every single event!
 
-There's a `config.json` inside every handler, which has the configuration related to a particular handler. They all share the `"active"` key, which tells whether the handler should be considered while processing the payload.
+All the handlers have per-repo configuration. There's a `config.json` local to every handler, which determines how it should respond to an event. They also have the `"active"` key, which tells whether the handler should be considered while processing an event-related payload.
 
 There's also a global [`config.json`](https://github.com/servo-highfive/hooker/blob/master/config.json) where we can enable/disable a group of handlers corresponding to an event. When multiple accounts and auth tokens are listed inside the global config, an user-token pair is chosen randomly just before handling a payload (so that the API requests are shared by multiple bots).
 
@@ -34,7 +34,7 @@ The test payloads live inside `tests`. The directory has the same structure as t
 - Create an app at Heroku, `cd` into the repo's directory, and use the [toolbelt](https://devcenter.heroku.com/articles/heroku-command-line) to set the remote to your heroku app: <br /> `heroku git:remote -a <app-name>`
 - Push to heroku!
 - Go to the settings page of your repo, open "webhooks and services" and add a new webhook.
-- The payload URL should point to your heroku app's URL, content type should be `application/json`, choose "Let me select individual events", and select only those events you've enabled in the global config file.<sup>[3]</sup>
+- The payload URL should point to your heroku app's `POST` URL, content type should be `application/json`, choose "Let me select individual events", and select only those events you've enabled in the global config file.<sup>[3]</sup>
 - In case you wanna verify that the payload sender is actually Github, generate a random key and put it in the "secret" box of your webhook. Then, update the global config with your secret key. When Github sends the payload, its [HMAC-SHA1 signature](https://developer.github.com/webhooks/securing/) will be verified by the script on execution.
 
 **Note:** Ideally, you shouldn't share your auth tokens or the secret keys with anyone (not even heroku), but for the sake of making this thing to work, we don't have a choice. If you've got your own server, then there's nothing to worry about :)

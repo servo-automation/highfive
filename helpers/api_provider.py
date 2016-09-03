@@ -29,7 +29,7 @@ class APIProvider(object):
         creator = node['user']['login'].lower()     # (optional) creator of issue/pull
         return sender, creator
 
-    # for config files that support per-repo configuration
+    # Per-repo configuration (FIXME: go for regex?)
     def get_matching_repos(self, repo_names):
         for name in repo_names:
             # Initially, assume that it's a wildcard match (for all owners and repos)
