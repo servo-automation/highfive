@@ -9,6 +9,7 @@ import json, urllib2
 class APIProvider(object):
     def __init__(self, payload):
         self.payload = payload
+        self.pull_url = payload['pull_request']['url'] if payload.get('pull_request') else None
 
         node = self.get_matching_path(['owner', 'login'])
         self.owner = node['owner']['login'].lower()
@@ -17,6 +18,7 @@ class APIProvider(object):
         node = self.get_matching_path(['number'])
         self.issue_number = node.get('number')
 
+        # Github labels are unique and case-insensitive (which is really helpful!)
         node = self.get_matching_path(['labels'])
         self.labels = map(lambda obj: obj['name'].lower(), node.get('labels', []))
 
@@ -49,6 +51,18 @@ class APIProvider(object):
     def get_labels(self):
         raise NotImplementedError
 
+    def replace_labels(self, labels=[]):
+        raise NotImplementedError
+
+    def update_labels(self, added=[], removed=[]):
+        current_labels = set(self.labels)
+        current_labels.update(map(lambda label: label.lower(), added))
+        current_labels.difference_update(map(lambda label: label.lower(), removed))
+        self.replace_labels(list(current_labels))
+
+    def get_pull(self):
+        raise NotImplementedError
+
     def post_comment(self, comment):
         raise NotImplementedError
 
@@ -56,14 +70,16 @@ class APIProvider(object):
 class GithubAPIProvider(APIProvider):
     base_url = 'https://api.github.com/repos/'
     comments_post_url = base_url + '%s/%s/issues/%s/comments'
-    labels_get_url = base_url + "%s/%s/issues/%s/labels"
+    labels_url = base_url + "%s/%s/issues/%s/labels"
 
     def __init__(self, payload, user, token):
         self.user = user
         self.token = token
         super(GithubAPIProvider, self).__init__(payload)
 
-    def request(self, method, url, data=None):
+    # self-helpers
+
+    def _request(self, method, url, data=None):
         data = None if not data else json.dumps(data)
         headers = {} if not data else {'Content-Type': 'application/json'}
         req = urllib2.Request(url, data, headers)
@@ -77,19 +93,33 @@ class GithubAPIProvider(APIProvider):
             resp = GzipFile(fileobj=resp)
         return (header, resp.read())
 
+    def _handle_labels(self, method, labels=[]):
+        url = self.labels_url % (self.owner, self.repo, self.issue_number)
+        _header, body = self._request(method, url, labels)
+        labels = map(lambda obj: obj['name'].lower(), json.loads(body))
+        return labels
+
+    # handler helpers
+
     def get_labels(self):
-        url = self.labels_get_url % (self.owner, self.repo, self.issue_number)
         if self.labels:
             return self.labels
 
-        _header, body = self.request('GET', url)
-        self.labels = map(lambda obj: obj['name'].lower(), json.loads(body))
+        self.labels = self._handle_labels('GET')
         return self.labels
+
+    # passing an empty list clears all the existing labels
+    def replace_labels(self, labels=[]):
+        self.labels = self._handle_labels('PUT', labels)
+
+    def get_pull(self):
+        _headers, body = self._request('GET', self.pull_url)
+        return body
 
     def post_comment(self, comment):
         url = self.comments_post_url % (self.owner, self.repo, self.issue_number)
         try:
-            self.request('POST', url, {'body': comment})
+            self._request('POST', url, {'body': comment})
         except urllib2.HTTPError as err:
             if err.code != 201:
                 raise err
