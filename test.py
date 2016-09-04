@@ -76,7 +76,7 @@ if __name__ == '__main__':
             if warn and wrapper.unused:
                 print 'The file %s has %d unused nodes!' % (test_path, wrapper.unused)
                 dirty += 1
-            elif overwrite:
+            elif wrapper.unused and overwrite:
                 test_data['payload'] = cleaned['payload']
                 with open(test_path, 'w') as fd:
                     json.dump(test_data, fd, indent=2)

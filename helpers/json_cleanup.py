@@ -74,14 +74,13 @@ class NodeMarker(object):
         return self._node % self.get_object(other)
 
     def __contains__(self, other):
-        stuff = self.get_object(other)
         # since string is also a sequence in python, we shouldn't iterate
         # over it and index with the individual characters
         if isinstance(self._node, str) or isinstance(self._node, unicode):
             return other in self._node
 
         for idx, thing in enumerate(self._node):
-            if thing == stuff:
+            if thing == self._node:
                 if isinstance(self._node, list):
                     self._node[idx].mark()
                 else:
