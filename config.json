@@ -8,6 +8,7 @@
     }],
     "secret": null,
     "enabled_events": [
-        "issues"
+        "issues",
+        "pull_request"
     ]
 }

@@ -51,7 +51,7 @@ if __name__ == '__main__':
     for path, handler in get_handlers(events):
         test_payloads_dir = TESTS_DIR + path.lstrip(HANDLERS_DIR)
         if not os.path.exists(test_payloads_dir):   # a handler should have at least one test
-            print 'Test not found for handler in %r' % test_payloads_dir
+            print 'Test not found for handler in %s' % test_payloads_dir
             failed += 1
             continue
 
@@ -69,18 +69,18 @@ if __name__ == '__main__':
             try:
                 api.evaluate()
             except AssertionError as err:
-                print '\nError while testing %r with payload %r: \n%s' % (path, test_path, err)
+                print '\nError while testing %s with payload %s: \n%s' % (path, test_path, err)
                 failed += 1
 
             cleaned = wrapper.clean(warn)   # final cleanup for unused nodes in JSON
             if warn and wrapper.unused:
-                print 'The file %r has %d unused nodes!' % (test_path, wrapper.unused)
+                print 'The file %s has %d unused nodes!' % (test_path, wrapper.unused)
                 dirty += 1
             elif overwrite:
                 test_data['payload'] = cleaned['payload']
                 with open(test_path, 'w') as fd:
                     json.dump(test_data, fd, indent=2)
-                print 'Rewrote the JSON file: %r' % test_path
+                print 'Rewrote the JSON file: %s' % test_path
 
     print '\nRan %d test(s): %d error(s), %d files dirty' % (tests, failed, dirty)
 

@@ -1,21 +1,21 @@
 {
-    "initial": {},
-    "expected": {
-        "comments": []
+  "initial": {},
+  "expected": {
+    "comments": []
+  },
+  "payload": {
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "highfive"
     },
-    "payload": {
-        "repository": {
-            "owner": {
-                "login": "servo"
-            },
-            "name": "highfive"
-        },
-        "label": {
-            "name": "some-unlisted-label"
-        },
-        "action": "labeled",
-        "issue": {
-            "number": 130
-        }
+    "label": {
+      "name": "some-unlisted-label"
+    },
+    "action": "labeled",
+    "issue": {
+      "number": 130
     }
+  }
 }
