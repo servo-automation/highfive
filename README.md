@@ -1,4 +1,4 @@
-## About highfive
+## Highfive
 
 Highfive is a bot, which is meant to provide a welcoming environment for the newcomers, and also help the contributors by commenting, labeling or notifying them in issues and pull requests when an anticipated event occurs.
 
@@ -14,15 +14,15 @@ All the payload handlers live inside `handlers`, grouped into submodules corresp
 
 All the handlers have per-repo configuration. There's a `config.json` local to every handler, which determines how it should respond to an event. They also have the `"active"` key, which tells whether the handler should be considered while processing an event-related payload.
 
-There's a global [`config.json`](https://github.com/servo-highfive/hooker/blob/master/config.json) where we can enable/disable a group of handlers corresponding to an event. When multiple accounts and auth tokens are listed inside the global config, an user-token pair is chosen randomly just before handling a payload (so that the API requests are shared by multiple bots).
+There's a global [`config.json`](https://github.com/servo-highfive/highfive/blob/master/config.json) where we can enable/disable a group of handlers corresponding to an event. When multiple accounts and auth tokens are listed inside the global config, an user-token pair is chosen randomly just before handling a payload (so that the API requests are shared by multiple bots).
 
 ### Tests
 
 The testsuite can be run offline with `python test.py`. **Every enabled handler should at least have one test!** (the testsuite enforces this rule). The tests are pretty simple. The test payloads live inside `tests` directory, which has the same structure as that of `handlers`. Each test JSON has the `"initial"` and `"expected"` values, along with the actual `"payload"` (the one posted by Github). Once a handler is executed with a payload, the final values are asserted against the expected values.
 
-Github's payload JSONs are huge! They have a lot of useful information, but we won't be using most of them. In order to keep the test JSONs as precise as possible, there's a ["mark and sweep" cleaner](https://github.com/servo-highfive/hooker/blob/master/helpers/json_cleanup.py), which uses a wrapper type for finding those unused nodes. So, whenever we "get" a value corresponding to a key, the path is traced and marked. In the end, the unmarked values (or untraced paths) are thrown as errors by the testsuite. If you've added a new test, then the unused nodes can be cleaned up by running `python test.py write`.
+Github's payload JSONs are huge! They have a lot of useful information, but we won't be using most of them. In order to keep the test JSONs as precise as possible, there's a ["mark and sweep" cleaner](https://github.com/servo-highfive/highfive/blob/master/helpers/json_cleanup.py), which uses a wrapper type for finding those unused nodes. So, whenever we "get" a value corresponding to a key, the path is traced and marked. In the end, the unmarked values (or untraced paths) are thrown as errors by the testsuite. If you've added a new test, then the unused nodes can be cleaned up by running `python test.py write`.
 
-`NodeMarker` is a *creepy* container. It wraps around all the objects! While most of the commonly used methods should work right now, in case you need to use a type-specific method (`lower` for `str`, for example), then you should add a new method to `NodeMarker`, asking it to access the method on the underlying type ([like so](https://github.com/servo-highfive/hooker/blob/8691a1ce0dce6045194f2a5510c0f63d2da72804/helpers/json_cleanup.py#L50-L51)). So, instead of working around in the main code, we're introducing workarounds in the cleaner. Well, everything comes at a cost!
+`NodeMarker` is a *creepy* container. It wraps around all the objects! While most of the commonly used methods should work right now, in case you need to use a type-specific method (`lower` for `str`, for example), then you should add a new method to `NodeMarker`, asking it to access the method on the underlying type ([like so](https://github.com/servo-highfive/highfive/blob/8691a1ce0dce6045194f2a5510c0f63d2da72804/helpers/json_cleanup.py#L50-L51)). So, instead of working around in the main code, we're introducing workarounds in the cleaner. Well, everything comes at a cost!
 
 ### Supported handlers
 
