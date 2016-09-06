@@ -6,21 +6,24 @@ def check_new_pr(api, config):
         return
 
     # If the PR already has an assignee, then don't try to assign one
-    if pr['assignee'] != None:
+    if pr['assignee']:
         return
 
-    reviewer = api.shared.find_reviewers(pr['body'])
+    chosen_ones = api.shared.find_reviewers(pr['body'])
 
-    if not reviewer:    # go for reviewer rotation
+    if not chosen_ones:    # go for reviewer rotation
         for config in api.get_matches_from_config(repos):
             _sender, creator = api.get_sender_and_creator()     # both are same in this case
             reviewers = filter(lambda name: name.lower() != creator.lower(), config['assignees'])
-            reviewer = reviewers[pr['number'] % len(reviewers)]
+            if not reviewers:
+                return
 
-    if not reviewer:    # something's wrong?
+            chosen_ones = [reviewers[api.issue_number % len(reviewers)]]
+
+    if not chosen_ones:    # something's wrong?
         return
 
-    api.set_assignees(reviewer)
+    api.set_assignees(chosen_ones)
 
 
 methods = [check_new_pr]

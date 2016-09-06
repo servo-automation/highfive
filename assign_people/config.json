@@ -29,6 +29,12 @@
             "assignees": [
                 "aneeshusa"
             ]
+        },
+
+        "test/test": {
+            "assignees": [
+                "highfive"
+            ]
         }
     }
 }
