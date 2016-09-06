@@ -1,0 +1,29 @@
+{
+  "initial": {},
+  "expected": {
+    "assignee": null
+  },
+  "payload": {
+    "number": 7087,
+    "pull_request": {
+      "assignee": null,
+      "url": null,
+      "body": "Who's gonna review this?",
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "test"
+          },
+          "name": "test"
+        }
+      },
+      "user": {
+        "login": "highfive"
+      }
+    },
+    "sender": {
+      "login": "highfive"
+    },
+    "action": "opened"
+  }
+}

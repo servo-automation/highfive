@@ -1,0 +1,29 @@
+{
+  "expected": {
+    "assignee": ["Wafflespeanut"]
+  },
+  "initial": {},
+  "payload": {
+    "number": 7087,
+    "pull_request": {
+      "url": null,
+      "assignee": null,
+      "body": "Not sure who I should assign this to!",
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "highfive"
+        }
+      },
+      "user": {
+        "login": "frewsxcv"
+      }
+    },
+    "sender": {
+      "login": "frewsxcv"
+    },
+    "action": "opened"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "expected": {
+    "assignee": ["jdm"]
+  },
+  "initial": {},
+  "payload": {
+    "number": 7076,
+    "pull_request": {
+      "assignee": null,
+      "url": null,
+      "body": "r? @jdm",
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      }
+    },
+    "action": "opened"
+  }
+}

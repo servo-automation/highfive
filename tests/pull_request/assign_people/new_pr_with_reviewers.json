@@ -1,0 +1,23 @@
+{
+  "expected": {
+    "assignee": ["jdm", "Manishearth", "Wafflespeanut"]
+  },
+  "initial": {},
+  "payload": {
+    "number": 7076,
+    "pull_request": {
+      "assignee": null,
+      "url": null,
+      "body": "r? @jdm,@Manishearth @Wafflespeanut",
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      }
+    },
+    "action": "opened"
+  }
+}

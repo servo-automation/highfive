@@ -1,0 +1,24 @@
+{
+  "initial": {
+    "assignee": ["SimonSapin"]
+  },
+  "expected": {
+    "assignee": ["SimonSapin"]
+  },
+  "payload": {
+    "number": 7087,
+    "pull_request": {
+      "assignee": "SimonSapin",
+      "url": null,
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      }
+    },
+    "action": "opened"
+  }
+}
