@@ -10,8 +10,8 @@ def notify_watchers(api, config):
     existing_labels = filter(lambda label: label != new_label, api.get_labels())
     new_label = api.payload['label']['name'].lower()
 
-    for name in api.get_matching_repos(repos):
-        for user, labels in repos[name].items():
+    for config in api.get_matches_from_config(repos):
+        for user, labels in config.items():
             user = user.lower()
             labels = map(lambda name: name.lower(), labels)
             # don't notify if the user's an author, or if the user is
