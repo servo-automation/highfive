@@ -19,7 +19,9 @@ class TestAPIProvider(APIProvider):
             # Initialize with a new instance of the expected value's type
             # (not the value itself!), so that we can check those values
             # again after running a handler
-            setattr(self, key, type(val)())
+            val_type = type(val)
+            instance = None if val == None else val_type()
+            setattr(self, key, instance)
 
         for key, val in initial.items():    # set/override the values
             setattr(self, key, val)
@@ -35,6 +37,13 @@ class TestAPIProvider(APIProvider):
 
     def post_comment(self, comment):
         self.comments.append(comment)
+
+    def set_assignees(self, assignees):
+        # Github API offers setting multiple assignees. In an issue's payload,
+        # we can find both "assignee" and "assignees". The latter is an array,
+        # while the former is a value, which is the first value from the array.
+        # Hence, it shouldn't make any difference.
+        self.assignee = assignees
 
     def evaluate(self):
         for key, expect_val in self.expected.items():

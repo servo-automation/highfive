@@ -1,7 +1,7 @@
 from base64 import standard_b64encode as b64_encode
 from gzip import GzipFile
 
-from methods import get_path_parent
+from methods import Shared, get_path_parent
 
 import json, urllib2
 
@@ -9,6 +9,7 @@ import json, urllib2
 class APIProvider(object):
     def __init__(self, payload):
         self.payload = payload
+        self.shared = Shared()
         self.pull_url = payload['pull_request']['url'] if payload.get('pull_request') else None
 
         node = self.get_matching_path(['owner', 'login'])
@@ -26,7 +27,7 @@ class APIProvider(object):
         return get_path_parent(self.payload, matches)
 
     def get_sender_and_creator(self):
-        sender = self.payload['sender']['login'].lower()    # who triggered the payload
+        sender = self.payload['sender']['login'].lower()    # who triggered the payload?
         node = self.get_matching_path(['user', 'login']) or {'user': {'login': ''}}
         creator = node['user']['login'].lower()     # (optional) creator of issue/pull
         return sender, creator
@@ -70,11 +71,16 @@ class APIProvider(object):
     def post_comment(self, comment):
         raise NotImplementedError
 
+    def set_assignees(self, assignees):
+        raise NotImplementedError
+
 
 class GithubAPIProvider(APIProvider):
     base_url = 'https://api.github.com/repos/'
-    comments_post_url = base_url + '%s/%s/issues/%s/comments'
-    labels_url = base_url + "%s/%s/issues/%s/labels"
+    issue_url = base_url + '%s/%s/issues/%s/'
+    comments_post_url = issue_url + 'comments'
+    labels_url = issue_url + 'labels'
+    assignees_url = issue_url + 'assignees'
 
     def __init__(self, payload, user, token):
         self.user = user
@@ -124,6 +130,14 @@ class GithubAPIProvider(APIProvider):
         url = self.comments_post_url % (self.owner, self.repo, self.issue_number)
         try:
             self._request('POST', url, {'body': comment})
+        except urllib2.HTTPError as err:
+            if err.code != 201:
+                raise err
+
+    def set_assignees(self, assignees):
+        url = self.assignees_url % (self.owner, self.repo, self.issue_number)
+        try:
+            self._request('POST', url, {'assignees': assignees})
         except urllib2.HTTPError as err:
             if err.code != 201:
                 raise err
