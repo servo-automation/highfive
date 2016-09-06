@@ -31,6 +31,7 @@ Github's payload JSONs are huge! They have a lot of useful information, but we w
  - `label_notify`: Notify label watcher(s) in a comment when a label is added to an issue.
 
 #### [`pull_request`](https://developer.github.com/v3/activity/events/types/#pullrequestevent)
+ - `assign_people`: Assign people based on review requests in PR body or (pseudo-)random reviewer rotation.
  - `label_response`: Add/remove labels when a PR is opened/updated/closed.
 
 ---
