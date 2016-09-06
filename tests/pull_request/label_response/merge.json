@@ -16,7 +16,6 @@
           "name": "servo"
         }
       },
-      "mergeable": true,
       "url": null
     },
     "action": "closed"

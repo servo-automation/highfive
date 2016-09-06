@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
                 print 'Rewrote the JSON file: %s' % test_path
 
-    print '\nRan %d test(s): %d error(s), %d files dirty' % (tests, failed, dirty)
+    print '\nRan %d test(s): %d error(s), %d file(s) dirty' % (tests, failed, dirty)
 
     if failed or dirty:
         if dirty:

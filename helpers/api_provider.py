@@ -32,12 +32,13 @@ class APIProvider(object):
         return sender, creator
 
     # Per-repo configuration (FIXME: go for regex?)
-    def get_matching_repos(self, repo_names):
-        for name in repo_names:
+    def get_matches_from_config(self, config):
+        repos = []
+        for repo in config:
             # Initially, assume that it's a wildcard match (for all owners and repos)
             watcher_owner, watcher_repo = self.owner, self.repo
 
-            split = name.lower().split('/')
+            split = repo.lower().split('/')
             if len(split) == 2:
                 watcher_owner = split[0]
                 # match for all repos owned by a particular owner
@@ -46,7 +47,9 @@ class APIProvider(object):
                 continue            # invalid format
 
             if watcher_owner == self.owner and watcher_repo == self.repo:
-                yield name
+                repos.append(config[repo])
+
+        return repos
 
     def get_labels(self):
         raise NotImplementedError

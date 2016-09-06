@@ -132,3 +132,4 @@ class JsonCleaner(object):
                         node.pop(thing)
                         removed += 1
             return node
+        return ()
