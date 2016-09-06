@@ -61,6 +61,9 @@ class NodeMarker(object):
     def __iter__(self):
         return iter(self._node)
 
+    def __nonzero__(self):      # It's __bool__ for Python 3
+        return bool(self._node)
+
     def __eq__(self, other):
         return self._node == self.get_object(other)
 

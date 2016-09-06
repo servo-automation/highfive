@@ -8,6 +8,9 @@ TESTS_DIR = 'tests'
 
 
 class TestAPIProvider(APIProvider):
+    # Since we're going for getting/setting attributes, we should make sure
+    # that we're using the same names for both initial/expected values (in JSON)
+    # and the class variables
     def __init__(self, payload, initial, expected):
         super(TestAPIProvider, self).__init__(payload)
         self.expected = expected
@@ -26,6 +29,9 @@ class TestAPIProvider(APIProvider):
 
     def get_labels(self):
         return self.labels
+
+    def replace_labels(self, labels=[]):
+        self.labels = labels
 
     def post_comment(self, comment):
         self.comments.append(comment)
@@ -79,7 +85,10 @@ if __name__ == '__main__':
             elif wrapper.unused and overwrite:
                 test_data['payload'] = cleaned['payload']
                 with open(test_path, 'w') as fd:
-                    json.dump(test_data, fd, indent=2)
+                    contents = json.dumps(test_data, indent=2)
+                    trimmed = map(lambda line: line.rstrip() + '\n', contents.splitlines())
+                    fd.writelines(trimmed)
+
                 print 'Rewrote the JSON file: %s' % test_path
 
     print '\nRan %d test(s): %d error(s), %d files dirty' % (tests, failed, dirty)

@@ -55,9 +55,10 @@ class APIProvider(object):
         raise NotImplementedError
 
     def update_labels(self, added=[], removed=[]):
-        current_labels = set(self.labels)
-        current_labels.update(map(lambda label: label.lower(), added))
-        current_labels.difference_update(map(lambda label: label.lower(), removed))
+        to_lower = lambda label: label.lower()
+        current_labels = set(map(to_lower, self.labels))
+        current_labels.update(map(to_lower, added))
+        current_labels.difference_update(map(to_lower, removed))
         self.replace_labels(list(current_labels))
 
     def get_pull(self):
