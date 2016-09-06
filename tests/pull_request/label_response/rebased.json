@@ -1,0 +1,28 @@
+{
+  "initial": {
+    "labels": [
+      "S-needs-rebase"
+    ]
+  },
+  "expected": {
+    "labels": [
+      "s-awaiting-review"
+    ]
+  },
+  "payload": {
+    "number": 7062,
+    "pull_request": {
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      },
+      "mergeable": true,
+      "url": null
+    },
+    "action": "synchronize"
+  }
+}

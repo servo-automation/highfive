@@ -1,0 +1,24 @@
+{
+  "initial": {
+    "labels": ["S-awaiting-merge", "S-needs-code-changes"]
+  },
+  "expected": {
+    "labels": ["s-needs-code-changes"]
+  },
+  "payload": {
+    "number": 1,
+    "pull_request": {
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      },
+      "mergeable": true,
+      "url": null
+    },
+    "action": "closed"
+  }
+}

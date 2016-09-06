@@ -1,0 +1,25 @@
+{
+  "initial": {},
+  "expected": {
+    "labels": [
+      "s-awaiting-review",
+      "s-needs-rebase"
+    ]
+  },
+  "payload": {
+    "number": 7076,
+    "pull_request": {
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      },
+      "mergeable": false,
+      "url": null
+    },
+    "action": "opened"
+  }
+}
