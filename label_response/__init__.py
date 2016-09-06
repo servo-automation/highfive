@@ -22,8 +22,7 @@ def manage_pr_labels(api, config):
             is_mergeable = pull['mergeable']
 
     # ideally, this should iterate only once (assuming the config is valid)
-    for name in api.get_matching_repos(repos):
-        labels = repos[name]
+    for labels in api.get_matches_from_config(repos):
         labels_to_add, labels_to_remove = [], []
 
         if is_new or is_update:
