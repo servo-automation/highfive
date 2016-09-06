@@ -9,7 +9,7 @@
             "merge_conflict_remove": [],
 
             "close_or_merge_add": [],
-            "close_or_merge_remove": ["S-awaiting-merge", "S-tests-failed", "S-needs-code-changes"]
+            "close_or_merge_remove": ["S-awaiting-merge"]
         }
     }
 }
