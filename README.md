@@ -27,11 +27,12 @@ Github's payload JSONs are huge! They have a lot of useful information, but we w
 ### Supported handlers
 
 #### [`issues`](https://developer.github.com/v3/activity/events/types/#issuesevent)
- - `label_response`: Comment when a label is added to an issue.
  - `label_notify`: Notify label watcher(s) in a comment when a label is added to an issue.
+ - `label_response`: Comment when a label is added to an issue.
 
 #### [`pull_request`](https://developer.github.com/v3/activity/events/types/#pullrequestevent)
  - `assign_people`: Assign people based on review requests in PR body or (pseudo-)random reviewer rotation.
+ - `diff_check_warn`: Check the diff of the commits in a PR for (added) lines matching a pattern (specified in config), and post a consolidated warning message on match(es) found (if any).
  - `label_response`: Add/remove labels when a PR is opened/updated/closed.
 
 ---
@@ -51,6 +52,6 @@ Github's payload JSONs are huge! They have a lot of useful information, but we w
 
 <sup>
 [1]: A bot should (at least) have the `repo` scope for the handlers to work.<br />
-[2]: If you've removed an event from the global config file, then the entire group of handlers will be ignored. <br /.>
+[2]: If you've removed an event from the global config file, then the entire group of handlers will be ignored. <br />
 [3]: A clever strategy would be to have multiple apps, each taking care of a webhook event (or a set of handlers). <br />
 </sup>
