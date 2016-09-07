@@ -1,0 +1,23 @@
+{
+  "expected": {
+    "comments": [":warning: **Warning!** :warning:\n\n * These commits include an empty title element (`<title></title>`). Consider adding appropriate metadata.\n * These commits have **unsafe code**. Please review it carefully!"]
+  },
+  "initial": {
+    "diff": "+ <title></title>\n+ unsafe { }"
+  },
+  "payload": {
+    "number": 7076,
+    "pull_request": {
+      "url": null,
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      }
+    },
+    "action": "opened"
+  }
+}
