@@ -13,8 +13,7 @@ def check_new_pr(api, config):
 
     if not chosen_ones:    # go for reviewer rotation
         repo_config = api.get_matches_from_config(repos)
-        _sender, creator = api.get_sender_and_creator()     # both are same in this case
-        reviewers = filter(lambda name: name.lower() != creator.lower(), repo_config['assignees'])
+        reviewers = filter(lambda name: name.lower() != api.creator.lower(), repo_config['assignees'])
         if not reviewers:
             return
 
