@@ -1,0 +1,23 @@
+{
+  "expected": {
+    "comments": [":warning: **Warning!** :warning:\n\n * These commits include an empty title element (`<title></title>`). Consider adding appropriate metadata.\n * This pull request modifies the contents of `tests/wpt/css-tests/`, which are overwriten occasionally whenever the directory is synced from upstream."]
+  },
+  "initial": {
+    "diff": "diff --git a/tests/wpt/css-tests/blah b/tests/wpt/css-tests/blah\n+ <title></title>"
+  },
+  "payload": {
+    "number": 7076,
+    "pull_request": {
+      "url": null,
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      }
+    },
+    "action": "opened"
+  }
+}
