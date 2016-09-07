@@ -3,7 +3,7 @@ from gzip import GzipFile
 
 from methods import Shared, get_path_parent
 
-import json, urllib2
+import json, re, urllib2
 
 
 class APIProvider(object):
@@ -17,6 +17,11 @@ class APIProvider(object):
         self.owner = node['owner']['login'].lower()
         self.repo = node['name'].lower()
 
+        # payload sender and (optional) creator of issue/pull/comment
+        self.sender = payload['sender']['login'].lower() if payload.get('sender') else None
+        node = self.get_matching_path(['user', 'login']) or {'user': {'login': ''}}
+        self.creator = node['user']['login'].lower()    # (optional) creator of issue/pull
+
         node = self.get_matching_path(['number'])
         self.issue_number = node.get('number')
 
@@ -27,30 +32,14 @@ class APIProvider(object):
     def get_matching_path(self, matches):   # making the helper available for handlers
         return get_path_parent(self.payload, matches)
 
-    def get_sender_and_creator(self):
-        sender = self.payload['sender']['login'].lower()    # who triggered the payload?
-        node = self.get_matching_path(['user', 'login']) or {'user': {'login': ''}}
-        creator = node['user']['login'].lower()     # (optional) creator of issue/pull
-        return sender, creator
-
-    # Per-repo configuration (FIXME: go for regex?)
+    # Per-repo configuration
     def get_matches_from_config(self, config):
         repo_config = {}
+        string = '%s/%s' % (self.owner, self.repo)
 
-        for repo in config:
-            # Initially, assume that it's a wildcard match (for all owners and repos)
-            watcher_owner, watcher_repo = self.owner, self.repo
-
-            split = repo.lower().split('/')
-            if len(split) == 2:
-                watcher_owner = split[0]
-                # match for all repos owned by a particular owner
-                watcher_repo = self.repo if split[1] == '*' else split[1]
-            elif split[0] != '*':
-                continue            # invalid format
-
-            if watcher_owner == self.owner and watcher_repo == self.repo:
-                for key, val in config[repo].items():
+        for pattern in config:
+            if re.search(pattern, string):
+                for key, val in config[pattern].items():
                     if repo_config.get(key) and isinstance(val, list):
                         repo_config[key] += val
                     else:
