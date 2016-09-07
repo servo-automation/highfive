@@ -35,7 +35,8 @@ class APIProvider(object):
 
     # Per-repo configuration (FIXME: go for regex?)
     def get_matches_from_config(self, config):
-        repos = []
+        repo_config = {}
+
         for repo in config:
             # Initially, assume that it's a wildcard match (for all owners and repos)
             watcher_owner, watcher_repo = self.owner, self.repo
@@ -49,9 +50,15 @@ class APIProvider(object):
                 continue            # invalid format
 
             if watcher_owner == self.owner and watcher_repo == self.repo:
-                repos.append(config[repo])
+                for key, val in config[repo].items():
+                    if repo_config.get(key) and isinstance(val, list):
+                        repo_config[key] += val
+                    else:
+                        # NOTE: This overrides the previous value (if any)
+                        # Make sure that the matches in config file doesn't have such keys
+                        repo_config[key] = val
 
-        return repos
+        return repo_config
 
     def get_labels(self):
         raise NotImplementedError
