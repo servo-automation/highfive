@@ -1,0 +1,9 @@
+{
+    "active": true,
+    "repos": {
+        "servo/servo": {
+            "unsafe ": "These commits have **unsafe code**. Please review it carefully!",
+            "<title></title>": "These commits include an empty title element (`<title></title>`). Consider adding appropriate metadata."
+        }
+    }
+}
