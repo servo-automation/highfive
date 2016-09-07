@@ -85,6 +85,16 @@ class APIProvider(object):
             if line.startswith('+') and not line.startswith('+++'):
                 yield line
 
+    def get_changed_files(self):
+        diff = self.get_diff()
+        for line in diff.splitlines():
+            # Get paths from a line like 'diff --git a/path/to/file b/path/to/file'
+            if line.startswith('diff --git '):
+                file_path = line.split()[-1]
+                if file_path.startswith('a/') or file_path.startswith('b/'):
+                    file_path = file_path[2:]
+                yield file_path
+
     def post_comment(self, comment):
         raise NotImplementedError
 
