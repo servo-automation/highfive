@@ -38,6 +38,9 @@ class TestAPIProvider(APIProvider):
     def post_comment(self, comment):
         self.comments.append(comment)
 
+    def get_diff(self):
+        return self.diff
+
     def set_assignees(self, assignees):
         # Github API offers setting multiple assignees. In an issue's payload,
         # we can find both "assignee" and "assignees". The latter is an array,

@@ -11,6 +11,7 @@ class APIProvider(object):
         self.payload = payload
         self.shared = Shared()
         self.pull_url = payload['pull_request']['url'] if payload.get('pull_request') else None
+        self.diff = None
 
         node = self.get_matching_path(['owner', 'login'])
         self.owner = node['owner']['login'].lower()
@@ -68,6 +69,15 @@ class APIProvider(object):
     def get_pull(self):
         raise NotImplementedError
 
+    def get_diff(self):
+        raise NotImplementedError
+
+    def get_added_lines(self):
+        diff = self.get_diff()
+        for line in diff.splitlines():
+            if line.startswith('+') and not line.startswith('+++'):
+                yield line
+
     def post_comment(self, comment):
         raise NotImplementedError
 
@@ -81,6 +91,7 @@ class GithubAPIProvider(APIProvider):
     comments_post_url = issue_url + 'comments'
     labels_url = issue_url + 'labels'
     assignees_url = issue_url + 'assignees'
+    diff_url = 'https://github.com/%s/%s/pull/%s.diff'
 
     def __init__(self, payload, user, token):
         self.user = user
@@ -125,6 +136,14 @@ class GithubAPIProvider(APIProvider):
     def get_pull(self):
         _headers, body = self._request('GET', self.pull_url)
         return body
+
+    def get_diff(self):
+        if self.diff:
+            return self.diff
+
+        url = self.diff_url % (self.owner, self.repo, self.issue_number)
+        _headers, self.diff = self._request('GET', url)
+        return self.diff
 
     def post_comment(self, comment):
         url = self.comments_post_url % (self.owner, self.repo, self.issue_number)
