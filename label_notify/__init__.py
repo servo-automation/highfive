@@ -5,7 +5,6 @@ def notify_watchers(api, config):
         return
 
     watchers_to_be_notified = []
-    sender, creator = api.get_sender_and_creator()
 
     existing_labels = filter(lambda label: label != new_label, api.get_labels())
     new_label = api.payload['label']['name'].lower()
@@ -16,7 +15,7 @@ def notify_watchers(api, config):
         labels = map(lambda name: name.lower(), labels)
         # don't notify if the user's an author, or if the user is
         # the one who has triggered the label event
-        if user == sender or user == creator:
+        if user == api.sender or user == api.creator:
             continue
 
         if any(label in existing_labels for label in labels):
