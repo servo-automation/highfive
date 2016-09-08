@@ -79,10 +79,11 @@ class APIProvider(object):
         for line in diff.splitlines():
             # Get paths from a line like 'diff --git a/path/to/file b/path/to/file'
             if line.startswith('diff --git '):
-                file_path = line.split()[-1]
-                if file_path.startswith('a/') or file_path.startswith('b/'):
-                    file_path = file_path[2:]
-                yield file_path
+                file_paths = filter(lambda p: p.startswith('a/') or p.startswith('b/'),
+                                    line.split())
+                file_paths = set(map(lambda p: p[2:], file_paths))
+                for path in file_paths:
+                    yield path      # yields only one item atmost!
 
     def post_comment(self, comment):
         raise NotImplementedError

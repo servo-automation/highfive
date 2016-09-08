@@ -18,7 +18,9 @@ There's a global [`config.json`](https://github.com/servo-highfive/highfive/blob
 
 ### Tests
 
-The testsuite can be run offline with `python test.py`. **Every enabled handler should at least have one test!** (the testsuite enforces this rule). The tests are pretty simple. The test payloads live inside `tests` directory, which has the same structure as that of `handlers`. Each test JSON has the `"initial"` and `"expected"` values, along with the actual `"payload"` (the one posted by Github). Once a handler is executed with a payload, the final values are asserted against the expected values.
+The testsuite can be run offline with `python test.py`. **Every enabled handler should at least have one test!** (the testsuite enforces this rule). The tests are pretty simple. The test payloads live inside `tests` directory, which has the same structure as that of `handlers`.
+
+Each test JSON has the `"initial"` and `"expected"` values, along with the actual `"payload"` (the one posted by Github). Once a handler is executed with a payload, the final values are asserted against the expected values. The `initial` and `expected` values can also be a list, so that we can test multiple cases with the same payload.
 
 Github's payload JSONs are huge! They have a lot of useful information, but we won't be using most of them. In order to keep the test JSONs as precise as possible, there's a ["mark and sweep" cleaner](https://github.com/servo-highfive/highfive/blob/master/helpers/json_cleanup.py), which uses a wrapper type for finding those unused nodes. So, whenever we "get" a value corresponding to a key, the path is traced and marked. In the end, the unmarked values (or untraced paths) are thrown as errors by the testsuite. If you've added a new test, then the unused nodes can be cleaned up by running `python test.py write`.
 

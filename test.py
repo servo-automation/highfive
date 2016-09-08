@@ -74,21 +74,25 @@ if __name__ == '__main__':
             continue
 
         for test in os.listdir(test_payloads_dir):
-            tests += 1
             test_path = os.path.join(test_payloads_dir, test)
             with open(test_path, 'r') as fd:
                 test_data = json.load(fd)
 
             initial, expected = test_data['initial'], test_data['expected']
-            wrapper = JsonCleaner({'payload': test_data['payload']})
-            api = TestAPIProvider(wrapper.json['payload'], initial, expected)
-            handler(api)
+            initial_vals = initial if isinstance(initial, list) else [initial]
+            expected_vals = expected if isinstance(expected, list) else [expected]
 
-            try:
-                api.evaluate()
-            except AssertionError as err:
-                print '\nError while testing %s with payload %s: \n%s' % (path, test_path, err)
-                failed += 1
+            wrapper = JsonCleaner({'payload': test_data['payload']})
+            for (initial, expected) in zip(initial_vals, expected_vals):
+                api = TestAPIProvider(wrapper.json['payload'], initial, expected)
+                handler(api)
+                tests += 1
+
+                try:
+                    api.evaluate()
+                except AssertionError as err:
+                    print '\nError while testing %s with payload %s: \n%s' % (path, test_path, err)
+                    failed += 1
 
             cleaned = wrapper.clean(warn)   # final cleanup for unused nodes in JSON
             if warn and wrapper.unused:
