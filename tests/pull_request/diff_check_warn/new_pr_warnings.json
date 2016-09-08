@@ -5,6 +5,12 @@
     },
     {
       "diff": "diff --git a/tests/wpt/css-tests/blah b/tests/wpt/css-tests/blah\n+ <title></title>"
+    },
+    {
+      "diff": "diff --git a/components/layout/foo.rs\ndiff --git a/components/gfx/foo.rs\ndiff --git a/components/style/foo.rs"
+    },
+    {
+      "diff": "diff --git a/components/script/foobar.rs\ndiff --git a/tests/wpt/did/some/thing.html"
     }
   ],
   "expected": [
@@ -13,6 +19,12 @@
     },
     {
       "comments": [":warning: **Warning!** :warning:\n\n * These commits include an empty title element (`<title></title>`). Consider adding appropriate metadata.\n * This pull request modifies the contents of `tests/wpt/css-tests/`, which are overwriten occasionally whenever the directory is synced from upstream."]
+    },
+    {
+      "comments": [":warning: **Warning!** :warning:\n\n * These commits modify the gfx, layout and style code, but no tests have been modified. Please consider updating the tests appropriately."]
+    },
+    {
+      "comments": []
     }
   ],
   "payload": {
