@@ -97,6 +97,9 @@ def get_handlers(accepted_events):
                 if not handler_config.get('active'):    # per-handler switch
                     continue
 
-                execfile(handler_path)
-                for method in locals().get('methods', []):
+                with open(handler_path, 'r') as fd:
+                    source = fd.read()
+                    exec source in locals()
+
+                for method in methods:
                     yield handler_dir, lambda api: method(api, handler_config)
