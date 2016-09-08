@@ -1,6 +1,30 @@
 import re
 
 
+def _check_tests(repo_config, paths):
+    no_tests = []
+    test_check = repo_config['test_check']
+
+    for check in test_check:
+        name, modify_path, test_paths = check['name'], check['path'], check['test_paths']
+        for path in paths:
+            if re.search(modify_path, path):
+                found = filter(lambda path: any(re.search(p, path) for p in test_paths), paths)
+                if not found:
+                    no_tests.append(name)
+                break
+
+    message = 'These commits modify the %s code, but no tests have been modified. Please consider updating the tests appropriately.'
+
+    if len(no_tests) == 1:
+        return message % no_tests.pop()
+    elif len(no_tests) == 2:
+        return message % '{} and {}'.format(*no_tests)
+    elif len(no_tests) > 2:
+        last = no_tests.pop()
+        return message % '%s and %s' % (', '.join(no_tests), last)
+
+
 def check_diff(api, config):
     repos = config.get('repos')
     pr = api.payload.get('pull_request')
@@ -21,8 +45,12 @@ def check_diff(api, config):
     get_messages(lines, matches)
 
     matches = repo_config['files']
-    paths = api.get_changed_files()
+    paths = list(api.get_changed_files())
     get_messages(paths, matches)
+
+    test_check_result = _check_tests(repo_config, paths)
+    if test_check_result:
+        messages.update([test_check_result])
 
     if messages:
         lines = '\n'.join(map(lambda line: ' * %s' % line, messages))
