@@ -19,6 +19,17 @@ class Shared(object):
             names = filter(lambda s: s, reviewers.split('@'))
             return map(lambda name: name.strip(' ,'), names)
 
+    def join_names(self, names):
+        ''' Join multiple words in human-readable form'''
+        if len(names) == 1:
+            return names.pop()
+        elif len(names) == 2:
+            return '{} and {}'.format(*names)
+        elif len(names) > 2:
+            last = names.pop()
+            return '%s and %s' % (', '.join(names), last)
+        return ''
+
 
 def get_path_parent(obj, match=[], get_obj=lambda item: item):
     '''
