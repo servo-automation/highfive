@@ -1,0 +1,54 @@
+{
+    "active": true,
+    "repos": {
+        "servo/servo": {
+            "aneeshusa": [ "etc/ci/" ],
+            "asajeffrey": [
+                "components/constellation",
+                "components/webdriver_server"
+            ],
+            "bholley": [ "components/style" ],
+            "emilio": [
+                "components/canvas/webgl_paint_task.rs",
+                "components/script/dom/webgl"
+            ],
+            "fitzgen": [
+                "components/devtools",
+                "components/devtools_traits",
+                "components/profile",
+                "components/profile_traits"
+            ],
+            "jgraham": [
+                "components/webdriver_server/",
+                "tests/wpt/",
+                "-tests/wpt/css-tests",
+                "-tests/wpt/metadata",
+                "-tests/wpt/metadata-css",
+                "-tests/wpt/mozilla",
+                "-tests/wpt/web-platform-tests"
+            ],
+            "KiChjang": [
+                "components/net",
+                "components/net_traits",
+                "components/script",
+                "components/script_traits"
+            ],
+            "Wafflespeanut": [ "python/" ]
+        },
+        "servo/highfive": {
+            "jdm": []
+        },
+        "servo-highfive/*": {
+            "Wafflespeanut": []
+        },
+        "test/test": {
+            "test_user": [
+                "watched/dir/",
+                "not-watched/dir/watched-file.rs",
+                "blacklisted/dir/watched-file.rs",
+                "-blacklisted/dir/",
+                "-watched/dir/blacklisted-file.rs"
+            ]
+        }
+    }
+}
