@@ -1,7 +1,7 @@
 import re
 
 
-def _check_tests(repo_config, paths):
+def _check_tests(api, repo_config, paths):
     no_tests = []
     test_check = repo_config['test_check']
 
@@ -14,19 +14,14 @@ def _check_tests(repo_config, paths):
                     no_tests.append(name)
                 break
 
-    message = 'These commits modify the %s code, but no tests have been modified. Please consider updating the tests appropriately.'
-
-    if len(no_tests) == 1:
-        return message % no_tests.pop()
-    elif len(no_tests) == 2:
-        return message % '{} and {}'.format(*no_tests)
-    elif len(no_tests) > 2:
-        last = no_tests.pop()
-        return message % '%s and %s' % (', '.join(no_tests), last)
+    message = ('These commits modify the %s code, but no tests have been modified. '
+               'Please consider updating the tests appropriately.')
+    if no_tests:
+        return message % api.shared.join_names(no_tests)
 
 
 # Servo-specific WPT metadata checker
-def _check_metadata(paths):
+def _check_metadata(api, paths):
     msg = ('This pull request adds file(s) to `%s` without the `.ini` extension. '
            'Please consider removing the file(s)!')
 
@@ -39,11 +34,7 @@ def _check_metadata(paths):
             offending_file_dirs |= set(d for d in metadata_dirs if re.search(d, path))
 
     if offending_file_dirs:
-        if len(offending_file_dirs) == 1:
-            test_dirs = offending_file_dirs.pop()
-        else:
-            test_dirs = '{} and {}'.format(*offending_file_dirs)
-        return msg % test_dirs
+        return msg % api.shared.join_names(offending_file_dirs)
 
 
 # define and append the repo-specific handlers here
@@ -83,16 +74,16 @@ def check_diff(api, config):
     paths = list(api.get_changed_files())
     get_messages(paths, matches)
 
-    test_check_result = _check_tests(repo_config, paths)
+    test_check_result = _check_tests(api, repo_config, paths)
     if test_check_result:
         messages.update([test_check_result])
 
-    # run the repo-specific handlers (if any)
+    # Run the repo-specific handlers (if any)
     handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS)
     for name, methods in handlers.items():
         for method in methods:
             _input = locals().get(name)
-            result = method(_input)
+            result = method(api, _input)
             if result:
                 messages.update([result])
 
