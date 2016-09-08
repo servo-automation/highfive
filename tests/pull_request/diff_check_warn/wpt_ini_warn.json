@@ -1,0 +1,63 @@
+{
+  "expected": [
+    {
+      "comments": []
+    },
+    {
+      "comments": [":warning: **Warning!** :warning:\n\n * This pull request adds file(s) to `tests/wpt/mozilla/meta` without the `.ini` extension. Please consider removing the file(s)!"]
+    },
+    {
+      "comments": [":warning: **Warning!** :warning:\n\n * This pull request adds file(s) to `tests/wpt/metadata` without the `.ini` extension. Please consider removing the file(s)!"]
+    },
+    {
+      "comments": []
+    },
+    {
+      "comments": []
+    },
+    {
+      "comments": []
+    },
+    {
+      "comments": []
+    }
+  ],
+  "initial": [
+    {
+      "diff": "diff --git a/tests/wpt/metadata/foo.ini"
+    },
+    {
+      "diff": "diff --git a/tests/wpt/mozilla/meta/bar.tgz"
+    },
+    {
+      "diff": "diff --git a/tests/wpt/metadata/bar.tgz"
+    },
+    {
+      "diff": "diff --git a/tests/wpt/metadata"
+    },
+    {
+      "diff": "not diff a/tests/wpt/metadata/foo.bar"
+    },
+    {
+      "diff": "diff --git a/tests/wpt/metadata/MANIFEST.json"
+    },
+    {
+      "diff": "diff --git a/tests/wpt/metadata/mozilla-sync"
+    }
+  ],
+  "payload": {
+    "number": 7076,
+    "pull_request": {
+      "url": null,
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      }
+    },
+    "action": "opened"
+  }
+}
