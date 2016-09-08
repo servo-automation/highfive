@@ -35,6 +35,7 @@ Github's payload JSONs are huge! They have a lot of useful information, but we w
 #### [`pull_request`](https://developer.github.com/v3/activity/events/types/#pullrequestevent)
  - `assign_people`: Assign people based on review requests in PR body or (pseudo-)random reviewer rotation.
  - `diff_check_warn`: Check the diff of the commits in a PR for added lines or changed files matching a pattern (specified in config), and post a consolidated warning message on the match(es) found.
+ - `path_watchers`: Notify watcher(s) in a comment whenever a PR makes changes to the "watched" paths.
  - `label_response`: Add/remove labels when a PR is opened/updated/closed.
 
 ---
