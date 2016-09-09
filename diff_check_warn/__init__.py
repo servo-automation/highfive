@@ -3,7 +3,7 @@ import re
 
 def _check_tests(api, repo_config, paths):
     no_tests = []
-    test_check = repo_config['test_check']
+    test_check = repo_config.get('test_check', [])
 
     for check in test_check:
         name, modify_path, test_paths = check['name'], check['path'], check['test_paths']
@@ -54,7 +54,7 @@ REPO_SPECIFIC_HANDLERS = {
 def check_diff(api, config):
     repos = config.get('repos')
     pr = api.payload.get('pull_request')
-    if not (repos and pr and api.payload.get('action') == 'opened'):
+    if not (pr and api.payload.get('action') == 'opened'):
         return
 
     messages = set()    # so that we filter duplicates
@@ -66,11 +66,11 @@ def check_diff(api, config):
                 if re.search(match, line):
                     messages.update([msg])
 
-    matches = repo_config['content']
+    matches = repo_config.get('content', {})
     lines = api.get_added_lines()
     get_messages(lines, matches)
 
-    matches = repo_config['files']
+    matches = repo_config.get('files', {})
     paths = list(api.get_changed_files())
     get_messages(paths, matches)
 
