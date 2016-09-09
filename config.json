@@ -8,6 +8,7 @@
     }],
     "secret": null,
     "enabled_events": [
+        "issue_comment",
         "issues",
         "pull_request"
     ]
