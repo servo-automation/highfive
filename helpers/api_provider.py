@@ -29,6 +29,9 @@ class APIProvider(object):
         node = self.get_matching_path(['labels'])
         self.labels = map(lambda obj: obj['name'].lower(), node.get('labels', []))
 
+        node = self.get_matching_path(['issue', 'state'])
+        self.is_open = node['issue']['state'] == 'open' if node else None
+
     def get_matching_path(self, matches):   # making the helper available for handlers
         return get_path_parent(self.payload, matches)
 

@@ -48,7 +48,7 @@ Github's payload JSONs are huge! They have a lot of useful information, but we w
 - Create an app at Heroku, `cd` into the repo's directory, and use the [toolbelt](https://devcenter.heroku.com/articles/heroku-command-line) to set the remote to your heroku app: <br /> `heroku git:remote -a <app-name>`
 - Push to heroku!
 - Go to the settings page of your repo, open "webhooks and services" and add a new webhook.
-- The payload URL should point to your heroku app's `POST` URL, content type should be `application/json`, choose "Let me select individual events", and select only those events you've enabled in the global config file.<sup>[3]</sup>
+- The payload URL is your heroku app's `POST` URL, content type is `application/json`, choose "Let me select individual events", and select only those events you've enabled in the global config file.<sup>[3]</sup>
 - In case you wanna verify that the payload sender is actually Github, generate a random key and put it in the "secret" box of your webhook. Then, update the global config with your secret key. When Github sends the payload, its [HMAC-SHA1 signature](https://developer.github.com/webhooks/securing/) will be verified by the script on execution.
 
 **Note:** Ideally, you shouldn't share your auth tokens or the secret keys with anyone (not even heroku), but for the sake of making this thing to work, we don't have a choice. If you've got your own server, then there's nothing to worry about :)

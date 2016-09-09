@@ -7,17 +7,22 @@ class Shared(object):
     '''Methods required by the handlers in the submodules'''
     def find_reviewers(self, comment):
         '''
-        If the user had specified reviewer(s), return the username(s),
-        otherwise return None.
+        If the user had specified the reviewer(s), then return the name(s),
+        otherwise return None. It matches all the usernames following a
+        review request.
 
-        For example, both 'r? @foo @bar,@foobar' and 're? @foo,@bar, @foobar'
-        return ['foo', 'bar', 'foobar']
+        For example,
+        'r? @foo @bar,@foobar'
+        're- @foo,@bar, @foobar'
+        'review: @foo for XXX @bar,@foobar for YYY'
+
+        All these comments return ['foo', 'bar', 'foobar']
         '''
-        result = re.search(r'r[eviw]*[\?:\- ]*@([@a-zA-Z0-9\-, ]*)', str(comment))
+        result = re.search(r'r[eviw]*[\?:\-] @(.*)', str(comment))
         if result:
             reviewers = result.group(1)
             names = filter(lambda s: s, reviewers.split('@'))
-            return map(lambda name: name.strip(' ,'), names)
+            return map(lambda name: name.split()[0].strip(' ,'), names)
 
     def join_names(self, names):
         ''' Join multiple words in human-readable form'''
