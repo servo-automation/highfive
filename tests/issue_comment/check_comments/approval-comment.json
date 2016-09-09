@@ -1,0 +1,25 @@
+{
+  "initial": {},
+  "expected": {
+    "assignee": ["nox", "wafflespeanut"]
+  },
+  "payload": {
+    "comment": {
+      "body": "@bors-servo: r=nox,wafflespeanut",
+      "user": {
+        "login": "jdm"
+      }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "action": "created",
+    "issue": {
+      "number": 7075,
+      "state": "open"
+    }
+  }
+}
