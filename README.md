@@ -28,6 +28,9 @@ Github's payload JSONs are huge! They have a lot of useful information, but we w
 
 ### Supported handlers
 
+#### [`issue_comment`](https://developer.github.com/v3/activity/events/types/#issuecommentevent)
+ - `check_comments`: There's no general configuration for this, since it's specific to a repo. The handlers we've got here respond to approval comments in Servo PRs. They can be used as a model to add more repo-specific handlers.
+
 #### [`issues`](https://developer.github.com/v3/activity/events/types/#issuesevent)
  - `label_notify`: Notify label watcher(s) in a comment when a label is added to an issue.
  - `label_response`: Comment when a label is added to an issue.
