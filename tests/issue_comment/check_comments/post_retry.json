@@ -1,0 +1,45 @@
+{
+  "initial": [
+    {
+      "labels": [
+        "s-tests-failed"
+      ]
+    },
+    {
+      "labels": [
+        "s-awaiting-merge"
+      ]
+    }
+  ],
+  "expected": [
+    {
+      "labels": [
+        "s-awaiting-merge"
+      ]
+    },
+    {
+      "labels": [
+        "s-awaiting-merge"
+      ]
+    }
+  ],
+  "payload": {
+    "comment": {
+      "body": ":hourglass: Testing commit 926cb90 with merge abf7399...",
+      "user": {
+        "login": "bors-servo"
+      }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "action": "created",
+    "issue": {
+      "number": 7105,
+      "state": "open"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "initial": {
+    "labels": [
+      "S-needs-code-changes",
+      "S-needs-rebase",
+      "S-tests-failed",
+      "S-needs-squash",
+      "S-awaiting-review"
+    ]
+  },
+  "expected": {
+    "labels": [
+      "s-awaiting-merge"
+    ]
+  },
+  "payload": {
+    "comment": {
+      "body": ":pushpin: Commit 90d7d11 has been approved by `larsbergstrom+dzbarsky`\n\n<!-- @bors-servo r=larsbergstrom+dzbarsky 90d7d11a23e650e03c0283f49b54e9f748c66fee -->",
+      "user": {
+        "login": "bors-servo"
+      }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "action": "created",
+    "issue": {
+      "number": 7075,
+      "state": "open"
+    }
+  }
+}

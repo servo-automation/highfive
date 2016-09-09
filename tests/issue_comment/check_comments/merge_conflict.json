@@ -1,0 +1,31 @@
+{
+  "initial": {
+    "labels": [
+      "S-awaiting-merge"
+    ]
+  },
+  "expected": {
+    "labels": [
+      "s-needs-rebase"
+    ]
+  },
+  "payload": {
+    "comment": {
+      "body": ":umbrella: The latest upstream changes (presumably #6741) made this pull request unmergeable. Please resolve the merge conflicts.",
+      "user": {
+        "login": "bors-servo"
+      }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "action": "created",
+    "issue": {
+      "number": 7075,
+      "state": "open"
+    }
+  }
+}
