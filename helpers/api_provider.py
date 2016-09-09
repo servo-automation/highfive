@@ -3,7 +3,7 @@ from gzip import GzipFile
 
 from methods import Shared, get_path_parent
 
-import json, re, urllib2
+import contextlib, json, re, urllib2
 
 
 class APIProvider(object):
@@ -94,6 +94,9 @@ class APIProvider(object):
     def set_assignees(self, assignees):
         raise NotImplementedError
 
+    def get_page_content(self, path):
+        raise NotImplementedError
+
 
 class GithubAPIProvider(APIProvider):
     base_url = 'https://api.github.com/repos/'
@@ -170,3 +173,10 @@ class GithubAPIProvider(APIProvider):
         except urllib2.HTTPError as err:
             if err.code != 201:
                 raise err
+
+    def get_page_content(self, url):
+        try:
+            with contextlib.closing(urllib2.urlopen(url)) as fd:
+                return fd.read()
+        except urllib2.URLError:
+            return ''

@@ -36,7 +36,7 @@ class TestAPIProvider(APIProvider):
         self.labels = labels
 
     def post_comment(self, comment):
-        self.comments.append(comment)
+        self.comments.append(comment.decode('utf-8'))
 
     def get_diff(self):
         return self.diff
@@ -47,6 +47,10 @@ class TestAPIProvider(APIProvider):
         # while the former is a value, which is the first value from the array.
         # Hence, it shouldn't make any difference.
         self.assignee = assignees
+
+    def get_page_content(self, path):
+        with open(path) as fd:
+            return fd.read()
 
     def evaluate(self):
         for key, expect_val in self.expected.items():
@@ -75,6 +79,9 @@ if __name__ == '__main__':
 
         for test in os.listdir(test_payloads_dir):
             test_path = os.path.join(test_payloads_dir, test)
+            if not os.path.isfile(test_path):
+                continue
+
             with open(test_path, 'r') as fd:
                 test_data = json.load(fd)
 
