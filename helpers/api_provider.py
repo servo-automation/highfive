@@ -1,9 +1,10 @@
+from StringIO import StringIO
 from base64 import standard_b64encode as b64_encode
 from gzip import GzipFile
 
 from methods import Shared, get_path_parent
 
-import contextlib, json, re, urllib2
+import contextlib, json, re, requests, urllib2
 
 
 class APIProvider(object):
@@ -114,18 +115,20 @@ class GithubAPIProvider(APIProvider):
     # self-helpers
 
     def _request(self, method, url, data=None):
-        data = None if not data else json.dumps(data)
-        headers = {} if not data else {'Content-Type': 'application/json'}
-        req = urllib2.Request(url, data, headers)
         authorization = '%s:%s' % (self.user, self.token)
         base64 = b64_encode(authorization).replace('\n', '')
-        req.add_header('Authorization', 'Basic %s' % base64)
+        headers={ 'Authorization': 'Basic %s' % base64 }
 
-        resp = urllib2.urlopen(req)
-        header = resp.info()
-        if header.get('Content-Encoding') == 'gzip':
-            resp = GzipFile(fileobj=resp)
-        return (header, resp.read())
+        req_method = getattr(requests, method.lower())
+        resp = req_method(url, data=data, headers=headers)
+        data = resp.text
+        if str(resp.status_code)[0] != '2':
+            raise 'Got a non-2xx response: %r' % data
+
+        if resp.headers.get('Content-Encoding') == 'gzip':
+            fd = GzipFile(fileobj=StringIO(data))
+            data = fd.read()
+        return (resp.headers, json.loads(data))
 
     def _handle_labels(self, method, labels=[]):
         url = self.labels_url % (self.owner, self.repo, self.issue_number)
@@ -160,23 +163,12 @@ class GithubAPIProvider(APIProvider):
 
     def post_comment(self, comment):
         url = self.comments_post_url % (self.owner, self.repo, self.issue_number)
-        try:
-            self._request('POST', url, {'body': comment})
-        except urllib2.HTTPError as err:
-            if err.code != 201:
-                raise err
+        self._request('POST', url, {'body': comment})
 
     def set_assignees(self, assignees):
         url = self.assignees_url % (self.owner, self.repo, self.issue_number)
-        try:
-            self._request('POST', url, {'assignees': assignees})
-        except urllib2.HTTPError as err:
-            if err.code != 201:
-                raise err
+        self._request('POST', url, {'assignees': assignees})
 
     def get_page_content(self, url):
-        try:
-            with contextlib.closing(urllib2.urlopen(url)) as fd:
-                return fd.read()
-        except urllib2.URLError:
-            return ''
+        with contextlib.closing(urllib2.urlopen(url)) as fd:
+            return fd.read()
