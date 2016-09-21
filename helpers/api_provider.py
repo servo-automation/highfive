@@ -117,13 +117,19 @@ class GithubAPIProvider(APIProvider):
     def _request(self, method, url, data=None):
         authorization = '%s:%s' % (self.user, self.token)
         base64 = b64_encode(authorization).replace('\n', '')
-        headers={ 'Authorization': 'Basic %s' % base64 }
+        headers = { 'Authorization': 'Basic %s' % base64 }
+
+        if data:
+            headers['Content-Type'] = 'application/json'
+            data = json.dumps(data)
 
         req_method = getattr(requests, method.lower())
         resp = req_method(url, data=data, headers=headers)
-        data = resp.text
-        if str(resp.status_code)[0] != '2':
-            raise 'Got a non-2xx response: %r' % data
+        data, code = resp.text, resp.status_code
+
+        if code < 200 or code >= 300:
+            print 'Got a %s response: %r' % (code, data)
+            raise Exception
 
         if resp.headers.get('Content-Encoding') == 'gzip':
             fd = GzipFile(fileobj=StringIO(data))
