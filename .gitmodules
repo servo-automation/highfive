@@ -1,3 +1,0 @@
-[submodule "handlers/issue_comment"]
-    path = handlers/issue_comment
-    url = git://github.com/servo-highfive/issue_comment-event
