@@ -1,0 +1,16 @@
+{
+    "active": true,
+    "repos": {
+        "servo/servo": {
+            "aneeshusa": ["A-infrastructure"],
+            "fitzgen": ["A-devtools", "A-profiling"],
+            "Wafflespeanut": ["A-mach", "L-python"]
+        },
+        "servo/highfive": {
+            "jdm": ["enhancement"]
+        },
+        "servo-highfive/*": {
+            "Wafflespeanut": []
+        }
+    }
+}
