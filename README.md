@@ -2,15 +2,13 @@
 
 Highfive is a bot, which is meant to provide a welcoming environment for the newcomers, and also help the contributors by commenting, labeling or notifying them in issues and pull requests when an anticipated event occurs.
 
-The stuff inside this repo (and all its sub-repos) is a rework of all the collaborative work done in the old [highfive](https://github.com/servo/highfive), with the limitations of the Github API in mind.
-
-This repo is responsible for calling the various handlers with the payload "posted" by Github webhooks API. It basically runs the whole thing. It has the handlers (as submodules), the tests for them, and the other API-related stuff.
+The stuff inside this repo is a rework of all the collaborative work done in the old [highfive](https://github.com/servo/highfive), with the limitations of the Github API in mind.
 
 ### Design
 
-Calling `python runner.py` starts a Flask-based server, which listens to a particular port for `POST`ing of payloads. It can be tested lively at [Heroku platform](http://heroku.com/). Their free plan kills the server after a few minutes of inactivity, but once a payload is posted, the script will be executed and the payload will be handed over to the server. The initial startup delay isn't much, and hence it best suites our purpose.
+Calling `python runner.py` starts a Flask-based server, which listens to a particular port for `POST`ing of payloads. It can be tested lively at [Heroku platform](http://heroku.com/). Their free plan kills the server after a few minutes of inactivity, but once a payload is posted, the script will be executed and the payload will be handed over to the server. The initial startup delay isn't much, and hence it works quite well for our purpose.
 
-All the payload handlers live inside `handlers`, grouped into submodules corresponding to each [webhook event](https://developer.github.com/webhooks/#events), so that we'll know which event triggers a handler, or in other words, which events have to be enabled while setting up a new webhook. Most often, we definitely don't wanna go for the "Send me everything" option that Github offers for a webhook, which thrashes your server with payloads related to every single event!
+All the payload handlers live inside `handlers`, grouped into directories corresponding to each [webhook event](https://developer.github.com/webhooks/#events), so that we'll know which event triggers a handler, or in other words, which events have to be enabled while setting up a new webhook. Most often, we definitely don't wanna go for the "Send me everything" option that Github offers for a webhook, which thrashes your server with payloads related to every single event!
 
 All the handlers have per-repo configuration. There's a `config.json` local to every handler, which determines how it should respond to an event. It has two basic keys. The `"active"` key tells whether the handler should be considered while processing an event-related payload. The `"repos"` key contains the per-repo config. Repository names are usually of the form `"owner/repo"`, but since it allows regex patterns, you can have dangerous matches like `"owner/*"` (which matches all the repos of an owner) and `"*"` (which matches any repo of any owner, i.e., every payload it gets).
 

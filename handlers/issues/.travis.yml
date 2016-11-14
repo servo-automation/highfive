@@ -1,8 +1,0 @@
-language: python
-python:
-  - "2.7"
-script:
-  - git clone git://github.com/servo-highfive/highfive
-  - rm -rf highfive/handlers/issues/*
-  - mv !(highfive) highfive/handlers/issues/
-  - cd highfive/ && python test.py
