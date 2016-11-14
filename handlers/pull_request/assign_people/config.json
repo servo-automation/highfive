@@ -1,0 +1,40 @@
+{
+    "active": true,
+    "repos": {
+        "servo/servo": {
+            "assignees": [
+                "asajeffrey",
+                "ConnorGBrewster",
+                "emilio",
+                "glennw",
+                "jdm",
+                "KiChjang",
+                "larsbergstrom",
+                "Manishearth",
+                "metajack",
+                "Ms2ger",
+                "nox",
+                "pcwalton",
+                "SimonSapin",
+                "Wafflespeanut"
+            ]
+        },
+        "servo/highfive": {
+            "assignees": [
+                "jdm",
+                "Wafflespeanut"
+            ]
+        },
+        "servo/saltfs": {
+            "assignees": [
+                "aneeshusa"
+            ]
+        },
+
+        "test/test": {
+            "assignees": [
+                "highfive"
+            ]
+        }
+    }
+}

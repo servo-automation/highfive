@@ -1,0 +1,15 @@
+{
+    "active": true,
+    "repos": {
+        "servo/servo": {
+            "open_or_update_add": ["S-awaiting-review"],
+            "open_or_update_remove": ["S-awaiting-merge", "S-tests-failed", "S-needs-code-changes"],
+
+            "merge_conflict_add": ["S-needs-rebase"],
+            "merge_conflict_remove": [],
+
+            "close_or_merge_add": [],
+            "close_or_merge_remove": ["S-awaiting-merge"]
+        }
+    }
+}

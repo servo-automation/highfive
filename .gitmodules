@@ -1,6 +1,3 @@
-[submodule "handlers/pulls"]
-	path = handlers/pull_request
-	url = git://github.com/servo-highfive/pull_request-event
 [submodule "handlers/issue_comment"]
     path = handlers/issue_comment
     url = git://github.com/servo-highfive/issue_comment-event
