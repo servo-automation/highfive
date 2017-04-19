@@ -82,7 +82,7 @@ def check_diff(api, config):
     handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS)
     for name, methods in handlers.items():
         for method in methods:
-            _input = locals().get(name)
+            _input = locals().get(name, [])     # `lines` and `paths`
             result = method(api, _input)
             if result:
                 messages.update([result])

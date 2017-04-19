@@ -25,17 +25,17 @@ def manage_pr_labels(api, config):
     labels_to_add, labels_to_remove = [], []
 
     if is_new or is_update:
-        labels_to_add += labels['open_or_update_add']
-        labels_to_remove += labels['open_or_update_remove']
+        labels_to_add += labels.get('open_or_update_add', [])
+        labels_to_remove += labels.get('open_or_update_remove', [])
 
-        conflict_add = labels['merge_conflict_add']
-        conflict_remove = labels['merge_conflict_remove']
+        conflict_add = labels.get('merge_conflict_add', [])
+        conflict_remove = labels.get('merge_conflict_remove', [])
         labels_to_add += conflict_remove if is_mergeable else conflict_add
         labels_to_remove += conflict_add if is_mergeable else conflict_remove
 
     elif is_closed:
-        labels_to_add += labels['close_or_merge_add']
-        labels_to_remove += labels['close_or_merge_remove']
+        labels_to_add += labels.get('close_or_merge_add', [])
+        labels_to_remove += labels.get('close_or_merge_remove', [])
 
     # We don't have to explicitly check whether a label exists (while removing),
     # or whether a label doesn't exist (while adding a new one)

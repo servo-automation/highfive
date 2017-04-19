@@ -1,12 +1,7 @@
 {
-    "logins": [{
-        "user": "bot_1",
-        "token": "foo123"
-    }, {
-        "user": "bot_2",
-        "token": "bar123"
-    }],
+    "pem_file": "highfive.pem",
     "secret": null,
+    "integration_id": null,
     "enabled_events": [
         "issue_comment",
         "issues",

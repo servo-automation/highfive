@@ -6,7 +6,6 @@ def notify_watchers(api, config):
 
     watchers_to_be_notified = []
 
-    existing_labels = filter(lambda label: label != new_label, api.get_labels())
     new_label = api.payload['label']['name'].lower()
     repo_config = api.get_matches_from_config(repos)
 
@@ -18,11 +17,11 @@ def notify_watchers(api, config):
         if user == api.sender or user == api.creator:
             continue
 
-        if any(label in existing_labels for label in labels):
+        if any(label in api.labels for label in labels):
             continue    # we've already notified the user
 
         # If we don't find any labels, then notify the user for any labelling event
-        if not labels or new_label in labels:
+        if (api.labels and not labels) or new_label in labels:
             watchers_to_be_notified.append(user)
 
     if watchers_to_be_notified:

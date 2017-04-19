@@ -4,7 +4,7 @@ from hashlib import sha1
 from helpers.api_provider import GithubAPIProvider
 from helpers.methods import get_handlers
 
-import hmac, os, json, random
+import hmac, os, json
 
 # Implementation of digest comparison from Django
 # https://github.com/django/django/blob/0ed7d155635da9f79d4dd67e4889087d3673c6da/django/utils/crypto.py#L96-L105
@@ -30,12 +30,8 @@ if __name__ == '__main__':
     with open('config.json', 'r') as fd:
         config = json.load(fd)
 
-    choice = random.choice(config['logins'])    # pseudo-random choice of bot
-    user = choice['user']
-    auth_token = choice['token']
-    secret = str(config.get('secret'))
-    events = config.get('enabled_events', [])
 
+    enabled_events = config.get('enabled_events', [])
 
     @app.route('/', methods=['POST'])
     def handle_payload():
@@ -47,9 +43,10 @@ if __name__ == '__main__':
 
         # if we have the event in the header, then run only those handlers corresponding to that event
         event_name = request.headers.get('X-GitHub-Event')
-        events = [event_name] if event_name in events else events
+        events = [event_name] if event_name in enabled_events else enabled_events
 
         verify_msg = "Payload's signature can't be verified without the secret key!"
+        secret = str(config.get('secret'))
 
         if secret:
             header_sign = request.headers.get('X-Hub-Signature', '') + '='
@@ -64,7 +61,10 @@ if __name__ == '__main__':
 
         print verify_msg
 
-        api = GithubAPIProvider(payload, user, auth_token)
+        with open(config['pem_file'], 'r') as fd:
+            private_key = fd.read()
+
+        api = GithubAPIProvider(payload, private_key, config['integration_id'])
         for _, handler in get_handlers(events):
             handler(api)
 
@@ -72,4 +72,4 @@ if __name__ == '__main__':
 
 
     port = int(os.environ.get('PORT', 5000))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    app.run(debug=True, host='0.0.0.0', port=port, threaded=True)

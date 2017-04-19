@@ -117,5 +117,5 @@ def get_handlers(accepted_events):
                     source = fd.read()
                     exec source in locals()
 
-                for method in methods:
+                for method in methods:      # methods will come into existence here
                     yield handler_dir, lambda api: method(api, handler_config)

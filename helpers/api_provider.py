@@ -1,10 +1,10 @@
 from StringIO import StringIO
-from base64 import standard_b64encode as b64_encode
 from gzip import GzipFile
+from jose import jwt
 
 from methods import Shared, get_path_parent
 
-import contextlib, json, re, requests, urllib2
+import contextlib, json, re, requests, time, urllib2
 
 
 class APIProvider(object):
@@ -15,8 +15,8 @@ class APIProvider(object):
         self.diff = None
 
         node = self.get_matching_path(['owner', 'login'])
-        self.owner = node['owner']['login'].lower()
-        self.repo = node['name'].lower()
+        self.owner = node.get('owner', {'login': ''})['login'].lower()
+        self.repo = node.get('name', '').lower()
 
         # payload sender and (optional) creator of issue/pull/comment
         self.sender = payload['sender']['login'].lower() if payload.get('sender') else None
@@ -42,7 +42,8 @@ class APIProvider(object):
         string = '%s/%s' % (self.owner, self.repo)
 
         for pattern in config:
-            if re.search(pattern, string):
+            pat_lower = pattern.lower()
+            if re.search(pat_lower, string):
                 for key, val in config[pattern].items():
                     if repo_config.get(key) and isinstance(val, list):
                         repo_config[key] += val
@@ -59,11 +60,11 @@ class APIProvider(object):
     def replace_labels(self, labels=[]):
         raise NotImplementedError
 
-    def update_labels(self, added=[], removed=[]):
-        to_lower = lambda label: label.lower()
-        current_labels = set(map(to_lower, self.labels))
-        current_labels.update(map(to_lower, added))
-        current_labels.difference_update(map(to_lower, removed))
+    def update_labels(self, add=[], remove=[]):
+        to_lower = lambda label: label.lower()      # str.lower doesn't work for unicode
+        current_labels = set(map(to_lower, self.get_labels()))
+        current_labels.update(map(to_lower, add))
+        current_labels.difference_update(map(to_lower, remove))
         self.replace_labels(list(current_labels))
 
     def get_pull(self):
@@ -100,31 +101,49 @@ class APIProvider(object):
 
 
 class GithubAPIProvider(APIProvider):
-    base_url = 'https://api.github.com/repos/'
-    issue_url = base_url + '%s/%s/issues/%s/'
+    base_url = 'https://api.github.com/'
+    issue_url = base_url + 'repos/%s/%s/issues/%s/'
     comments_post_url = issue_url + 'comments'
     labels_url = issue_url + 'labels'
     assignees_url = issue_url + 'assignees'
     diff_url = 'https://github.com/%s/%s/pull/%s.diff'
+    installation_url = base_url + 'installations/%s/access_tokens'
+    headers = {
+        'Content-Type': 'application/json',
+        # integration-specific header
+        'Accept': 'application/vnd.github.machine-man-preview+json',
+        'Accept-encoding': 'gzip'
+    }
 
-    def __init__(self, payload, user, token):
-        self.user = user
-        self.token = token
+    def __init__(self, payload, pem_key, int_id):
+        self.token = None
+        self.pem = pem_key
+        self.int_id = int_id
         super(GithubAPIProvider, self).__init__(payload)
+        self._sync_token()
 
     # self-helpers
 
-    def _request(self, method, url, data=None):
-        authorization = '%s:%s' % (self.user, self.token)
-        base64 = b64_encode(authorization).replace('\n', '')
-        headers = { 'Authorization': 'Basic %s' % base64 }
+    # https://developer.github.com/early-access/integrations/authentication/#jwt-payload
+    def _sync_token(self):      # FIXME: Sync only after the token expires
+        since_epoch = int(time.time())
+        auth_payload = {
+            'iat': since_epoch,
+            'exp': since_epoch + 600,       # 10 mins expiration for JWT
+            'iss': self.int_id,
+        }
 
-        if data:
-            headers['Content-Type'] = 'application/json'
-            data = json.dumps(data)
+        url = self.installation_url % self.payload['installation']['id']
+        self.token = jwt.encode(auth_payload, self.pem, 'RS256')
+        resp = self._request('POST', url, auth='Bearer')
+        self.token = resp['token']      # installation token (expires in 1 hour)
 
+    def _request(self, method, url, data=None, auth='token'):
+        self.headers['Authorization'] = '%s %s' % (auth, self.token)
+        data = json.dumps(data) if data is not None  else data
         req_method = getattr(requests, method.lower())
-        resp = req_method(url, data=data, headers=headers)
+        print '%s: %s (data: %s)' % (method, url, data)
+        resp = req_method(url, data=data, headers=self.headers)
         data, code = resp.text, resp.status_code
 
         if code < 200 or code >= 300:
@@ -132,14 +151,20 @@ class GithubAPIProvider(APIProvider):
             raise Exception
 
         if resp.headers.get('Content-Encoding') == 'gzip':
-            fd = GzipFile(fileobj=StringIO(data))
-            data = fd.read()
-        return (resp.headers, json.loads(data))
+            try:
+                fd = GzipFile(fileobj=StringIO(data))
+                data = fd.read()
+            except IOError:
+                pass
+        try:
+            return json.loads(data)
+        except (TypeError, ValueError):         # stuff like 'diff' will be a string
+            return data
 
     def _handle_labels(self, method, labels=[]):
         url = self.labels_url % (self.owner, self.repo, self.issue_number)
-        _header, body = self._request(method, url, labels)
-        labels = map(lambda obj: obj['name'].lower(), json.loads(body))
+        data = self._request(method, url, labels)
+        labels = map(lambda obj: obj['name'].lower(), data)
         return labels
 
     # handler helpers
@@ -156,15 +181,14 @@ class GithubAPIProvider(APIProvider):
         self.labels = self._handle_labels('PUT', labels)
 
     def get_pull(self):
-        _headers, body = self._request('GET', self.pull_url)
-        return body
+        return self._request('GET', self.pull_url)
 
     def get_diff(self):
         if self.diff:
             return self.diff
 
         url = self.diff_url % (self.owner, self.repo, self.issue_number)
-        _headers, self.diff = self._request('GET', url)
+        self.diff = self._request('GET', url)
         return self.diff
 
     def post_comment(self, comment):

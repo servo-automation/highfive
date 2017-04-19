@@ -73,21 +73,20 @@ def _watch_bors(api):
     if user != 'bors-servo':
         return
 
-    labels = api.get_labels()
     if 'has been approved by' in comment or 'Testing commit' in comment:
         remove_labels = ['S-awaiting-review', 'S-needs-rebase',
                          'S-tests-failed', 'S-needs-code-changes',
                          'S-needs-squash', 'S-awaiting-answer']
-        api.update_labels(added=['S-awaiting-merge'], removed=remove_labels)
+        api.update_labels(add=['S-awaiting-merge'], remove=remove_labels)
 
     elif 'Test failed' in comment:
-        api.update_labels(added=['S-tests-failed'], removed=['S-awaiting-merge'])
+        api.update_labels(add=['S-tests-failed'], remove=['S-awaiting-merge'])
         # Get the homu build stats url,
         # extract the failed tests and post them!
         check_failure_log(api, comment)
 
     elif 'Please resolve the merge conflicts' in comment:
-        api.update_labels(added=['S-needs-rebase'], removed=['S-awaiting-merge'])
+        api.update_labels(add=['S-needs-rebase'], remove=['S-awaiting-merge'])
 
 
 # All these handlers are specific to Servo!
@@ -111,7 +110,7 @@ def check_comments(api, config):
     # do some stuff (if config-based handlers are added in the future)
 
     handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS)
-    for method in handlers['methods']:
+    for method in handlers.get('methods', []):
         method(api)
 
 

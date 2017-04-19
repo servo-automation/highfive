@@ -56,7 +56,7 @@ class TestAPIProvider(APIProvider):
         for key, expect_val in self.expected.items():
             val = getattr(self, key)
             assert val == expect_val, \
-                  "Value found '%s' != expected value '%s'" % (val, expect_val)
+                "Value found '%s' != expected value '%s'" % (val, expect_val)
 
 
 if __name__ == '__main__':
@@ -112,7 +112,7 @@ if __name__ == '__main__':
                     trimmed = map(lambda line: line.rstrip() + '\n', contents.splitlines())
                     fd.writelines(trimmed)
 
-                print 'Rewrote the JSON file: %s' % test_path
+                print 'Rewrote %s' % test_path
 
     print '\nRan %d test(s): %d error(s), %d file(s) dirty' % (tests, failed, dirty)
 
