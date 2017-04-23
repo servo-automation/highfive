@@ -107,59 +107,12 @@ class GithubAPIProvider(APIProvider):
     labels_url = issue_url + 'labels'
     assignees_url = issue_url + 'assignees'
     diff_url = 'https://github.com/%s/%s/pull/%s.diff'
-    installation_url = base_url + 'installations/%s/access_tokens'
-    headers = {
-        'Content-Type': 'application/json',
-        # integration-specific header
-        'Accept': 'application/vnd.github.machine-man-preview+json',
-        'Accept-encoding': 'gzip'
-    }
 
-    def __init__(self, payload, pem_key, int_id):
-        self.token = None
-        self.pem = pem_key
-        self.int_id = int_id
+    def __init__(self, payload, request_method):
         super(GithubAPIProvider, self).__init__(payload)
-        self._sync_token()
+        self._request = request_method
 
     # self-helpers
-
-    # https://developer.github.com/early-access/integrations/authentication/#jwt-payload
-    def _sync_token(self):      # FIXME: Sync only after the token expires
-        since_epoch = int(time.time())
-        auth_payload = {
-            'iat': since_epoch,
-            'exp': since_epoch + 600,       # 10 mins expiration for JWT
-            'iss': self.int_id,
-        }
-
-        url = self.installation_url % self.payload['installation']['id']
-        self.token = jwt.encode(auth_payload, self.pem, 'RS256')
-        resp = self._request('POST', url, auth='Bearer')
-        self.token = resp['token']      # installation token (expires in 1 hour)
-
-    def _request(self, method, url, data=None, auth='token'):
-        self.headers['Authorization'] = '%s %s' % (auth, self.token)
-        data = json.dumps(data) if data is not None  else data
-        req_method = getattr(requests, method.lower())
-        print '%s: %s (data: %s)' % (method, url, data)
-        resp = req_method(url, data=data, headers=self.headers)
-        data, code = resp.text, resp.status_code
-
-        if code < 200 or code >= 300:
-            print 'Got a %s response: %r' % (code, data)
-            raise Exception
-
-        if resp.headers.get('Content-Encoding') == 'gzip':
-            try:
-                fd = GzipFile(fileobj=StringIO(data))
-                data = fd.read()
-            except IOError:
-                pass
-        try:
-            return json.loads(data)
-        except (TypeError, ValueError):         # stuff like 'diff' will be a string
-            return data
 
     def _handle_labels(self, method, labels=[]):
         url = self.labels_url % (self.owner, self.repo, self.issue_number)

@@ -89,9 +89,8 @@ def _watch_bors(api):
         api.update_labels(add=['S-needs-rebase'], remove=['S-awaiting-merge'])
 
 
-# All these handlers are specific to Servo!
 REPO_SPECIFIC_HANDLERS = {
-    "servo/servo": {
+    "servo/servo": {    # All these handlers are specific to Servo!
         "methods": [
             _find_reviewer,
             _watch_bors,

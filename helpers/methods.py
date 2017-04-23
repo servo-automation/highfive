@@ -90,32 +90,31 @@ def get_path_parent(obj, match=[], get_obj=lambda item: item):
     return node
 
 
-def get_handlers(accepted_events):
+def get_handlers(event_name):
     '''
     Execute all the handlers corresponding to the events (specified in the config) and
     yield the methods that process the payload
     '''
-    for event_name in sorted(accepted_events):
-        event_dir = os.path.join(HANDLERS_DIR, event_name)
-        if not os.path.isdir(event_dir):
-            continue
+    event_dir = os.path.join(HANDLERS_DIR, event_name)
+    if not os.path.isdir(event_dir):
+        return
 
-        for handler_name in sorted(os.listdir(event_dir)):
-            handler_dir = os.path.join(event_dir, handler_name)
-            handler_path = os.path.join(handler_dir, '__init__.py')
-            config_path = os.path.join(handler_dir, 'config.json')
+    for handler_name in sorted(os.listdir(event_dir)):
+        handler_dir = os.path.join(event_dir, handler_name)
+        handler_path = os.path.join(handler_dir, '__init__.py')
+        config_path = os.path.join(handler_dir, 'config.json')
 
-            # Every handler should have its own 'config.json'
-            if os.path.exists(handler_path) and os.path.exists(config_path):
-                with open(config_path, 'r') as fd:
-                    handler_config = json.load(fd)
+        # Every handler should have its own 'config.json'
+        if os.path.exists(handler_path) and os.path.exists(config_path):
+            with open(config_path, 'r') as fd:
+                handler_config = json.load(fd)
 
-                if not handler_config.get('active'):    # per-handler switch
-                    continue
+            if not handler_config.get('active'):    # per-handler switch
+                continue
 
-                with open(handler_path, 'r') as fd:
-                    source = fd.read()
-                    exec source in locals()
+            with open(handler_path, 'r') as fd:
+                source = fd.read()
+                exec source in locals()
 
-                for method in methods:      # methods will come into existence here
-                    yield handler_dir, lambda api: method(api, handler_config)
+            for method in methods:      # methods will come into existence here
+                yield handler_dir, lambda api: method(api, handler_config)
