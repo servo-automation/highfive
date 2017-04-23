@@ -1,7 +1,8 @@
 import json, os, re
 
 HANDLERS_DIR = 'handlers'
-
+AVAILABLE_EVENTS = filter(lambda p: os.path.isdir(os.path.join(HANDLERS_DIR, p)),
+                          os.listdir(HANDLERS_DIR))
 
 class Shared(object):
     '''Methods required by the handlers in the submodules'''

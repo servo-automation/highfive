@@ -3,7 +3,7 @@ from dateutil.parser import parse as datetime_parse
 from time import sleep
 
 from api_provider import GithubAPIProvider
-from methods import HANDLERS_DIR, get_handlers
+from methods import AVAILABLE_EVENTS, get_handlers
 
 import hashlib, hmac, json, os, time
 
@@ -109,7 +109,7 @@ class Runner(object):
     def __init__(self, config):
         self.enabled_events = config.get('enabled_events', [])
         if not self.enabled_events:
-            self.enabled_events = filter(os.path.isdir, os.listdir(HANDLERS_DIR))
+            self.enabled_events = AVAILABLE_EVENTS
 
         with open(config['pem_file'], 'r') as fd:
             self.pem_key = fd.read()

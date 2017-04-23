@@ -14,10 +14,15 @@
       "name": "some-repo"
     },
     "label": {
-      "name": "any-label-should-match"
+      "name": "some-label"
     },
     "action": "labeled",
     "issue": {
+      "labels": [
+        {
+          "name": "some-label"
+        }
+      ],
       "number": 84,
       "user": {
         "login": "meh?"

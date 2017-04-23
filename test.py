@@ -1,6 +1,6 @@
 from helpers.api_provider import APIProvider
 from helpers.json_cleanup import JsonCleaner
-from helpers.methods import HANDLERS_DIR, get_handlers, get_path_parent
+from helpers.methods import AVAILABLE_EVENTS, HANDLERS_DIR, get_handlers, get_path_parent
 
 import json, os, sys
 
@@ -69,50 +69,50 @@ if __name__ == '__main__':
         config = json.load(fd)
 
     # The "tests" directory should have the same structure as that of the "handlers"
-    events = config.get('enabled_events', [])
-    for path, handler in get_handlers(events):
-        test_payloads_dir = TESTS_DIR + path.lstrip(HANDLERS_DIR)
-        if not os.path.exists(test_payloads_dir):   # a handler should have at least one test
-            print 'Test not found for handler in %s' % test_payloads_dir
-            failed += 1
-            continue
-
-        for test in os.listdir(test_payloads_dir):
-            test_path = os.path.join(test_payloads_dir, test)
-            if not os.path.isfile(test_path):
+    for event in AVAILABLE_EVENTS:
+        for path, handler in get_handlers(event):
+            test_payloads_dir = TESTS_DIR + path.lstrip(HANDLERS_DIR)
+            if not os.path.exists(test_payloads_dir):   # a handler should have at least one test
+                print 'Test not found for handler in %s' % test_payloads_dir
+                failed += 1
                 continue
 
-            with open(test_path, 'r') as fd:
-                test_data = json.load(fd)
+            for test in os.listdir(test_payloads_dir):
+                test_path = os.path.join(test_payloads_dir, test)
+                if not os.path.isfile(test_path):
+                    continue
 
-            initial, expected = test_data['initial'], test_data['expected']
-            initial_vals = initial if isinstance(initial, list) else [initial]
-            expected_vals = expected if isinstance(expected, list) else [expected]
+                with open(test_path, 'r') as fd:
+                    test_data = json.load(fd)
 
-            wrapper = JsonCleaner({'payload': test_data['payload']})
-            for (initial, expected) in zip(initial_vals, expected_vals):
-                api = TestAPIProvider(wrapper.json['payload'], initial, expected)
-                handler(api)
-                tests += 1
+                initial, expected = test_data['initial'], test_data['expected']
+                initial_vals = initial if isinstance(initial, list) else [initial]
+                expected_vals = expected if isinstance(expected, list) else [expected]
 
-                try:
-                    api.evaluate()
-                except AssertionError as err:
-                    print '\nError while testing %s with payload %s: \n%s' % (path, test_path, err)
-                    failed += 1
+                wrapper = JsonCleaner({'payload': test_data['payload']})
+                for (initial, expected) in zip(initial_vals, expected_vals):
+                    api = TestAPIProvider(wrapper.json['payload'], initial, expected)
+                    handler(api)
+                    tests += 1
 
-            cleaned = wrapper.clean(warn)   # final cleanup for unused nodes in JSON
-            if warn and wrapper.unused:
-                print 'The file %s has %d unused nodes!' % (test_path, wrapper.unused)
-                dirty += 1
-            elif wrapper.unused and overwrite:
-                test_data['payload'] = cleaned['payload']
-                with open(test_path, 'w') as fd:
-                    contents = json.dumps(test_data, indent=2)
-                    trimmed = map(lambda line: line.rstrip() + '\n', contents.splitlines())
-                    fd.writelines(trimmed)
+                    try:
+                        api.evaluate()
+                    except AssertionError as err:
+                        print '\nError while testing %r with payload %r:\n%s' % (path, test_path, err)
+                        failed += 1
 
-                print 'Rewrote %s' % test_path
+                cleaned = wrapper.clean(warn)   # final cleanup for unused nodes in JSON
+                if warn and wrapper.unused:
+                    print 'The file %s has %d unused nodes!' % (test_path, wrapper.unused)
+                    dirty += 1
+                elif wrapper.unused and overwrite:
+                    test_data['payload'] = cleaned['payload']
+                    with open(test_path, 'w') as fd:
+                        contents = json.dumps(test_data, indent=2)
+                        trimmed = map(lambda line: line.rstrip() + '\n', contents.splitlines())
+                        fd.writelines(trimmed)
+
+                    print 'Rewrote %s' % test_path
 
     print '\nRan %d test(s): %d error(s), %d file(s) dirty' % (tests, failed, dirty)
 
