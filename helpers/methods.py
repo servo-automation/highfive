@@ -113,8 +113,9 @@ def get_handlers(event_name, sync=False):
             if not handler_config.get('active'):    # per-handler switch
                 continue
 
-            if sync and not handler_config.get('sync'):
-                continue
+            if handler_config.get('sync'):
+                if not sync:
+                    continue
 
             with open(handler_path, 'r') as fd:
                 source = fd.read()

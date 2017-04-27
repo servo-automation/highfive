@@ -6,9 +6,9 @@
   "payload": {
     "repository": {
       "owner": {
-        "login": "servo"
+        "login": "owner"
       },
-      "name": "highfive"
+      "name": "repo"
     },
     "label": {
       "name": "some-unlisted-label"

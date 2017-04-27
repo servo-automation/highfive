@@ -1,17 +1,17 @@
 {
   "initial": {},
   "expected": {
-    "comments": ["Please make a comment here if you intend to work on this issue. Thank you!"]
+    "comments": ["message"]
   },
   "payload": {
     "repository": {
       "owner": {
-        "login": "servo"
+        "login": "owner"
       },
-      "name": "highfive"
+      "name": "repo"
     },
     "label": {
-      "name": "E-easy"
+      "name": "_some_label"
     },
     "action": "labeled",
     "issue": {

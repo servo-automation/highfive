@@ -1,8 +1,8 @@
 {
     "active": true,
     "repos": {
-        "servo/*": {
-            "e-easy": "Please make a comment here if you intend to work on this issue. Thank you!"
+        "owner/repo": {
+            "_some_label": "message"
         }
     }
 }
