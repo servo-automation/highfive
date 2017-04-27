@@ -1,7 +1,9 @@
 {
+    "name": "highfive",
     "pem_file": "highfive.pem",
     "secret": null,
     "integration_id": null,
+    "dump_path": "json_dumps",
     "enabled_events": [
         "issue_comment",
         "issues",

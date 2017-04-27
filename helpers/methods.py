@@ -91,7 +91,7 @@ def get_path_parent(obj, match=[], get_obj=lambda item: item):
     return node
 
 
-def get_handlers(event_name):
+def get_handlers(event_name, sync=False):
     '''
     Execute all the handlers corresponding to the events (specified in the config) and
     yield the methods that process the payload
@@ -113,9 +113,12 @@ def get_handlers(event_name):
             if not handler_config.get('active'):    # per-handler switch
                 continue
 
+            if sync and not handler_config.get('sync'):
+                continue
+
             with open(handler_path, 'r') as fd:
                 source = fd.read()
-                exec source in locals()
+                exec source in locals()     # hack
 
             for method in methods:      # methods will come into existence here
-                yield handler_dir, lambda api: method(api, handler_config)
+                yield handler_dir, lambda api, *args: method(api, handler_config, *args)

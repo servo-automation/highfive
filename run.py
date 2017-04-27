@@ -10,7 +10,7 @@ if __name__ == '__main__':
         config = json.load(fd)
 
     runner = Runner(config)
-    app = Flask('highfive')
+    app = Flask(config['name'])
 
     @app.route('/', methods=['POST'])
     def handle_payload():

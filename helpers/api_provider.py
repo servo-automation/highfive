@@ -99,16 +99,20 @@ class APIProvider(object):
     def get_page_content(self, path):
         raise NotImplementedError
 
+    def close_issue(self):
+        raise NotImplementedError
+
 
 class GithubAPIProvider(APIProvider):
     base_url = 'https://api.github.com/'
-    issue_url = base_url + 'repos/%s/%s/issues/%s/'
-    comments_post_url = issue_url + 'comments'
-    labels_url = issue_url + 'labels'
-    assignees_url = issue_url + 'assignees'
+    issue_url = base_url + 'repos/%s/%s/issues/%s'
+    comments_post_url = issue_url + '/comments'
+    labels_url = issue_url + '/labels'
+    assignees_url = issue_url + '/assignees'
     diff_url = 'https://github.com/%s/%s/pull/%s.diff'
 
-    def __init__(self, payload, request_method):
+    def __init__(self, name, payload, request_method):
+        self.name = name
         super(GithubAPIProvider, self).__init__(payload)
         self._request = request_method
 
@@ -155,3 +159,7 @@ class GithubAPIProvider(APIProvider):
     def get_page_content(self, url):
         with contextlib.closing(urllib2.urlopen(url)) as fd:
             return fd.read()
+
+    def close_issue(self):
+        url = self.issue_url % (self.owner, self.repo, self.issue_number)
+        self._request('PATCH', url, {'state': 'closed'})

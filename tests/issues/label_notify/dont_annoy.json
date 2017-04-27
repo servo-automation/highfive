@@ -1,0 +1,35 @@
+{
+  "expected": {
+    "comments": []
+  },
+  "initial": {},
+  "payload": {
+    "action": "labeled",
+    "issue": {
+      "labels": [
+        {
+          "name": "A-mach"
+        },
+        {
+          "name": "L-python"
+        }
+      ],
+      "number": 16179,
+      "user": {
+        "login": "jdm"
+      }
+    },
+    "sender": {
+      "login": "jdm"
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "label": {
+      "name": "A-mach"
+    }
+  }
+}

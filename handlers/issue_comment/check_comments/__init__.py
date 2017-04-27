@@ -7,13 +7,13 @@ def check_failure_log(api, comment):
     # bors's comment would be something like,
     # ":broken_heart: Test failed - [linux2](http://build.servo.org/builders/linux2/builds/2627)"
     # ... from which we get the relevant build result url
-    url = iter(re.findall(r'.*\((.*)\)', str(comment))).next()
+    url = re.findall(r'.*\((.*)\)', str(comment))
     if not url:
         return
 
     # Substitute and get the new url
     # (e.g. http://build.servo.org/json/builders/linux2/builds/2627)
-    json_url = re.sub(r'(.*)(builders/.*)', r'\1json/\2', url)
+    json_url = re.sub(r'(.*)(builders/.*)', r'\1json/\2', url[0])
     json_stuff = api.get_page_content(json_url)
     if not json_stuff:
         return
@@ -31,10 +31,10 @@ def check_failure_log(api, comment):
                 continue
 
             stdio = api.get_page_content(log_url)
-            failures = iter(re.findall(failure_regex, stdio, re.DOTALL)).next()
-            failures = HTMLParser().unescape(failures)
+            failures = re.findall(failure_regex, stdio, re.DOTALL)
 
             if failures:
+                failures = HTMLParser().unescape(failures[0])
                 comment = [' ' * 4 + line for line in failures.split('\n')]
                 comments.extend(comment)
 
