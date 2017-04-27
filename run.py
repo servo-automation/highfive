@@ -9,7 +9,13 @@ if __name__ == '__main__':
     with open('config.json', 'r') as fd:
         config = json.load(fd)
 
+    dump_path = config['dump_path']
+    if not os.path.isdir(dump_path):
+        os.mkdir(dump_path)
+
     runner = Runner(config)
+    sync_thread = Thread(target=runner.start_sync)
+    sync_thread.start()
     app = Flask(config['name'])
 
     @app.route('/', methods=['POST'])

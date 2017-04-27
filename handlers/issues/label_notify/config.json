@@ -9,7 +9,7 @@
         "servo/highfive": {
             "jdm": ["enhancement"]
         },
-        "servo-highfive/*": {
+        "servo-automation/*": {
             "Wafflespeanut": []
         }
     }

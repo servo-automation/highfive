@@ -5,9 +5,10 @@ from time import sleep
 from api_provider import GithubAPIProvider
 from methods import AVAILABLE_EVENTS, get_handlers
 
-import hashlib, hmac, json, os, time
+import hashlib, hmac, itertools, json, os, time
 
 TOKEN_TIMEOUT_SECS = 3600
+SYNC_HANDLER_SLEEP_SECS = 3600
 
 # Implementation of digest comparison from Django
 # https://github.com/django/django/blob/0ed7d155635da9f79d4dd67e4889087d3673c6da/django/utils/crypto.py#L96-L105
@@ -27,10 +28,8 @@ class InstallationHandler(object):
     installation_url = base_url + '/installations/%s/access_tokens'
     rate_limit_url = base_url + '/rate_limit'
     # Github offers 5000 requests per hour (per installation) for an integration
-    # (both of these will be overridden)
-    remaining = 5000
-    reset_time = 0
-
+    # (both of these will be overridden, since we'll get this from the "/rate_limit" endpoint)
+    reset_time, remaining = 0, 0
     last_token_sync = datetime.now() - timedelta(days=1)        # for first token sync
     headers = {
         'Content-Type': 'application/json',
@@ -41,6 +40,7 @@ class InstallationHandler(object):
 
     def __init__(self, runner, inst_id):
         self.runner = runner
+        self._id = inst_id
         self.installation_url = self.installation_url % inst_id
 
     def sync_token(self):
@@ -66,9 +66,9 @@ class InstallationHandler(object):
             data = self._request(auth, 'GET', self.rate_limit_url)
             self.reset_time = data['rate']['reset']
             self.remaining = data['rate']['remaining']
-        return (now - self.reset_time) / self.remaining     # wait time per request
+        return (now - self.reset_time) / float(self.remaining)      # (uniform) wait time per request
 
-    def _request(self, auth, method, url, data=None):
+    def _request(self, auth, method, url, data=None):       # not supposed to be called by any handler
         self.headers['Authorization'] = auth
         data = json.dumps(data) if data is not None  else data
         req_method = getattr(requests, method.lower())          # hack
@@ -100,13 +100,33 @@ class InstallationHandler(object):
         return self._request(auth, method, url, data)
 
     def add(self, payload, event):
-        api = GithubAPIProvider(payload, self.queue_request)
+        api = GithubAPIProvider(self.runner.name, payload, self.queue_request)
         for _, handler in get_handlers(event):
             handler(api)
 
 
+class SyncHandler(object):
+    def __init__(self, inst_handler):
+        self.runner = inst_handler.runner
+        self.inst = inst_handler
+        self.dump_path = os.path.join(inst_handler.runner.dump_path, inst_handler._id)
+        if not os.path.isdir(self.dump_path):       # dir for each installation
+            os.mkdir(self.dump_path)
+
+    def post(self, payload):
+        # This relies on InstallationHandler's request queueing
+        api = GithubAPIProvider(self.runner.name, payload, self.inst.queue_request)
+        # Since the handlers don't belong to any particular event, they're supposed to
+        # exist in `issues` and `pull_request` (with 'sync' flag enabled in their config)
+        for _, handler in itertools.chain(get_handlers('issues', sync=True),
+                                          get_handlers('pull_request', sync=True)):
+            handler(api, self.dump_path)
+
+
 class Runner(object):
     def __init__(self, config):
+        self.name = config['name']
+        self.dump_path = config['dump_path']
         self.enabled_events = config.get('enabled_events', [])
         if not self.enabled_events:
             self.enabled_events = AVAILABLE_EVENTS
@@ -116,6 +136,7 @@ class Runner(object):
         self.integration_id = config['integration_id']
         self.secret = str(config.get('secret', ''))
         self.installations = {}
+        self.sync_runners = {}
 
     def verify_payload(self, headers, raw_payload):
         try:
@@ -125,7 +146,7 @@ class Runner(object):
 
         # app "secret" key is optional, but it makes sure that you're getting payloads
         # from Github. If a third-party found your POST endpoint, then anyone can send a
-        # cooked-up payload, and your bot will respond make API requests.
+        # cooked-up payload, and your bot will respond and make API requests to Github.
         #
         # In python, you can do something like this,
         # >>> import random
@@ -154,7 +175,26 @@ class Runner(object):
 
         return None, payload
 
+    def set_installation(self, inst_id):
+        self.installations.setdefault(inst_id, InstallationHandler(self, inst_id))
+        inst_handler = self.installations[inst_id]
+        self.sync_runners.setdefault(inst_id, SyncHandler(inst_handler))
+
     def handle_payload(self, payload, event):
         inst_id = payload['installation']['id']
-        self.installations.setdefault(inst_id, InstallationHandler(self, inst_id))
+        self.set_installation(inst_id)
         self.installations[inst_id].add(payload, event)
+        self.sync_runners[inst_id].post(payload)
+
+    def start_sync(self):
+        for _id in map(int, os.listdir(self.dump_path)):
+            self.set_installation(_id)
+
+        while True:
+            start = int(time.time())
+            for sync_runner in self.sync_runners.values():
+                # poke all the sync handlers (of all installations) on hand with fake payloads
+                sync_runner.post({})
+
+            end = int(time.time())
+            sleep(SYNC_HANDLER_SLEEP_SECS - (end - start))
