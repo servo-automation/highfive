@@ -100,7 +100,7 @@ REPO_SPECIFIC_HANDLERS = {
 
 
 def check_comments(api, config):
-    repos = config.get('repos')
+    repos = config.get('repos', {})
     if not (api.is_open and api.payload.get('action') == 'created'):
         return
 

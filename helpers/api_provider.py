@@ -1,10 +1,6 @@
-from StringIO import StringIO
-from gzip import GzipFile
-from jose import jwt
+from methods import Shared, get_path_parent, get_logger
 
-from methods import Shared, get_path_parent
-
-import contextlib, json, re, requests, time, urllib2
+import contextlib, json, logging, re, requests, time, urllib2
 
 
 class APIProvider(object):
@@ -24,7 +20,10 @@ class APIProvider(object):
         self.creator = node['user']['login'].lower()    # (optional) creator of issue/pull
 
         node = self.get_matching_path(['number'])
-        self.issue_number = node.get('number')
+        num = node.get('number')
+        if num is not None:
+            num = str(num)          # Having an integer seems to cause trouble at certain times.
+        self.issue_number = num
 
         # Github labels are unique and case-insensitive (which is really helpful!)
         node = self.get_matching_path(['labels'])
@@ -115,6 +114,7 @@ class GithubAPIProvider(APIProvider):
         self.name = name
         super(GithubAPIProvider, self).__init__(payload)
         self._request = request_method
+        self.logger = get_logger(__name__)
 
     # self-helpers
 
@@ -126,7 +126,7 @@ class GithubAPIProvider(APIProvider):
 
     # handler helpers
 
-    def get_labels(self):
+    def get_labels(self):       # FIXME: This always makes a request if the labels are empty
         if self.labels:
             return self.labels
 

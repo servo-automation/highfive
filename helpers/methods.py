@@ -1,8 +1,18 @@
-import json, os, re
+import json, logging, os, re
 
 HANDLERS_DIR = 'handlers'
 AVAILABLE_EVENTS = filter(lambda p: os.path.isdir(os.path.join(HANDLERS_DIR, p)),
                           os.listdir(HANDLERS_DIR))
+LOGGERS = {}
+
+def get_logger(name):       # logger.getLogger() creates a new instance (causing duplicate logs)
+    global LOGGERS
+    if LOGGERS.get(name):
+        return LOGGERS[name]
+    else:
+        logger = logging.getLogger(name)
+        LOGGERS[name] = logger
+        return logger
 
 class Shared(object):
     '''Methods required by the handlers in the submodules'''
@@ -113,9 +123,9 @@ def get_handlers(event_name, sync=False):
             if not handler_config.get('active'):    # per-handler switch
                 continue
 
-            if handler_config.get('sync'):
-                if not sync:
-                    continue
+            sync_handler = handler_config.get('sync')
+            if (sync and not sync_handler) or (sync_handler and not sync):
+                continue
 
             with open(handler_path, 'r') as fd:
                 source = fd.read()

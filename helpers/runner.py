@@ -1,13 +1,15 @@
+from StringIO import StringIO
 from datetime import datetime, timedelta
 from dateutil.parser import parse as datetime_parse
+from gzip import GzipFile
+from jose import jwt
 from time import sleep
 
 from api_provider import GithubAPIProvider
-from methods import AVAILABLE_EVENTS, get_handlers
+from methods import AVAILABLE_EVENTS, get_handlers, get_logger
 
-import hashlib, hmac, itertools, json, os, time
+import hashlib, hmac, itertools, json, os, time, requests
 
-TOKEN_TIMEOUT_SECS = 3600
 SYNC_HANDLER_SLEEP_SECS = 3600
 
 # Implementation of digest comparison from Django
@@ -29,23 +31,26 @@ class InstallationHandler(object):
     rate_limit_url = base_url + '/rate_limit'
     # Github offers 5000 requests per hour (per installation) for an integration
     # (both of these will be overridden, since we'll get this from the "/rate_limit" endpoint)
-    reset_time, remaining = 0, 0
-    last_token_sync = datetime.now() - timedelta(days=1)        # for first token sync
+    remaining = 0
+    reset_time = int(time.time()) - 60
+    next_token_sync = datetime.now()
     headers = {
         'Content-Type': 'application/json',
         # integration-specific header
         'Accept': 'application/vnd.github.machine-man-preview+json',
-        'Accept-encoding': 'gzip'
+        'Accept-Encoding': 'gzip, deflate'
     }
 
     def __init__(self, runner, inst_id):
         self.runner = runner
+        self.logger = runner.logger
         self._id = inst_id
         self.installation_url = self.installation_url % inst_id
 
     def sync_token(self):
-        now = datetime.now()
-        if (now - self.last_token_sync).seconds >= TOKEN_TIMEOUT_SECS:      # token expired
+        now = datetime.now(self.next_token_sync.tzinfo)     # should be timezone-aware version
+        if now >= self.next_token_sync:
+            self.logger.debug('Getting auth token with JWT from PEM key...')
             # https://developer.github.com/early-access/integrations/authentication/#jwt-payload
             since_epoch = int(time.time())
             auth_payload = {
@@ -56,28 +61,31 @@ class InstallationHandler(object):
 
             auth = 'Bearer %s' % jwt.encode(auth_payload, self.runner.pem_key, 'RS256')
             resp = self._request(auth, 'POST', self.installation_url)
-            dt = datetime_parse(resp['expires_at'])
             self.token = resp['token']      # installation token (expires in 1 hour)
+            self.logger.debug('Token expires on %s', resp['expires_at'])
+            self.next_token_sync = datetime_parse(resp['expires_at'])
 
-    def wait_time_ms(self):
+    def wait_time(self):
         now = int(time.time())
         if now >= self.reset_time:
             auth = 'token %s' % self.token
             data = self._request(auth, 'GET', self.rate_limit_url)
             self.reset_time = data['rate']['reset']
             self.remaining = data['rate']['remaining']
-        return (now - self.reset_time) / float(self.remaining)      # (uniform) wait time per request
+            self.logger.debug('Current time: %s, Remaining requests: %s, Reset time: %s',
+                              now, self.remaining, self.reset_time)
+        return (self.reset_time - now) / float(self.remaining)          # (uniform) wait time per request
 
     def _request(self, auth, method, url, data=None):       # not supposed to be called by any handler
         self.headers['Authorization'] = auth
         data = json.dumps(data) if data is not None  else data
-        req_method = getattr(requests, method.lower())          # hack
-        print '%s: %s (data: %s)' % (method, url, data)
+        req_method = getattr(requests, method.lower())              # hack
+        self.logger.info('%s: %s (data: %s)', method, url, data)
         resp = req_method(url, data=data, headers=self.headers)
         data, code = resp.text, resp.status_code
 
         if code < 200 or code >= 300:
-            print 'Got a %s response: %r' % (code, data)
+            self.logger.error('Got a %s response: %r', code, data)
             raise Exception
 
         if resp.headers.get('Content-Encoding') == 'gzip':
@@ -85,15 +93,17 @@ class InstallationHandler(object):
                 fd = GzipFile(fileobj=StringIO(data))
                 data = fd.read()
             except IOError:
+                self.logger.debug('Cannot decode with Gzip, Trying to load JSON from raw response...')
                 pass
         try:
             return json.loads(data)
         except (TypeError, ValueError):         # stuff like 'diff' will be a string
+            self.logger.debug('Cannot decode JSON, Passing the payload as string...')
             return data
 
     def queue_request(self, method, url, data=None):
         self.sync_token()
-        interval = self.wait_time_ms()
+        interval = self.wait_time()
         sleep(interval)
         self.remaining -= 1
         auth = 'token %s' % self.token
@@ -109,8 +119,9 @@ class SyncHandler(object):
     def __init__(self, inst_handler):
         self.runner = inst_handler.runner
         self.inst = inst_handler
-        self.dump_path = os.path.join(inst_handler.runner.dump_path, inst_handler._id)
+        self.dump_path = os.path.join(inst_handler.runner.dump_path, str(inst_handler._id))
         if not os.path.isdir(self.dump_path):       # dir for each installation
+            self.runner.logger.debug('Creating %r for dumping JSONs', self.dump_path)
             os.mkdir(self.dump_path)
 
     def post(self, payload):
@@ -128,20 +139,23 @@ class Runner(object):
         self.name = config['name']
         self.dump_path = config['dump_path']
         self.enabled_events = config.get('enabled_events', [])
+        self.integration_id = config['integration_id']
+        self.secret = str(config.get('secret', ''))
+        self.installations = {}
+        self.sync_runners = {}
+        self.logger = get_logger(__name__)
+
         if not self.enabled_events:
             self.enabled_events = AVAILABLE_EVENTS
 
         with open(config['pem_file'], 'r') as fd:
             self.pem_key = fd.read()
-        self.integration_id = config['integration_id']
-        self.secret = str(config.get('secret', ''))
-        self.installations = {}
-        self.sync_runners = {}
 
     def verify_payload(self, headers, raw_payload):
         try:
             payload = json.loads(raw_payload)
-        except:
+        except Exception as err:
+            self.logger.debug('Cannot decode payload JSON: %s', err)
             return 400, None
 
         # app "secret" key is optional, but it makes sure that you're getting payloads
@@ -162,15 +176,16 @@ class Runner(object):
             hashed = msg_auth_code.hexdigest()
 
             if not compare_digest(signature, hashed):
-                print 'Invalid signature!'
+                self.logger.debug('Invalid signature!')
                 return 403, None
 
-            print "Payload's signature has been verified!"
+            self.logger.info("Payload's signature has been verified!")
         else:
-            print "Payload's signature can't be verified without secret key!"
+            self.logger.info("Payload's signature can't be verified without secret key!")
 
         event = headers['X-GitHub-Event'].lower()
         if event not in self.enabled_events:        # no matching events
+            self.logger.info("Event doesn't match with any available events. Bailing out...")
             payload = None
 
         return None, payload
@@ -181,20 +196,29 @@ class Runner(object):
         self.sync_runners.setdefault(inst_id, SyncHandler(inst_handler))
 
     def handle_payload(self, payload, event):
+        if self.name in payload.get('sender', {'login': None})['login']:
+            return      # don't handle payloads sent by self
+
         inst_id = payload['installation']['id']
+        self.logger.info('Received payload for %r event for installation %s', event, inst_id)
         self.set_installation(inst_id)
         self.installations[inst_id].add(payload, event)
         self.sync_runners[inst_id].post(payload)
 
     def start_sync(self):
+        self.logger.info('Spawning a new thread for sync handlers...')
         for _id in map(int, os.listdir(self.dump_path)):
+            self.logger.debug('Found installation %s in %r, adding it to queue', _id, self.dump_path)
             self.set_installation(_id)
 
         while True:
             start = int(time.time())
-            for sync_runner in self.sync_runners.values():
+            for _id, sync_runner in self.sync_runners.items():
                 # poke all the sync handlers (of all installations) on hand with fake payloads
+                self.logger.info('Poking runner for installation %s with empty payload', _id)
                 sync_runner.post({})
 
             end = int(time.time())
-            sleep(SYNC_HANDLER_SLEEP_SECS - (end - start))
+            interval = SYNC_HANDLER_SLEEP_SECS - (end - start)
+            self.logger.debug('Going to sleep for %s seconds', interval)
+            sleep(interval)
