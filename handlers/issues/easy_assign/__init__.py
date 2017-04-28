@@ -9,11 +9,28 @@ ASSIGN_MSG = ('Hi! If you have any questions regarding this issue, feel free to 
               'If you intend to work on this issue, then add `@%s: assign me`'
               ' to your comment, and I\'ll assign this to you. :smile:')
 
+DUP_EFFORT_MSG = ('Hello there! Thanks for picking up this issue! We really appreciate your effort.'
+                  ' But, in the future, please get the issue assigned to yourself before working'
+                  ' on it, so that we can avoid duplicate efforts. :smile:')
+
+POSSIBLE_DUP = ("**Note:** The assignee in #%s doesn't match with the"
+                " name of author in this pull request.")
+
 RESPONSE_FAIL = ('It looks like this has already been assigned to someone.'
                  ' I\'ll leave the decision to a core contributor.')
 
 RESPONSE_OK = ('Hey @%s! Thanks for your interest in working on this issue.'
                ' It\'s now assigned to you!')
+
+ISSUE_PING_MSG = 'Hey @%s! Did you look into this? You got any questions for us?'
+PR_PING_MSG = 'Hey @%s! Are you planning to finish this off?'
+
+PR_CLOSE_MSG = ("Okay, I'm gonna close this based on inactivity. If you change your mind"
+                " about working on this issue again, feel free to ping us and we'll reopen"
+                " it for you. Thanks for taking a stab at this :smile:")
+
+PR_ADDRESS_MSG = 'Previous work on #%s. '
+ISSUE_UNASSIGN_MSG = 'This is now open for anyone to jump in!'
 
 ISSUE_OBJ_DEFAULT = {
     'assignee': None,
@@ -23,14 +40,6 @@ ISSUE_OBJ_DEFAULT = {
 }
 
 MAX_DAYS = 4
-
-ISSUE_PING_MSG = 'Hey @%s! Did you look into this? You got any questions for us?'
-PR_PING_MSG = 'Hey @%s! Are you planning to finish this off?'
-PR_CLOSE_MSG = ("Hi @%s, I'm gonna close this based on inactivity. If you change your mind"
-                "about working on this issue again, ping me and I'll reopen it for you."
-                " Thanks for taking a stab at this :smile:")
-PR_ADDRESS_MSG = "Previous work on #%s. "
-ISSUE_UNASSIGN_MSG = "This is now open for anyone to jump in!"
 
 
 def _check_easy_issues(api, dump_path):
@@ -55,18 +64,36 @@ def _check_easy_issues(api, dump_path):
         if payload.get('pull_request'):
             pr_body = payload['pull_request']['body']
             # check whether the PR addresses an issue in our store
-            for number in data['issues'].keys():
-                if re.search('fix|close|resolvee?[s|d]? #%s' % number, pr_body):
-                    # FIXME: Check whether the PR belongs to assignee
-                    data['issues'][number]['pr_number'] = api.issue_number
-                    data['issues'][number]['status'] = 'pull'
-                    data['issues'][number]['last_active'] = payload['pull_request']['updated_at']
-                    api.logger.debug('PR #%s addresses issue #%s', api.issue_number, number)
-                    break
+            match = re.search(r'(?:fixe?|close|resolve)[s|d]? #([0-9]*)', pr_body)
+            number = match.group(1) if match else None
+            if number and data['issues'].has_key(number):
+                api.logger.debug('PR #%s addresses issue #%s', api.issue_number, number)
+                assignee = data['issues'][number]['assignee']
+                if api.creator != assignee:     # FIXME: What now?
+                    api.logger.debug('Assignee collision: Expected %r but PR author is %r',
+                                     assignee, api.creator)
+                    api.post_comment(POSSIBLE_DUP % number)
+
+                data['issues'][number]['assignee'] = api.creator
+                data['issues'][number]['pr_number'] = api.issue_number
+                data['issues'][number]['status'] = 'pull'
+                data['issues'][number]['last_active'] = payload['pull_request']['updated_at']
+
+                if assignee is None:
+                    api.logger.debug('Assignee has not requested issue assignment.'
+                                     ' Marking issue as assigned')
+                    api.post_comment(DUP_EFFORT_MSG)
+                    api.issue_number = number
+                    api.update_labels(add=['C-assigned'])
+        # FIXME: Investigate and uncomment/remove the code below (in the future).
+        # This has been disabled because if an issue is opened "with" labels,
+        # Github appears to send payloads for the issue (with the label info) and
+        # for all the individual labels (which will result in posting the comment twice).
         elif 'e-easy' in api.labels and data['issues'].get(api.issue_number) is None:
-            data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
-            api.logger.debug('Found E-easy label in issue. Posting welcome comment...')
-            api.post_comment(ASSIGN_MSG % api.name)
+            # data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
+            # api.logger.debug('Found E-easy label in issue. Posting welcome comment...')
+            # api.post_comment(ASSIGN_MSG % api.name)
+            pass
 
     elif action == 'created':               # comment
         msg = payload['comment']['body']
@@ -89,16 +116,18 @@ def _check_easy_issues(api, dump_path):
                 # and update local JSON store from their comment.
                 pass
 
-    elif (action == 'closed' and
-          'e-easy' in api.labels and
-          data['issues'].has_key(api.issue_number)):
-        api.logger.debug('Issue #%s is being closed. Removing related data...')
-        data['issues'].pop(api.issue_number)
+    elif action == 'closed':
+        if ('e-easy' in api.labels and data['issues'].has_key(api.issue_number)):
+            api.logger.debug('Issue #%s is being closed. Removing related data...')
+            data['issues'].pop(api.issue_number)
+        elif (payload.get('pull_request') and
+              any(i['pr_number'] == api.issue_number for i in data['issues'])):
+            # FIXME: What should we do if the assignee closes/reopens the PR?
+            pass
 
     elif (action == 'labeled' and
           payload.get('pull_request') is None and                   # not a PR
-          payload['label']['name'].lower() == 'e-easy' and          # marked E-easy
-          data['issues'].get(api.issue_number) is None):            # whether we have the issue data
+          payload['label']['name'].lower() == 'e-easy'):            # marked E-easy
         api.logger.debug('Issue has been marked E-easy. Posting welcome comment...')
         data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
         api.post_comment(ASSIGN_MSG % api.name)
@@ -117,26 +146,30 @@ def _check_easy_issues(api, dump_path):
             api.logger.debug('No info about owner and repo in JSON. Skipping this cycle...')
             return
 
+        # Note that the `api` variable beyond this point shouldn't be trusted for
+        # anything more than the names of owner, repo, its method and its logger.
+        # All other variables are invalid.
         for number, issue in data['issues'].iteritems():
-            now = datetime.now()
             status = issue['status']
             last_active = issue['last_active']
             if not last_active:
                 continue
 
             last_active = datetime_parse(last_active)
+            now = datetime.now(last_active.tzinfo)
             if (now - last_active).days <= MAX_DAYS:
                 api.logger.debug('Issue %s is stil in grace period', number)
                 continue
 
             api.issue_number = number
+            assignee = issue['assignee']
             if status == 'pull':
                 api.issue_number = issue['pr_number']
-                api.post_comment(PR_PING_MSG % api.creator)
+                api.post_comment(PR_PING_MSG % assignee)
                 data['issues'][number]['status'] = 'commented'
             elif status == 'assigned':
-                api.logger.debug('Pinging %r in issue #%s', issue['assignee'], number)
-                api.post_comment(ISSUE_PING_MSG % issue['assignee'])
+                api.logger.debug('Pinging %r in issue #%s', assignee, number)
+                api.post_comment(ISSUE_PING_MSG % assignee)
                 data['issues'][number]['status'] = 'commented'
             elif status == 'commented':
                 comment = ''
@@ -144,8 +177,8 @@ def _check_easy_issues(api, dump_path):
                 if pr_num:
                     api.logger.debug('Closing PR #%s after grace period', pr_num)
                     api.issue_number = pr_num
-                    api.post_comment(PR_CLOSE_MSG % api.creator)
-                    api.close_isssue()
+                    api.post_comment(PR_CLOSE_MSG)
+                    api.close_issue()
                     comment = PR_ADDRESS_MSG % pr_num
 
                 api.issue_number = number

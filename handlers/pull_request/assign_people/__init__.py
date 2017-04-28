@@ -17,7 +17,7 @@ def check_new_pr(api, config):
         if not reviewers:
             return
 
-        chosen_ones = [reviewers[api.issue_number % len(reviewers)]]
+        chosen_ones = [reviewers[int(api.issue_number) % len(reviewers)]]
 
     if not chosen_ones:    # something's wrong?
         return

@@ -16,7 +16,17 @@ class APIProvider(object):
 
         # payload sender and (optional) creator of issue/pull/comment
         self.sender = payload['sender']['login'].lower() if payload.get('sender') else None
-        node = self.get_matching_path(['user', 'login']) or {'user': {'login': ''}}
+
+        creator_matches, creator_dummy = ['user', 'login'], {'user': {'login': ''}}
+        if self.payload.get('comment'):
+            node = self.get_matching_path(creator_matches, 'comment') or creator_dummy
+        elif self.payload.get('pull_request'):
+            node = self.get_matching_path(creator_matches, 'pull_request') or creator_dummy
+        elif self.payload.get('issue'):
+            node = self.get_matching_path(creator_matches, 'issue') or creator_dummy
+        else:
+            node = self.get_matching_path(creator_matches) or creator_dummy
+
         self.creator = node['user']['login'].lower()    # (optional) creator of issue/pull
 
         node = self.get_matching_path(['number'])
@@ -32,8 +42,9 @@ class APIProvider(object):
         node = self.get_matching_path(['issue', 'state'])
         self.is_open = node['issue']['state'] == 'open' if node else None
 
-    def get_matching_path(self, matches):   # making the helper available for handlers
-        return get_path_parent(self.payload, matches)
+    def get_matching_path(self, matches, node=None):    # making the helper available for handlers
+        node = self.payload if node is None else self.payload[node]
+        return get_path_parent(node, matches)
 
     # Per-repo configuration
     def get_matches_from_config(self, config):
@@ -59,6 +70,7 @@ class APIProvider(object):
     def replace_labels(self, labels=[]):
         raise NotImplementedError
 
+    # FIXME: This doesn't seem to work as expected. Verify it?
     def update_labels(self, add=[], remove=[]):
         to_lower = lambda label: label.lower()      # str.lower doesn't work for unicode
         current_labels = set(map(to_lower, self.get_labels()))

@@ -185,7 +185,7 @@ class Runner(object):
 
         event = headers['X-GitHub-Event'].lower()
         if event not in self.enabled_events:        # no matching events
-            self.logger.info("Event doesn't match with any available events. Bailing out...")
+            self.logger.info("Event %r doesn't match with any available events. Bailing out...", event)
             payload = None
 
         return None, payload
@@ -197,10 +197,12 @@ class Runner(object):
 
     def handle_payload(self, payload, event):
         if self.name in payload.get('sender', {'login': None})['login']:
+            self.logger.debug('Skipping payload for event %r sent by self', event)
             return      # don't handle payloads sent by self
 
         inst_id = payload['installation']['id']
-        self.logger.info('Received payload for %r event for installation %s', event, inst_id)
+        self.logger.info('Received payload for for installation %s'
+                         ' (event: %s, action: %s)', inst_id, event, payload.get('action'))
         self.set_installation(inst_id)
         self.installations[inst_id].add(payload, event)
         self.sync_runners[inst_id].post(payload)

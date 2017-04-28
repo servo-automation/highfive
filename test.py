@@ -26,8 +26,9 @@ class TestAPIProvider(APIProvider):
         for key, val in initial.items():    # set/override the values
             setattr(self, key, val)
 
-    def get_matching_path(self, matches):
-        return get_path_parent(self.payload, matches, get_obj=lambda marker: marker._node)
+    def get_matching_path(self, matches, node=None):
+        node = self.payload if node is None else self.payload[node]
+        return get_path_parent(node, matches, get_obj=lambda marker: marker._node)
 
     def get_labels(self):
         return self.labels
