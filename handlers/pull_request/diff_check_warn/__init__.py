@@ -79,7 +79,7 @@ def check_diff(api, config):
         messages.update([test_check_result])
 
     # Run the repo-specific handlers (if any)
-    handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS)
+    handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS, {})
     for name, methods in handlers.items():
         for method in methods:
             _input = locals().get(name, [])     # `lines` and `paths`

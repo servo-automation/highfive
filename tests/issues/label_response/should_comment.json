@@ -15,6 +15,7 @@
     },
     "action": "labeled",
     "issue": {
+      "state": "open",
       "number": 130
     }
   }

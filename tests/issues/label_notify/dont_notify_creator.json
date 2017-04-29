@@ -5,6 +5,7 @@
   },
   "payload": {
     "issue": {
+      "state": "open",
       "number": 123,
       "user": {
         "login": "Wafflespeanut"

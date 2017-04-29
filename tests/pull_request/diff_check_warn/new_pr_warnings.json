@@ -30,6 +30,7 @@
   "payload": {
     "number": 7076,
     "pull_request": {
+      "state": "open",
       "url": null,
       "base": {
         "repo": {

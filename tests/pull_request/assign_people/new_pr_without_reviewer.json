@@ -6,6 +6,7 @@
   "payload": {
     "number": 7087,
     "pull_request": {
+      "state": "open",
       "url": null,
       "assignee": null,
       "body": "Not sure who I should assign this to!",

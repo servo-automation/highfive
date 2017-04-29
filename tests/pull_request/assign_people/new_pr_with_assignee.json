@@ -8,6 +8,7 @@
   "payload": {
     "number": 7087,
     "pull_request": {
+      "state": "open",
       "assignee": "SimonSapin",
       "url": null,
       "base": {

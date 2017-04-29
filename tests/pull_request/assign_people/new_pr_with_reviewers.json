@@ -6,6 +6,7 @@
   "payload": {
     "number": 7076,
     "pull_request": {
+      "state": "open",
       "assignee": null,
       "url": null,
       "body": "r? @jdm,@Manishearth @Wafflespeanut",

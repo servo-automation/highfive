@@ -6,6 +6,7 @@
   "payload": {
     "number": 149,
     "pull_request": {
+      "state": "open",
       "assignee": null,
       "body": "blah blah blah",
       "base": {

@@ -17,17 +17,12 @@ class APIProvider(object):
         # payload sender and (optional) creator of issue/pull/comment
         self.sender = payload['sender']['login'].lower() if payload.get('sender') else None
 
-        creator_matches, creator_dummy = ['user', 'login'], {'user': {'login': ''}}
-        if self.payload.get('comment'):
-            node = self.get_matching_path(creator_matches, 'comment') or creator_dummy
-        elif self.payload.get('pull_request'):
-            node = self.get_matching_path(creator_matches, 'pull_request') or creator_dummy
-        elif self.payload.get('issue'):
-            node = self.get_matching_path(creator_matches, 'issue') or creator_dummy
-        else:
-            node = self.get_matching_path(creator_matches) or creator_dummy
-
-        self.creator = node['user']['login'].lower()    # (optional) creator of issue/pull
+        node = self.get_matching_path(['user', 'login']) or {'user': {'login': ''}}
+        for value in ['comment', 'pull_request', 'issue']:
+            if self.payload.get(value):
+                node = self.get_matching_path(['user', 'login'], value) or {'user': {'login': ''}}
+                break
+        self.creator = node['user']['login'].lower()        # (optional) creator of issue/pull
 
         node = self.get_matching_path(['number'])
         num = node.get('number')
@@ -39,30 +34,24 @@ class APIProvider(object):
         node = self.get_matching_path(['labels'])
         self.labels = map(lambda obj: obj['name'].lower(), node.get('labels', []))
 
-        node = self.get_matching_path(['issue', 'state'])
-        self.is_open = node['issue']['state'] == 'open' if node else None
+        self.is_open = None
+        if self.payload.get('issue'):
+            self.is_open = self.payload['issue']['state'] == 'open'
+        elif self.payload.get('pull_request'):
+            self.is_open = self.payload['pull_request']['state']
 
     def get_matching_path(self, matches, node=None):    # making the helper available for handlers
         node = self.payload if node is None else self.payload[node]
         return get_path_parent(node, matches)
 
     # Per-repo configuration
-    def get_matches_from_config(self, config):
-        repo_config = {}
+    def get_matches_from_config(self, config, default={}):
         string = '%s/%s' % (self.owner, self.repo)
-
         for pattern in config:
             pat_lower = pattern.lower()
             if re.search(pat_lower, string):
-                for key, val in config[pattern].items():
-                    if repo_config.get(key) and isinstance(val, list):
-                        repo_config[key] += val
-                    else:
-                        # NOTE: This overrides the previous value (if any)
-                        # Make sure that the matches in config file doesn't have such keys
-                        repo_config[key] = val
-
-        return repo_config
+                return config[pattern]
+        return default
 
     def get_labels(self):
         raise NotImplementedError

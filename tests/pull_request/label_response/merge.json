@@ -8,6 +8,7 @@
   "payload": {
     "number": 1,
     "pull_request": {
+      "state": "open",
       "base": {
         "repo": {
           "owner": {

@@ -183,11 +183,6 @@ class Runner(object):
         else:
             self.logger.info("Payload's signature can't be verified without secret key!")
 
-        event = headers['X-GitHub-Event'].lower()
-        if event not in self.enabled_events:        # no matching events
-            self.logger.info("Event %r doesn't match with any available events. Bailing out...", event)
-            payload = None
-
         return None, payload
 
     def set_installation(self, inst_id):
@@ -201,10 +196,15 @@ class Runner(object):
             return      # don't handle payloads sent by self
 
         inst_id = payload['installation']['id']
-        self.logger.info('Received payload for for installation %s'
-                         ' (event: %s, action: %s)', inst_id, event, payload.get('action'))
         self.set_installation(inst_id)
-        self.installations[inst_id].add(payload, event)
+        if event in self.enabled_events:
+            self.logger.info('Received payload for for installation %s'
+                             ' (event: %s, action: %s)', inst_id, event, payload.get('action'))
+            self.installations[inst_id].add(payload, event)
+        else:   # no matching events
+            self.logger.info("(event %s, action: %s) doesn't match any enabled events (installation %s)."
+                             " Skipping payload-dependent handlers...", event, payload.get('action'), inst_id)
+        # We pass all the payloads through sync handlers regardless of the event (they're unconstrained)
         self.sync_runners[inst_id].post(payload)
 
     def start_sync(self):

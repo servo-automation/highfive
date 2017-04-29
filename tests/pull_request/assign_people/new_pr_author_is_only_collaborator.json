@@ -6,6 +6,7 @@
   "payload": {
     "number": 7087,
     "pull_request": {
+      "state": "open",
       "assignee": null,
       "url": null,
       "body": "Who's gonna review this?",

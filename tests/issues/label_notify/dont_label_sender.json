@@ -18,6 +18,7 @@
     },
     "action": "labeled",
     "issue": {
+      "state": "open",
       "number": 84,
       "user": {
         "login": "nox"

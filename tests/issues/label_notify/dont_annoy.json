@@ -6,6 +6,7 @@
   "payload": {
     "action": "labeled",
     "issue": {
+      "state": "open",
       "labels": [
         {
           "name": "A-mach"

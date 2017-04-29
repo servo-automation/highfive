@@ -38,7 +38,7 @@
         "servo/highfive": {
             "jdm": []
         },
-        "servo-highfive/*": {
+        "servo-automation/*": {
             "Wafflespeanut": []
         },
         "test/test": {

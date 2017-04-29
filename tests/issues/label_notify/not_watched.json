@@ -18,6 +18,7 @@
     },
     "action": "labeled",
     "issue": {
+      "state": "open",
       "number": 999,
       "user": {
         "login": "jdm"

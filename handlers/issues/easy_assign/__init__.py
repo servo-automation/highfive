@@ -126,28 +126,35 @@ def _check_easy_issues(api, dump_path):
             pass
 
     elif (action == 'labeled' and
-          payload.get('pull_request') is None and                   # not a PR
-          payload['label']['name'].lower() == 'e-easy'):            # marked E-easy
-        api.logger.debug('Issue has been marked E-easy. Posting welcome comment...')
-        data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
-        api.post_comment(ASSIGN_MSG % api.name)
+          payload.get('pull_request') is None):         # not a PR
+        label = payload['label']['name'].lower()
+        if label == 'e-easy':
+            api.logger.debug('Issue #%s has been marked E-easy. Posting welcome comment...', api.issue_number)
+            data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
+            api.post_comment(ASSIGN_MSG % api.name)
+        elif label == 'c-assigned' and data['issues'].has_key(api.issue_number):
+            api.logger.debug('Issue #%s has been assigned to someone. Removing related data...', api.issue_number)
+            data['issues'].pop(api.issue_number)
 
     elif (action == 'unlabeled' and
           payload.get('pull_request') is None and
-          payload['label']['name'].lower() == 'e-easy' and
           data['issues'].has_key(api.issue_number)):
-        api.logger.debug('Issue is no longer E-easy. Removing related data...')
-        data['issues'].pop(api.issue_number)
+        if payload['label']['name'].lower() == 'e-easy':
+            api.logger.debug('Issue #%s is no longer E-easy. Removing related data...', api.issue_number)
+            data['issues'].pop(api.issue_number)
+        elif payload['label']['name'].lower() == 'c-assigned':
+            api.logger.debug('Issue #%s has been unassigned. Removing related data...', api.issue_number)
+            data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
 
     elif action is None:    # check the timestamps and post comments as necessary
         if data.get('owner') and data.get('repo'):
             api.owner, api.repo = data['owner'], data['repo']
-        else:   # We pass a fake payload here (so, owner and repo should be valid to progress)
+        else:   # We pass a fake payload here (so, owner and repo should be valid to proceed)
             api.logger.debug('No info about owner and repo in JSON. Skipping this cycle...')
             return
 
         # Note that the `api` variable beyond this point shouldn't be trusted for
-        # anything more than the names of owner, repo, its method and its logger.
+        # anything more than the names of owner, repo, its methods and its logger.
         # All other variables are invalid.
         for number, issue in data['issues'].iteritems():
             status = issue['status']
@@ -198,11 +205,9 @@ def _check_easy_issues(api, dump_path):
 
 
 REPO_SPECIFIC_HANDLERS = {
-    "servo/servo": {    # All these handlers are specific to Servo!
-        "methods": [
-            _check_easy_issues,
-        ]
-    },
+    "servo/servo": [            # All these handlers are specific to Servo!
+        _check_easy_issues,
+    ]
 }
 
 def check_issues(api, config, dump_path):
@@ -211,8 +216,8 @@ def check_issues(api, config, dump_path):
 
     # do some stuff (if config-based handlers are added in the future)
 
-    handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS)
-    for method in handlers.get('methods', []):
+    handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS, [])
+    for method in handlers:
         method(api, dump_path)
 
 

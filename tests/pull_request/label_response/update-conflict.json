@@ -13,6 +13,7 @@
   "payload": {
     "number": 7062,
     "pull_request": {
+      "state": "open",
       "base": {
         "repo": {
           "owner": {

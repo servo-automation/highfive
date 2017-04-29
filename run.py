@@ -31,9 +31,8 @@ if __name__ == '__main__':
         if status is not None:
             abort(status)
 
-        if payload:     # if there's a matching event...
-            event = headers['X-GitHub-Event'].lower()
-            runner.handle_payload(payload, event)
+        event = headers['X-GitHub-Event'].lower()
+        runner.handle_payload(payload, event)
 
         return 'Yay!', 200
 

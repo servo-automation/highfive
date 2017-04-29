@@ -90,12 +90,10 @@ def _watch_bors(api):
 
 
 REPO_SPECIFIC_HANDLERS = {
-    "servo/servo": {    # All these handlers are specific to Servo!
-        "methods": [
-            _find_reviewer,
-            _watch_bors,
-        ]
-    },
+    "servo/servo": [        # All these handlers are specific to Servo!
+        _find_reviewer,
+        _watch_bors,
+    ]
 }
 
 
@@ -108,8 +106,8 @@ def check_comments(api, config):
 
     # do some stuff (if config-based handlers are added in the future)
 
-    handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS)
-    for method in handlers.get('methods', []):
+    handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS, [])
+    for method in handlers:
         method(api)
 
 
