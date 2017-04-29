@@ -13,8 +13,8 @@ DUP_EFFORT_MSG = ('Hello there! Thanks for picking up this issue! We really appr
                   ' But, in the future, please get the issue assigned to yourself before working'
                   ' on it, so that we can avoid duplicate efforts. :smile:')
 
-POSSIBLE_DUP = ("**Note:** The assignee in #%s doesn't match with the"
-                " name of author in this pull request.")
+POSSIBLE_DUP = ("Hmm, it appears to me that the author of this pull request"
+                " isn't the one who claimed #%s :thinking:")
 
 RESPONSE_FAIL = ('It looks like this has already been assigned to someone.'
                  ' I\'ll leave the decision to a core contributor.')
@@ -22,15 +22,17 @@ RESPONSE_FAIL = ('It looks like this has already been assigned to someone.'
 RESPONSE_OK = ('Hey @%s! Thanks for your interest in working on this issue.'
                ' It\'s now assigned to you!')
 
-ISSUE_PING_MSG = 'Hey @%s! Did you look into this? You got any questions for us?'
-PR_PING_MSG = 'Hey @%s! Are you planning to finish this off?'
-
 PR_CLOSE_MSG = ("Okay, I'm gonna close this based on inactivity. If you change your mind"
                 " about working on this issue again, feel free to ping us and we'll reopen"
                 " it for you. Thanks for taking a stab at this :smile:")
 
 PR_ADDRESS_MSG = 'Previous work on #%s. '
 ISSUE_UNASSIGN_MSG = 'This is now open for anyone to jump in!'
+
+# FIXME: These responses may occur often, and should probably have a list of messages
+# to be chosen at random
+ISSUE_PING_MSG = 'Ping @%s! Did you look into this? You got any questions for us?'
+PR_PING_MSG = 'Hey @%s! Are you planning to finish this off?'
 
 ISSUE_OBJ_DEFAULT = {
     'assignee': None,
@@ -42,23 +44,18 @@ ISSUE_OBJ_DEFAULT = {
 MAX_DAYS = 4
 
 
-def _check_easy_issues(api, dump_path):
+def _check_easy_issues(api, data):
     payload = api.payload
-    handler_json = os.path.join(dump_path, 'easy_issues.json')
-    if not os.path.exists(handler_json):
-        api.logger.info('Creating JSON file: %r', handler_json)
-        with open(handler_json, 'w') as fd:
-            json.dump({'issues': {}}, fd)
-
-    with open(handler_json, 'r') as fd:     # NOTE: Investigate possible racing condition
-        data = json.load(fd)
-        api.logger.debug('Loading JSON data: %s', data)
-
     action = payload.get('action')
-    if api.owner:
+
+    if data.get('issues') is None:
+        data['issues'] = {}
+    if data.get('owner') is None and api.owner:
         data['owner'] = api.owner
-    if api.repo:
+    if data.get('repo') is None and api.repo:
         data['repo'] = api.repo
+
+    is_issue_in_data = data['issues'].has_key(api.issue_number)
 
     if action == 'opened':                  # issue or PR
         if payload.get('pull_request'):
@@ -69,22 +66,24 @@ def _check_easy_issues(api, dump_path):
             if number and data['issues'].has_key(number):
                 api.logger.debug('PR #%s addresses issue #%s', api.issue_number, number)
                 assignee = data['issues'][number]['assignee']
-                if api.creator != assignee:     # FIXME: What now?
-                    api.logger.debug('Assignee collision: Expected %r but PR author is %r',
-                                     assignee, api.creator)
-                    api.post_comment(POSSIBLE_DUP % number)
 
                 data['issues'][number]['assignee'] = api.creator
                 data['issues'][number]['pr_number'] = api.issue_number
                 data['issues'][number]['status'] = 'pull'
                 data['issues'][number]['last_active'] = payload['pull_request']['updated_at']
 
-                if assignee is None:
+                if assignee is None:        # PR author hasn't claimed the issue
                     api.logger.debug('Assignee has not requested issue assignment.'
                                      ' Marking issue as assigned')
                     api.post_comment(DUP_EFFORT_MSG)
                     api.issue_number = number
                     api.update_labels(add=['C-assigned'])
+
+                if api.creator != assignee:     # PR author isn't the assignee
+                    api.logger.debug('Assignee collision: Expected %r but PR author is %r',
+                                     assignee, api.creator)
+                    # Currently, we just drop a notification in the PR
+                    api.post_comment(POSSIBLE_DUP % number)
         # FIXME: Investigate and uncomment/remove the code below (in the future).
         # This has been disabled because if an issue is opened "with" labels,
         # Github appears to send payloads for the issue (with the label info) and
@@ -95,7 +94,8 @@ def _check_easy_issues(api, dump_path):
             # api.post_comment(ASSIGN_MSG % api.name)
             pass
 
-    elif action == 'created':               # comment
+    elif (action == 'created' and                       # comment
+          payload.get('pull_request') is None):
         msg = payload['comment']['body']
         match = re.search(r'@%s(?:\[bot\])?[: ]*assign (.*)' % api.name, str(msg.lower()))
         if match:
@@ -107,43 +107,64 @@ def _check_easy_issues(api, dump_path):
                 else:
                     api.logger.debug('Got assign request. Assigning to %r', api.creator)
                     api.update_labels(add=['C-assigned'])
-                    data['issues'][api.issue_number]['assignee'] = api.creator
-                    data['issues'][api.issue_number]['status'] = 'assigned'
-                    data['issues'][api.issue_number]['last_active'] = str(datetime.now())
                     api.post_comment(RESPONSE_OK % api.creator)
+                    # Mutate data only if we have the data
+                    if is_issue_in_data:
+                        data['issues'][api.issue_number]['assignee'] = api.creator
+                        data['issues'][api.issue_number]['status'] = 'assigned'
+                        data['issues'][api.issue_number]['last_active'] = payload['comment']['updated_at']
             else:
                 # FIXME: Make core-contributors assign issues for people
                 # and update local JSON store from their comment.
+                # For this to work, we should get the core contributors through the API.
+                # (Maintain a dump, or make a request once we encounter the first payload?)
                 pass
+        elif is_issue_in_data:
+            # FIXME: Someone has commented in the issue. Multiple things to investigate.
+            # What if the assignee had asked some question and no one answered?
+            # What if the issue gets blocked on something else?
+            # For now, we assume that our reviewers don't leave an issue/PR unnoticed for 4 days!
+            # Maybe we could have another handler for pinging the reviewer if a question
+            # remains unanswered for a while.
+            data['issues'][api.issue_number]['last_active'] = payload['comment']['updated_at']
+            if data['issues'][api.issue_number]['status'] == 'commented':
+                if data['issues'][api.issue_number]['pr_number'] is None:
+                    data['issues'][api.issue_number]['status'] = 'assigned'
+                else:
+                    data['issues'][api.issue_number]['status'] = 'pull'
 
     elif action == 'closed':
-        if ('e-easy' in api.labels and data['issues'].has_key(api.issue_number)):
+        if ('e-easy' in api.labels and is_issue_in_data):
             api.logger.debug('Issue #%s is being closed. Removing related data...')
             data['issues'].pop(api.issue_number)
         elif (payload.get('pull_request') and
               any(i['pr_number'] == api.issue_number for i in data['issues'])):
-            # FIXME: What should we do if the assignee closes/reopens the PR?
-            pass
+            data['issues'][api.issue_number]['status'] = 'assigned'
+            data['issues'][api.issue_number]['pr_number'] = None
+            data['issues'][number]['last_active'] = payload['pull_request']['updated_at']
 
     elif (action == 'labeled' and
-          payload.get('pull_request') is None):         # not a PR
+          payload.get('pull_request') is None):
         label = payload['label']['name'].lower()
         if label == 'e-easy':
-            api.logger.debug('Issue #%s has been marked E-easy. Posting welcome comment...', api.issue_number)
+            api.logger.debug('Issue #%s has been marked E-easy. Posting welcome comment...',
+                              api.issue_number)
             data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
             api.post_comment(ASSIGN_MSG % api.name)
-        elif label == 'c-assigned' and data['issues'].has_key(api.issue_number):
-            api.logger.debug('Issue #%s has been assigned to someone. Removing related data...', api.issue_number)
+        elif label == 'c-assigned' and is_issue_in_data:
+            api.logger.debug('Issue #%s has been assigned to someone. Removing related data...',
+                             api.issue_number)
             data['issues'].pop(api.issue_number)
 
-    elif (action == 'unlabeled' and
-          payload.get('pull_request') is None and
-          data['issues'].has_key(api.issue_number)):
+    elif (action == 'unlabeled' and is_issue_in_data and
+          payload.get('pull_request') is None):
         if payload['label']['name'].lower() == 'e-easy':
-            api.logger.debug('Issue #%s is no longer E-easy. Removing related data...', api.issue_number)
+            api.logger.debug('Issue #%s is no longer E-easy. Removing related data...',
+                             api.issue_number)
             data['issues'].pop(api.issue_number)
         elif payload['label']['name'].lower() == 'c-assigned':
-            api.logger.debug('Issue #%s has been unassigned. Removing related data...', api.issue_number)
+            api.logger.debug('Issue #%s has been unassigned. Setting issue to default data...',
+                             api.issue_number)
             data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
 
     elif action is None:    # check the timestamps and post comments as necessary
@@ -195,30 +216,15 @@ def _check_easy_issues(api, dump_path):
                 api.post_comment(comment)       # reset data
                 data['issues'][number] = ISSUE_OBJ_DEFAULT
 
-    # FIXME: Create a MutationObserver-like object that wraps over a dict
-    # and tells whether its contents have changed. That way, we won't have to
-    # replace the JSON all the time! This is of minor impact, since (in reality)
-    # we poke these handlers only once every hour or so
-    with open(handler_json, 'w') as fd:
-        api.logger.debug('Dumping JSON data... %s', data)
-        json.dump(data, fd)
-
 
 REPO_SPECIFIC_HANDLERS = {
-    "servo/servo": [            # All these handlers are specific to Servo!
-        _check_easy_issues,
-    ]
+    "servo/servo": _check_easy_issues
 }
 
-def check_issues(api, config, dump_path):
-    repos = config.get('repos', {})
-    _config = api.get_matches_from_config(repos)
-
-    # do some stuff (if config-based handlers are added in the future)
-
-    handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS, [])
-    for method in handlers:
-        method(api, dump_path)
+def easy_issues(api, _config, data):
+    handler = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS)
+    if handler:
+        handler(api, data)
 
 
-methods = [check_issues]
+methods = [easy_issues]

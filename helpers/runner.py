@@ -124,14 +124,28 @@ class SyncHandler(object):
             self.runner.logger.debug('Creating %r for dumping JSONs', self.dump_path)
             os.mkdir(self.dump_path)
 
+    # FIXME: Probably have another queue? (What if a payload is posted while we're checking the handlers?)
     def post(self, payload):
         # This relies on InstallationHandler's request queueing
         api = GithubAPIProvider(self.runner.name, payload, self.inst.queue_request)
         # Since the handlers don't belong to any particular event, they're supposed to
         # exist in `issues` and `pull_request` (with 'sync' flag enabled in their config)
-        for _, handler in itertools.chain(get_handlers('issues', sync=True),
-                                          get_handlers('pull_request', sync=True)):
-            handler(api, self.dump_path)
+        for path, handler in itertools.chain(get_handlers('issues', sync=True),
+                                             get_handlers('pull_request', sync=True)):
+            data = {}
+            dump_path = os.path.join(self.dump_path, os.path.basename(path))
+            # FIXME: Create a MutationObserver-like object that wraps over a dict
+            # and tells whether its contents have changed. That way, we won't have to
+            # replace the JSON all the time!
+            if os.path.exists(dump_path):
+                self.runner.logger.debug('Loading JSON from %r', dump_path)
+                with open(dump_path, 'r') as fd:
+                    data = json.load(fd)
+
+            handler(api, data)
+            with open(dump_path, 'w') as fd:    # NOTE: Investigate possible racing condition
+                self.runner.logger.debug('Dumping JSON at %r', dump_path)
+                json.dump(data, fd)
 
 
 class Runner(object):
