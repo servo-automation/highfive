@@ -9,7 +9,7 @@ def check_new_pr(api, config):
     if pr['assignee']:
         return
 
-    chosen_ones = api.shared.find_reviewers(pr['body'])
+    chosen_ones = api.methods.find_reviewers(pr['body'])
 
     if not chosen_ones:    # go for reviewer rotation
         repo_config = api.get_matches_from_config(repos)

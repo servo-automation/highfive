@@ -55,7 +55,7 @@ def _check_easy_issues(api, data):
     if data.get('repo') is None and api.repo:
         data['repo'] = api.repo
 
-    is_issue_in_data = data['issues'].has_key(api.issue_number)
+    is_issue_in_data = data['issues'].has_key(api.issue_number) if api.issue_number else None
 
     if action == 'opened':                  # issue or PR
         if payload.get('pull_request'):

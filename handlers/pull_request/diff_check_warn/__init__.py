@@ -17,7 +17,7 @@ def _check_tests(api, repo_config, paths):
     message = ('These commits modify the %s code, but no tests have been modified. '
                'Please consider updating the tests appropriately.')
     if no_tests:
-        return message % api.shared.join_names(no_tests)
+        return message % api.methods.join_names(no_tests)
 
 
 # Servo-specific WPT metadata checker
@@ -34,7 +34,7 @@ def _check_metadata(api, paths):
             offending_file_dirs |= set(d for d in metadata_dirs if re.search(d, path))
 
     if offending_file_dirs:
-        return msg % api.shared.join_names(offending_file_dirs)
+        return msg % api.methods.join_names(offending_file_dirs)
 
 
 # define and append the repo-specific handlers here

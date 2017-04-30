@@ -1,12 +1,15 @@
-from methods import Shared, get_path_parent, get_logger
+from methods import get_path_parent, get_logger
 
 import contextlib, json, logging, re, requests, time, urllib2
+import methods
 
 
 class APIProvider(object):
     def __init__(self, payload):
         self.payload = payload
-        self.shared = Shared()
+        # NOTE: Since the handlers are executed in a function's local namespace, they don't have
+        # access to any nearby modules, and hence, this redirection...
+        self.methods = methods
         self.pull_url = payload['pull_request']['url'] if payload.get('pull_request') else None
         self.diff = None
 

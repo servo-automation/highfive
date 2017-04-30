@@ -61,7 +61,7 @@ def _find_reviewer(api):
         api.set_assignees(reviewers.split(','))
         return
 
-    reviewers = api.shared.find_reviewers(comment)
+    reviewers = api.methods.find_reviewers(comment)
     if reviewers:
         api.set_assignees(reviewers)
 

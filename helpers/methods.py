@@ -5,7 +5,11 @@ AVAILABLE_EVENTS = filter(lambda p: os.path.isdir(os.path.join(HANDLERS_DIR, p))
                           os.listdir(HANDLERS_DIR))
 LOGGERS = {}
 
-def get_logger(name):       # logger.getLogger() creates a new instance (causing duplicate logs)
+def get_logger(name):
+    '''
+    `logger.getLogger()` creates a new instance for all calls. This makes sure that
+    we always get the logger unique to a name.
+    '''
     global LOGGERS
     if LOGGERS.get(name):
         return LOGGERS[name]
@@ -14,37 +18,37 @@ def get_logger(name):       # logger.getLogger() creates a new instance (causing
         LOGGERS[name] = logger
         return logger
 
-class Shared(object):
-    '''Methods required by the handlers in the submodules'''
-    def find_reviewers(self, comment):
-        '''
-        If the user had specified the reviewer(s), then return the name(s),
-        otherwise return None. It matches all the usernames following a
-        review request.
 
-        For example,
-        'r? @foo @bar,@foobar'
-        're- @foo,@bar, @foobar'
-        'review: @foo for XXX @bar,@foobar for YYY'
+def find_reviewers(comment):
+    '''
+    If the user had specified the reviewer(s), then return the name(s),
+    otherwise return None. It matches all the usernames following a
+    review request.
 
-        All these comments return ['foo', 'bar', 'foobar']
-        '''
-        result = re.search(r'r[eviw]*[\?:\-] @(.*)', str(comment))
-        if result:
-            reviewers = result.group(1)
-            names = filter(lambda s: s, reviewers.split('@'))
-            return map(lambda name: name.split()[0].strip(' ,'), names)
+    For example,
+    'r? @foo @bar,@foobar'
+    'r? @foo,@bar, @foobar'
+    'r? @foo for XXX @bar, @foobar for YYY'
 
-    def join_names(self, names):
-        ''' Join multiple words in human-readable form'''
-        if len(names) == 1:
-            return names.pop()
-        elif len(names) == 2:
-            return '{} and {}'.format(*names)
-        elif len(names) > 2:
-            last = names.pop()
-            return '%s and %s' % (', '.join(names), last)
-        return ''
+    All these comments return ['foo', 'bar', 'foobar']
+    '''
+    result = re.search(r'r\? @(.*)', str(comment))
+    if result:
+        reviewers = result.group(1)
+        names = filter(lambda s: s, reviewers.split('@'))
+        return map(lambda name: name.split()[0].strip(' ,'), names)
+
+
+def join_names(names):
+    ''' Join multiple words in human-readable form'''
+    if len(names) == 1:
+        return names.pop()
+    elif len(names) == 2:
+        return '{} and {}'.format(*names)
+    elif len(names) > 2:
+        last = names.pop()
+        return '%s and %s' % (', '.join(names), last)
+    return ''
 
 
 def get_path_parent(obj, match=[], get_obj=lambda item: item):
