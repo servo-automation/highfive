@@ -104,6 +104,7 @@ PR_CLOSE_MSG = ("Okay, I'm gonna close this based on inactivity. If you change y
 
 # FIXME: Choose randomly
 PR_PING_MSG = 'Hey @%s! Are you planning to finish this off?'
+PR_ANON_PING = "What's going on here?"
 
 MAX_DAYS = 4
 
@@ -138,7 +139,10 @@ def check_pulls(api, dump_path):
         status = data['status']
 
         if status is None:
-            api.post_comment(PR_PING_MSG % assignee)
+            if assignee:
+                api.post_comment(PR_PING_MSG % assignee)
+            else:
+                api.post_comment(PR_ANON_PING)
             data['status'] = 'commented'
         elif status == 'commented':
             api.logger.debug('Closing PR #%s after grace period', pr_num)
@@ -175,21 +179,20 @@ def manage_pulls(api, dump_path):
     if data.get('repo') is None and api.repo:
         data['repo'] = api.repo
 
+    data['last_active'] = payload['pull_request']['updated_at']
+
     if action == 'created':                 # comment
         find_reviewer(data, api)
         if api.creator == 'bors-servo':
             check_bors_msg(data, api)
         data['last_active'] = payload['comment']['updated_at']
         data['comments'].append(payload['comment']['body'])
-        data['labels'] = api.labels
     elif action == 'opened':                # PR created
         data['author'] = api.creator
         data['number'] = api.issue_number
         data['labels'] = api.labels
-        data['last_active'] = payload['pull_request']['updated_at']
         data['body'] = payload['pull_request']['body']
         data['assignee'] = payload['pull_request']['assignee']
-        data['last_active'] = payload['pull_request']['updated_at']
     elif action == 'labeled':
         data['labels'] = list(set(data['labels']).union([payload['label']['name']]))
     elif action == 'unlabeled':

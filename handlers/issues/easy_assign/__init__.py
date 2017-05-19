@@ -28,6 +28,7 @@ ISSUE_UNASSIGN_MSG = 'This is now open for anyone to jump in!'
 # FIXME: These responses may occur often, and should probably have a list of messages
 # to be chosen at random
 ISSUE_PING_MSG = 'Ping @%s! Did you look into this? You got any questions for us?'
+ISSUE_ANON_PING = 'Is this still being worked on?'
 
 ISSUE_OBJ_DEFAULT = {
     'assignee': None,
@@ -67,6 +68,8 @@ def check_easy_issues(api, dump_path):
             if number and data['issues'].has_key(number):
                 api.logger.debug('PR #%s addresses issue #%s', api.issue_number, number)
                 assignee = data['issues'][number]['assignee']
+                if assignee == '0xdeadbeef':        # Assume that this author is the anonymous assignee
+                    assignee = api.creator
 
                 data['issues'][number]['assignee'] = api.creator
                 data['issues'][number]['pr_number'] = api.issue_number
@@ -148,9 +151,8 @@ def check_easy_issues(api, dump_path):
             data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
             api.post_comment(ASSIGN_MSG % api.name)
         elif label == 'c-assigned' and is_issue_in_data:
-            api.logger.debug('Issue #%s has been assigned to someone. Removing related data...',
-                             api.issue_number)
-            data['issues'].pop(api.issue_number)
+            api.logger.debug('Issue #%s has been assigned to... someone?', api.issue_number)
+            data['issues'][api.issue_number]['assignee'] = '0xdeadbeef'
 
     elif (action == 'unlabeled' and is_issue_in_data and
           payload.get('pull_request') is None):
@@ -192,7 +194,10 @@ def check_easy_issues(api, dump_path):
 
             if status == 'assigned':
                 api.logger.debug('Pinging %r in issue #%s', assignee, number)
-                api.post_comment(ISSUE_PING_MSG % assignee)
+                if assignee == '0xdeadbeef':
+                    api.post_comment(ISSUE_ANON_PING)
+                else:
+                    api.post_comment(ISSUE_PING_MSG % assignee)
                 data['issues'][number]['status'] = 'commented'
             elif status == 'commented' and status != 'pull':    # PR will be taken care of by another handler
                 api.logger.debug('Unassigning issue #%s after grace period', number)

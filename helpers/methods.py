@@ -112,7 +112,7 @@ def get_handlers(event_name, sync=False):
     '''
     event_dir = os.path.join(HANDLERS_DIR, event_name)
     if not os.path.isdir(event_dir):
-        return []
+        return
 
     for handler_name in sorted(os.listdir(event_dir)):
         handler_dir = os.path.join(event_dir, handler_name)

@@ -193,16 +193,15 @@ class Runner(object):
         self.sync_runners.setdefault(inst_id, SyncHandler(inst_handler))
 
     def handle_payload(self, payload, event):
-        if self.name in payload.get('sender', {'login': None})['login']:
-            self.logger.debug('Skipping payload for event %r sent by self', event)
-            return      # don't handle payloads sent by self
-
         inst_id = payload['installation']['id']
         self.set_installation(inst_id)
         if event in self.enabled_events:
-            self.logger.info('Received payload for for installation %s'
-                             ' (event: %s, action: %s)', inst_id, event, payload.get('action'))
-            self.installations[inst_id].add(payload, event)
+            if self.name in payload.get('sender', {'login': None})['login']:
+                self.logger.debug('Skipping payload for event %r sent by self', event)
+            else:
+                self.logger.info('Received payload for for installation %s'
+                                 ' (event: %s, action: %s)', inst_id, event, payload.get('action'))
+                self.installations[inst_id].add(payload, event)
         else:   # no matching events
             self.logger.info("(event %s, action: %s) doesn't match any enabled events (installation %s)."
                              " Skipping payload-dependent handlers...", event, payload.get('action'), inst_id)
