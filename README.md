@@ -24,13 +24,13 @@ Github's payload JSONs are huge! They have a lot of useful information, but we w
 
 `NodeMarker` is a *creepy* container. It wraps around all the objects! While most of the commonly used methods should work right now, in case you need to use a type-specific method (`lower` for `str`, for example), then you should add a new method to `NodeMarker`, asking it to access the method on the underlying type ([like so](https://github.com/servo-automation/highfive/blob/8691a1ce0dce6045194f2a5510c0f63d2da72804/helpers/json_cleanup.py#L50-L51)). So, instead of working around in the main code, we're introducing workarounds in the cleaner. Well, everything comes at a cost!
 
-### Available handlers
+### Required events (and their corresponding handlers):
 
 #### [`issue_comment`](https://developer.github.com/v3/activity/events/types/#issuecommentevent)
- - `check_comments`: There's no general configuration for this, since it's specific to a repo. The handlers we've got here respond to approval comments in Servo PRs. They can be used as a model to add more repo-specific handlers.
+ - This is required for `pull_request/open_pulls`
 
 #### [`issues`](https://developer.github.com/v3/activity/events/types/#issuesevent)
- - `easy_assigned` (sync): This doesn't have a general configuration. This tracks the issues tagged `E-easy` (in Servo), assigns those issues to newcomers, pings them after a timeout, tracks their PRs, and notifies/closes those based on their inactivity.
+ - `easy_assigned` (sync): This doesn't have a general configuration. This tracks the issues tagged `E-easy` (in Servo), assigns those issues to newcomers, tracks their PRs, pings them after a timeout, and unassigns the issues based on their inactivity.
  - `label_notify`: Notify label watcher(s) in a comment when a label is added to an issue.
  - `label_response`: Comment when a label is added to an issue.
 
@@ -38,6 +38,7 @@ Github's payload JSONs are huge! They have a lot of useful information, but we w
  - `assign_people`: Assign people based on review requests in PR body or (pseudo-)random reviewer rotation.
  - `diff_check_warn`: Check the diff of the commits in a PR for added lines, changed files, or missing tests matching a pattern (specified in the config), and post a consolidated warning message on the match(es) found.
  - `label_response`: Add/remove labels when a PR is opened/updated/closed.
+ - `open_pulls`: This manages all open PRs in queue. It tracks the PR update times and notifies its authors or closes the PRs based on their inactivity.
  - `path_watchers`: Notify watcher(s) in a comment whenever a PR makes changes to the "watched" paths.
 
 ---
