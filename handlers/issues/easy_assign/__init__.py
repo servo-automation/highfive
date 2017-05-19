@@ -22,21 +22,16 @@ RESPONSE_FAIL = ('It looks like this has already been assigned to someone.'
 RESPONSE_OK = ('Hey @%s! Thanks for your interest in working on this issue.'
                ' It\'s now assigned to you!')
 
-PR_CLOSE_MSG = ("Okay, I'm gonna close this based on inactivity. If you change your mind"
-                " about working on this issue again, feel free to ping us and we'll reopen"
-                " it for you. Thanks for taking a stab at this :smile:")
-
 PR_ADDRESS_MSG = 'Previous work on #%s. '
 ISSUE_UNASSIGN_MSG = 'This is now open for anyone to jump in!'
 
 # FIXME: These responses may occur often, and should probably have a list of messages
 # to be chosen at random
 ISSUE_PING_MSG = 'Ping @%s! Did you look into this? You got any questions for us?'
-PR_PING_MSG = 'Hey @%s! Are you planning to finish this off?'
 
 ISSUE_OBJ_DEFAULT = {
     'assignee': None,
-    'status': None,
+    'status': None,             # None, 'assigned', 'pull', 'commented'
     'last_active': None,
     'pr_number': None,
 }
@@ -44,9 +39,15 @@ ISSUE_OBJ_DEFAULT = {
 MAX_DAYS = 4
 
 
-def _check_easy_issues(api, data):
+def check_easy_issues(api, dump_path):
     payload = api.payload
     action = payload.get('action')
+
+    data = {}
+    if os.path.exists(dump_path):
+        api.logger.debug('Loading JSON from %r', dump_path)
+        with open(dump_path, 'r') as fd:
+            data = json.load(fd)
 
     if data.get('issues') is None:
         data['issues'] = {}
@@ -84,15 +85,6 @@ def _check_easy_issues(api, data):
                                      assignee, api.creator)
                     # Currently, we just drop a notification in the PR
                     api.post_comment(POSSIBLE_DUP % number)
-        # FIXME: Investigate and uncomment/remove the code below (in the future).
-        # This has been disabled because if an issue is opened "with" labels,
-        # Github appears to send payloads for the issue (with the label info) and
-        # for all the individual labels (which will result in posting the comment twice).
-        elif 'e-easy' in api.labels and data['issues'].get(api.issue_number) is None:
-            # data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
-            # api.logger.debug('Found E-easy label in issue. Posting welcome comment...')
-            # api.post_comment(ASSIGN_MSG % api.name)
-            pass
 
     elif (action == 'created' and                       # comment
           payload.get('pull_request') is None):
@@ -139,9 +131,13 @@ def _check_easy_issues(api, data):
             data['issues'].pop(api.issue_number)
         elif (payload.get('pull_request') and
               any(i['pr_number'] == api.issue_number for i in data['issues'])):
-            data['issues'][api.issue_number]['status'] = 'assigned'
-            data['issues'][api.issue_number]['pr_number'] = None
-            data['issues'][number]['last_active'] = payload['pull_request']['updated_at']
+            comment = PR_ADDRESS_MSG % api.issue_number + ISSUE_UNASSIGN_MSG
+            api.post_comment(comment)
+            api.update_labels(remove=['C-assigned'])
+            data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
+
+    elif action == 'reopened':      # FIXME: Also handle reopening issues?
+        pass
 
     elif (action == 'labeled' and
           payload.get('pull_request') is None):
@@ -186,39 +182,34 @@ def _check_easy_issues(api, data):
             last_active = datetime_parse(last_active)
             now = datetime.now(last_active.tzinfo)
             if (now - last_active).days <= MAX_DAYS:
-                api.logger.debug('Issue %s is stil in grace period', number)
+                api.logger.debug('Issue #%s is stil in grace period', number)
                 continue
 
+            api.logger.debug("Issue #%s has had its time. Something's gonna happen.", number)
             api.issue_number = number
             assignee = issue['assignee']
-            if status == 'pull':
-                api.issue_number = issue['pr_number']
-                api.post_comment(PR_PING_MSG % assignee)
-                data['issues'][number]['status'] = 'commented'
-            elif status == 'assigned':
+            data['issues'][number]['last_active'] = str(now)
+
+            if status == 'assigned':
                 api.logger.debug('Pinging %r in issue #%s', assignee, number)
                 api.post_comment(ISSUE_PING_MSG % assignee)
                 data['issues'][number]['status'] = 'commented'
-            elif status == 'commented':
-                comment = ''
-                pr_num = issue['pr_number']
-                if pr_num:
-                    api.logger.debug('Closing PR #%s after grace period', pr_num)
-                    api.issue_number = pr_num
-                    api.post_comment(PR_CLOSE_MSG)
-                    api.close_issue()
-                    comment = PR_ADDRESS_MSG % pr_num
-
-                api.issue_number = number
+            elif status == 'commented' and status != 'pull':    # PR will be taken care of by another handler
                 api.logger.debug('Unassigning issue #%s after grace period', number)
                 api.update_labels(remove=['C-assigned'])
-                comment += ISSUE_UNASSIGN_MSG
-                api.post_comment(comment)       # reset data
-                data['issues'][number] = ISSUE_OBJ_DEFAULT
+                api.post_comment(ISSUE_UNASSIGN_MSG)
+                data['issues'][number] = ISSUE_OBJ_DEFAULT      # reset data
+
+    # FIXME: Create a MutationObserver-like object that wraps over a dict
+    # and tells whether its contents have changed. That way, we won't have to
+    # replace the JSON all the time!
+    with open(dump_path, 'w') as fd:    # NOTE: Investigate possible racing condition
+        api.logger.debug('Dumping JSON to %r', dump_path)
+        json.dump(data, fd)
 
 
 REPO_SPECIFIC_HANDLERS = {
-    "servo/servo": _check_easy_issues
+    "servo/servo": check_easy_issues
 }
 
 def easy_issues(api, _config, data):

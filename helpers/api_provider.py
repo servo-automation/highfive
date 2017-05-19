@@ -1,6 +1,6 @@
 from methods import get_path_parent, get_logger
 
-import contextlib, json, logging, re, requests, time, urllib2
+import contextlib, re, urllib2
 import methods
 
 
