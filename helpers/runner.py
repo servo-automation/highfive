@@ -10,8 +10,6 @@ from methods import AVAILABLE_EVENTS, get_handlers, get_logger
 
 import hashlib, hmac, itertools, json, os, time, requests
 
-SYNC_HANDLER_SLEEP_SECS = 3600
-
 # Implementation of digest comparison from Django
 # https://github.com/django/django/blob/0ed7d155635da9f79d4dd67e4889087d3673c6da/django/utils/crypto.py#L96-L105
 def compare_digest(val_1, val_2):
@@ -29,11 +27,6 @@ class InstallationHandler(object):
     base_url = 'https://api.github.com'
     installation_url = base_url + '/installations/%s/access_tokens'
     rate_limit_url = base_url + '/rate_limit'
-    # Github offers 5000 requests per hour (per installation) for an integration
-    # (both of these will be overridden, since we'll get this from the "/rate_limit" endpoint)
-    remaining = 0
-    reset_time = int(time.time()) - 60
-    next_token_sync = datetime.now()
     headers = {
         'Content-Type': 'application/json',
         # integration-specific header
@@ -46,6 +39,12 @@ class InstallationHandler(object):
         self.logger = runner.logger
         self._id = inst_id
         self.installation_url = self.installation_url % inst_id
+        # Github offers 5000 requests per hour (per installation) for an integration
+        # (all these will be overridden when we sync the token and "/rate_limit" endpoint)
+        self.remaining = self.runner.config.get('remaining', 0)
+        self.reset_time = self.runner.config.get('reset', int(time.time()) - 60)
+        self.next_token_sync = datetime_parse(self.runner.config.get('expires_at', '%s' % datetime.now()))
+        self.token = self.runner.config.get('token')
 
     def sync_token(self):
         now = datetime.now(self.next_token_sync.tzinfo)     # should be timezone-aware version
@@ -101,11 +100,20 @@ class InstallationHandler(object):
             self.logger.debug('Cannot decode JSON, Passing the payload as string...')
             return data
 
+    def update_config(self):
+        self.runner.config[self._id] = {
+            'remaining': self.remaining,
+            'expires_at': '%s' % self.next_token_sync,
+            'reset': self.reset_time,
+            'token': self.token,
+        }
+
     def queue_request(self, method, url, data=None):
         self.sync_token()
         interval = self.wait_time()
         sleep(interval)
         self.remaining -= 1
+        self.update_config()
         auth = 'token %s' % self.token
         return self._request(auth, method, url, data)
 
@@ -117,18 +125,17 @@ class InstallationHandler(object):
 
 class SyncHandler(object):
     def __init__(self, inst_handler):
-        self.runner = inst_handler.runner
+        self.runner = inst_handler.runner   # FIXME: Too many indirections (refactor them someday)
         self.inst = inst_handler
         self.dump_path = os.path.join(inst_handler.runner.dump_path, str(inst_handler._id))
         if not os.path.isdir(self.dump_path):       # dir for each installation
             self.runner.logger.debug('Creating %r for dumping JSONs', self.dump_path)
             os.mkdir(self.dump_path)
 
-    # FIXME: Probably have another queue? (What if a payload is posted while we're checking the handlers?)
     def post(self, payload):
         # This relies on InstallationHandler's request queueing
         api = GithubAPIProvider(self.runner.name, payload, self.inst.queue_request)
-        # Since the handlers don't belong to any particular event, they're supposed to
+        # Since these handlers don't belong to any particular event, they're supposed to
         # exist in `issues` and `pull_request` (with 'sync' flag enabled in their config)
         for path, handler in itertools.chain(get_handlers('issues', sync=True),
                                              get_handlers('pull_request', sync=True)):
@@ -153,12 +160,12 @@ class Runner(object):
         with open(config['pem_file'], 'r') as fd:
             self.pem_key = fd.read()
 
-    def verify_payload(self, headers, raw_payload):
+    def verify_payload(self, header_sign, raw_payload):
         try:
             payload = json.loads(raw_payload)
         except Exception as err:
             self.logger.debug('Cannot decode payload JSON: %s', err)
-            return 400, None
+            return None
 
         # app "secret" key is optional, but it makes sure that you're getting payloads
         # from Github. If a third-party found your POST endpoint, then anyone can send a
@@ -171,21 +178,20 @@ class Runner(object):
         # ... which will generate a 32-byte key in the ASCII range.
 
         if self.secret:
-            header_sign = headers.get('X-Hub-Signature', '') + '='
-            hash_func, signature = header_sign.split('=')[:2]
+            hash_func, signature = (header_sign + '=').split('=')[:2]
             hash_func = getattr(hashlib, hash_func)     # for now, sha1
             msg_auth_code = hmac.new(self.secret, raw_payload, hash_func)
             hashed = msg_auth_code.hexdigest()
 
             if not compare_digest(signature, hashed):
                 self.logger.debug('Invalid signature!')
-                return 403, None
+                return None
 
             self.logger.info("Payload's signature has been verified!")
         else:
             self.logger.info("Payload's signature can't be verified without secret key!")
 
-        return None, payload
+        return payload
 
     def set_installation(self, inst_id):
         self.installations.setdefault(inst_id, InstallationHandler(self, inst_id))
@@ -208,20 +214,13 @@ class Runner(object):
         # We pass all the payloads through sync handlers regardless of the event (they're unconstrained)
         self.sync_runners[inst_id].post(payload)
 
-    def start_sync(self):
-        self.logger.info('Spawning a new thread for sync handlers...')
+    def poke_data(self):
+        self.logger.debug('Poking available installation data...')
         for _id in map(int, os.listdir(self.dump_path)):
             self.logger.debug('Found installation %s in %r, adding it to queue', _id, self.dump_path)
             self.set_installation(_id)
 
-        while True:
-            start = int(time.time())
-            for _id, sync_runner in self.sync_runners.items():
-                # poke all the sync handlers (of all installations) on hand with fake payloads
-                self.logger.info('Poking runner for installation %s with empty payload', _id)
-                sync_runner.post({})
-
-            end = int(time.time())
-            interval = SYNC_HANDLER_SLEEP_SECS - (end - start)
-            self.logger.debug('Going to sleep for %s seconds', interval)
-            sleep(interval)
+        for _id, sync_runner in self.sync_runners.items():
+            # poke all the sync handlers (of all installations) on hand with fake payloads
+            self.logger.info('Poking runner for installation %s with empty payload', _id)
+            sync_runner.post({})
