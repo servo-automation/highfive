@@ -1,6 +1,7 @@
 import json, logging, os, re
 
-HANDLERS_DIR = 'handlers'
+ROOT = os.path.dirname(os.path.dirname(__file__))
+HANDLERS_DIR = os.path.join(ROOT, 'handlers')
 AVAILABLE_EVENTS = filter(lambda p: os.path.isdir(os.path.join(HANDLERS_DIR, p)),
                           os.listdir(HANDLERS_DIR))
 LOGGERS = {}

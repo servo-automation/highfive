@@ -8,7 +8,7 @@ from time import sleep
 from api_provider import GithubAPIProvider
 from methods import AVAILABLE_EVENTS, get_handlers, get_logger
 
-import hashlib, hmac, itertools, json, os, time, requests
+import hashlib, hmac, itertools, json, os, sys, time, requests
 
 # Implementation of digest comparison from Django
 # https://github.com/django/django/blob/0ed7d155635da9f79d4dd67e4889087d3673c6da/django/utils/crypto.py#L96-L105
@@ -160,9 +160,9 @@ class Runner(object):
         with open(config['pem_file'], 'r') as fd:
             self.pem_key = fd.read()
 
-    def verify_payload(self, header_sign, raw_payload):
+    def verify_payload(self, header_sign):
         try:
-            payload = json.loads(raw_payload)
+            payload = json.load(sys.stdin)
         except Exception as err:
             self.logger.debug('Cannot decode payload JSON: %s', err)
             return None

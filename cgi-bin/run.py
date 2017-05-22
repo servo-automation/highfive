@@ -1,15 +1,17 @@
-from helpers.methods import get_logger
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+from helpers.methods import ROOT, get_logger
 from helpers.runner import Runner
 
-import cgi, cgitb, json, logging, os
+import cgi, json, logging, os
 
-CONFIG_PATH = 'config.json'
+CONFIG_PATH = os.path.join(ROOT, 'config.json')
 
 if __name__ == '__main__':
-    print "Content-Type: text/plain\n"
-    cgitb.enable()
-    post = cgi.FieldStorage()
-    raw_payload = post.getfirst('payload')
+    print("Content-Type: text/plain\r\n")
+    print('\r\n')
     logging.basicConfig(level=logging.DEBUG)
     logger = get_logger(__name__)
 
@@ -27,7 +29,7 @@ if __name__ == '__main__':
     else:
         sign = os.environ['HTTP_X_HUB_SIGNATURE']
         event = os.environ['HTTP_X_GITHUB_EVENT'].lower()
-        payload = runner.verify_payload(sign, raw_payload)
+        payload = runner.verify_payload(sign)
         if payload is not None:
             runner.handle_payload(payload, event)
 

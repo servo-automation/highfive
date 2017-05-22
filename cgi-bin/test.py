@@ -1,10 +1,12 @@
 from helpers.api_provider import APIProvider
 from helpers.json_cleanup import JsonCleaner
-from helpers.methods import AVAILABLE_EVENTS, HANDLERS_DIR, get_handlers, get_path_parent
+from helpers.methods import AVAILABLE_EVENTS, HANDLERS_DIR, ROOT, get_handlers, get_path_parent
+
+from run import CONFIG_PATH
 
 import json, os, sys
 
-TESTS_DIR = 'tests'
+TESTS_DIR = os.path.join(ROOT, 'tests')
 
 
 class TestAPIProvider(APIProvider):
@@ -66,15 +68,16 @@ if __name__ == '__main__':
     overwrite = True if 'write' in args else False
     warn = not overwrite
 
-    with open('config.json', 'r') as fd:
+    with open(CONFIG_PATH, 'r') as fd:
         config = json.load(fd)
 
     # The "tests" directory should have the same structure as that of the "handlers"
     for event in AVAILABLE_EVENTS:
         for path, handler in get_handlers(event):
-            test_payloads_dir = TESTS_DIR + path.lstrip(HANDLERS_DIR)
+            local_path = path.split(os.sep)[len(HANDLERS_DIR.split(os.sep)):]
+            test_payloads_dir = os.path.join(TESTS_DIR, *local_path)
             if not os.path.exists(test_payloads_dir):   # a handler should have at least one test
-                print 'Test not found for handler in %s' % test_payloads_dir
+                print 'Test not found for handler in %s' % os.sep.join(local_path)
                 failed += 1
                 continue
 
