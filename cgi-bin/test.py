@@ -1,8 +1,7 @@
 from helpers.api_provider import APIProvider
 from helpers.json_cleanup import JsonCleaner
-from helpers.methods import AVAILABLE_EVENTS, HANDLERS_DIR, ROOT, get_handlers, get_path_parent
-
-from run import CONFIG_PATH
+from helpers.methods import AVAILABLE_EVENTS, CONFIG_PATH, HANDLERS_DIR, ROOT
+from helpers.methods import get_handlers, get_path_parent
 
 import json, os, sys
 

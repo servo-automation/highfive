@@ -2,12 +2,10 @@
 
 from __future__ import print_function
 
-from helpers.methods import ROOT, get_logger
+from helpers.methods import CONFIG_PATH, get_logger
 from helpers.runner import Runner
 
-import cgi, json, logging, os
-
-CONFIG_PATH = os.path.join(ROOT, 'config.json')
+import cgi, json, logging, os, sys
 
 if __name__ == '__main__':
     print("Content-Type: text/plain\r\n")
@@ -29,7 +27,7 @@ if __name__ == '__main__':
     else:
         sign = os.environ['HTTP_X_HUB_SIGNATURE']
         event = os.environ['HTTP_X_GITHUB_EVENT'].lower()
-        payload = runner.verify_payload(sign)
+        _status, payload = runner.verify_payload(sign, payload_fd=sys.stdin)
         if payload is not None:
             runner.handle_payload(payload, event)
 

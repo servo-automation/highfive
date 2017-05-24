@@ -8,7 +8,9 @@ from time import sleep
 from api_provider import GithubAPIProvider
 from methods import AVAILABLE_EVENTS, get_handlers, get_logger
 
-import hashlib, hmac, itertools, json, os, sys, time, requests
+import hashlib, hmac, itertools, json, os, time, requests
+
+SYNC_HANDLER_SLEEP_SECS = 3600
 
 # Implementation of digest comparison from Django
 # https://github.com/django/django/blob/0ed7d155635da9f79d4dd67e4889087d3673c6da/django/utils/crypto.py#L96-L105
@@ -160,12 +162,12 @@ class Runner(object):
         with open(config['pem_file'], 'r') as fd:
             self.pem_key = fd.read()
 
-    def verify_payload(self, header_sign):
+    def verify_payload(self, header_sign, payload_fd):
         try:
-            payload = json.load(sys.stdin)
+            payload = json.load(payload_fd)
         except Exception as err:
             self.logger.debug('Cannot decode payload JSON: %s', err)
-            return None
+            return 400, None
 
         # app "secret" key is optional, but it makes sure that you're getting payloads
         # from Github. If a third-party found your POST endpoint, then anyone can send a
@@ -185,13 +187,13 @@ class Runner(object):
 
             if not compare_digest(signature, hashed):
                 self.logger.debug('Invalid signature!')
-                return None
+                return 403, None
 
             self.logger.info("Payload's signature has been verified!")
         else:
             self.logger.info("Payload's signature can't be verified without secret key!")
 
-        return payload
+        return None, payload
 
     def set_installation(self, inst_id):
         self.installations.setdefault(inst_id, InstallationHandler(self, inst_id))
@@ -224,3 +226,21 @@ class Runner(object):
             # poke all the sync handlers (of all installations) on hand with fake payloads
             self.logger.info('Poking runner for installation %s with empty payload', _id)
             sync_runner.post({})
+
+    def start_sync(self):
+        self.logger.info('Spawning a new thread for sync handlers...')
+        for _id in map(int, os.listdir(self.dump_path)):
+             self.logger.debug('Found installation %s in %r, adding it to queue', _id, self.dump_path)
+             self.set_installation(_id)
+
+        while True:
+            start = int(time.time())
+            for _id, sync_runner in self.sync_runners.items():
+                # poke all the sync handlers (of all installations) on hand with fake payloads
+                self.logger.info('Poking runner for installation %s with empty payload', _id)
+                sync_runner.post({})
+
+            end = int(time.time())
+            interval = SYNC_HANDLER_SLEEP_SECS - (end - start)
+            self.logger.debug('Going to sleep for %s seconds', interval)
+            sleep(interval)
