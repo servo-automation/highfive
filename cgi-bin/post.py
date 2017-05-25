@@ -16,11 +16,6 @@ if __name__ == '__main__':
     with open(CONFIG_PATH, 'r') as fd:
         config = json.load(fd)
 
-    dump_path = config['dump_path']
-    if not os.path.isdir(dump_path):
-        logger.debug('Creating dump path: %s', dump_path)
-        os.mkdir(dump_path)
-
     runner = Runner(config)
     if os.environ.get('SYNC'):
         runner.poke_data()

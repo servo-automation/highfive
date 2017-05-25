@@ -25,9 +25,6 @@ def check_failure_log(api):
     comments = []
 
     for step in build_stats['steps']:
-        if 'failed' not in step['text']:
-            continue
-
         for name, log_url in step['logs']:
             if name != 'stdio':
                 continue
@@ -109,12 +106,9 @@ PR_ANON_PING = "What's going on here?"
 MAX_DAYS = 4
 
 
-def check_pulls(api, dump_path):
-    for number in os.listdir(dump_path):        # Check existing PRs
-        pr_path = os.path.join(dump_path, number)
-        with open(pr_path, 'r') as fd:
-            api.logger.debug('Checking data for PR #%s...', number)
-            data = json.load(fd)
+def check_pulls(api, db, inst_id, self_name):
+    for number in db.get_obj(inst_id, path=[self_name]):        # Check existing PRs
+        data = db.get_obj(inst_id, path=[self_name, number])
 
         if data.get('owner') and data.get('repo'):
             api.owner, api.repo = data['owner'], data['repo']
@@ -150,29 +144,22 @@ def check_pulls(api, dump_path):
             api.close_issue()
             continue
 
-        with open(pr_path, 'w') as fd:
-            json.dump(data, fd)
+        db.write_obj(data, inst_id, path=[self_name, number])
 
 
-def manage_pulls(api, dump_path):
+def manage_pulls(api, db, inst_id, self_name):
     payload = api.payload
     action = payload.get('action')
     if action is None:
-        check_pulls(api, dump_path)
+        check_pulls(api, db, inst_id, self_name)
         return
 
     if not (api.is_open and payload.get('pull_request')):
         return
 
-    if not os.path.isdir(dump_path):
-        os.mkdir(dump_path)
-
-    data = PR_OBJ_DEFAULT
-    pr_path = os.path.join(dump_path, str(api.issue_number))
-    if os.path.exists(pr_path):
-        api.logger.debug('Loading JSON from %r', pr_path)
-        with open(pr_path, 'r') as fd:
-            data = json.load(fd)
+    data = db.get_obj(inst_id, path=[self_name, str(api.issue_number)])
+    if not data:
+        data = PR_OBJ_DEFAULT
 
     if data.get('owner') is None and api.owner:
         data['owner'] = api.owner
@@ -204,9 +191,7 @@ def manage_pulls(api, dump_path):
     # FIXME: Maybe check commit event, pull changes, run stuff locally and post comments
     # (test-tidy for example)
 
-    with open(pr_path, 'w') as fd:
-        api.logger.debug('Dumping JSON to %r', pr_path)
-        json.dump(data, fd)
+    db.write_obj(data, inst_id, path=[self_name, str(api.issue_number)])
 
 
 REPO_SPECIFIC_HANDLERS = {

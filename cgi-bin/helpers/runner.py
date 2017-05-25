@@ -6,6 +6,7 @@ from jose import jwt
 from time import sleep
 
 from api_provider import GithubAPIProvider
+from database import create_db
 from methods import AVAILABLE_EVENTS, get_handlers, get_logger
 
 import hashlib, hmac, itertools, json, os, time, requests
@@ -127,34 +128,31 @@ class InstallationHandler(object):
 
 class SyncHandler(object):
     def __init__(self, inst_handler):
+        self._id = inst_handler._id
         self.runner = inst_handler.runner   # FIXME: Too many indirections (refactor them someday)
-        self.inst = inst_handler
-        self.dump_path = os.path.join(inst_handler.runner.dump_path, str(inst_handler._id))
-        if not os.path.isdir(self.dump_path):       # dir for each installation
-            self.runner.logger.debug('Creating %r for dumping JSONs', self.dump_path)
-            os.mkdir(self.dump_path)
+        self.request = inst_handler.queue_request
 
     def post(self, payload):
         # This relies on InstallationHandler's request queueing
-        api = GithubAPIProvider(self.runner.name, payload, self.inst.queue_request)
+        api = GithubAPIProvider(self.runner.name, payload, self.request)
         # Since these handlers don't belong to any particular event, they're supposed to
         # exist in `issues` and `pull_request` (with 'sync' flag enabled in their config)
         for path, handler in itertools.chain(get_handlers('issues', sync=True),
                                              get_handlers('pull_request', sync=True)):
-            dump_path = os.path.join(self.dump_path, os.path.basename(path))
-            handler(api, dump_path)
+            handler(api, self.runner.db, self._id, os.path.basename(path))
 
 
 class Runner(object):
     def __init__(self, config):
         self.name = config['name']
+        self.logger = get_logger(__name__)
         self.dump_path = config['dump_path']
         self.enabled_events = config.get('enabled_events', [])
         self.integration_id = config['integration_id']
         self.secret = str(config.get('secret', ''))
         self.installations = {}
         self.sync_runners = {}
-        self.logger = get_logger(__name__)
+        self.db = create_db(config)
 
         if not self.enabled_events:
             self.enabled_events = AVAILABLE_EVENTS
@@ -218,8 +216,7 @@ class Runner(object):
 
     def poke_data(self):
         self.logger.debug('Poking available installation data...')
-        for _id in map(int, os.listdir(self.dump_path)):
-            self.logger.debug('Found installation %s in %r, adding it to queue', _id, self.dump_path)
+        for _id in self.db.get_installations():
             self.set_installation(_id)
 
         for _id, sync_runner in self.sync_runners.items():
@@ -229,8 +226,7 @@ class Runner(object):
 
     def start_sync(self):
         self.logger.info('Spawning a new thread for sync handlers...')
-        for _id in map(int, os.listdir(self.dump_path)):
-             self.logger.debug('Found installation %s in %r, adding it to queue', _id, self.dump_path)
+        for _id in self.db.get_installations():
              self.set_installation(_id)
 
         while True:

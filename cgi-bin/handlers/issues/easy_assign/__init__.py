@@ -40,15 +40,10 @@ ISSUE_OBJ_DEFAULT = {
 MAX_DAYS = 4
 
 
-def check_easy_issues(api, dump_path):
+def check_easy_issues(api, db, inst_id, self_name):
     payload = api.payload
     action = payload.get('action')
-
-    data = {}
-    if os.path.exists(dump_path):
-        api.logger.debug('Loading JSON from %r', dump_path)
-        with open(dump_path, 'r') as fd:
-            data = json.load(fd)
+    data = db.get_obj(inst_id, path=[self_name])
 
     if data.get('issues') is None:
         data['issues'] = {}
@@ -205,22 +200,17 @@ def check_easy_issues(api, dump_path):
                 api.post_comment(ISSUE_UNASSIGN_MSG)
                 data['issues'][number] = ISSUE_OBJ_DEFAULT      # reset data
 
-    # FIXME: Create a MutationObserver-like object that wraps over a dict
-    # and tells whether its contents have changed. That way, we won't have to
-    # replace the JSON all the time!
-    with open(dump_path, 'w') as fd:    # NOTE: Investigate possible racing condition
-        api.logger.debug('Dumping JSON to %r', dump_path)
-        json.dump(data, fd)
+    db.write_obj(data, inst_id, path=[self_name])
 
 
 REPO_SPECIFIC_HANDLERS = {
     "servo/servo": check_easy_issues
 }
 
-def easy_issues(api, _config, data):
+def easy_issues(api, _config, db, name):
     handler = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS)
     if handler:
-        handler(api, data)
+        handler(api, db, name)
 
 
 methods = [easy_issues]
