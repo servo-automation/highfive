@@ -2,17 +2,23 @@
 
 Highfive is a Github integration (bot), meant to provide a welcoming environment for the newcomers to open source, and also help the contributors by commenting, labeling or notifying them in issues and pull requests when an anticipated event occurs. This is a rework of all the collaborative work done in the old [highfive](https://github.com/servo/highfive), with the limitations of Github API in mind.
 
-### Design
+### Running
 
-Calling `python cgi-bin/serve.py` starts a Flask server, which listens to a particular port for `POST`ing of payloads. It can be tested lively at [Heroku platform](http://heroku.com/). Their free plan kills the server after a few minutes of inactivity, but once a payload is posted, the script will be executed and the payload will be handed over to the server. Or, if you want a CGI, then `cgi-bin/post.py` will be your `POST` endpoint. Make sure that your server forwards all HTTP headers to the script (most of the servers do, Heroku didn't, FYI). In the latter case, you need to setup a cron job and poke the script like `SYNC=1 cgi-bin/post.py`
+Calling `python cgi-bin/serve.py` starts a Flask server, which listens to a particular port for `POST`ing of payloads. It can be tested lively at [Heroku platform](http://heroku.com/) (see below for installation). Their free plan kills the server after a few minutes of inactivity, but once a payload is posted, the script will be executed and the payload will be handed over to the server. So, it works for us.
 
-All the payload handlers live inside `handlers`, grouped into directories corresponding to each [webhook event](https://developer.github.com/webhooks/#events), so that we'll know which event triggers a handler, or in other words, which events have to be enabled while setting up a new integration. We definitely don't wanna check all the permissions offered by Github, as it thrashes your server with payloads from every single event!
+Or, if you love CGI, then `cgi-bin/post.py` will be your `POST` endpoint. Make sure that your server forwards all HTTP headers to the script (most of the servers do, Heroku didn't, FYI). In the latter case, you need to setup a cron job and poke the script like `SYNC=1 cgi-bin/post.py` every few hours or something (since there are some state-maintaining handlers which have scheduled actions). In case of the Flask server, this polling will be done automatically by a separate daemon thread.
 
-Highfive has another group of handlers called "sync" handlers, which contain state information by maintaining a local JSON store. All the payloads (regardless of their event) are piped through these handlers, so that they can keep their states updated. Since these handlers have state information, they're powerful! (for instance, we could have a handler to locally maintain issues/PRs matching a query, or keep track of open PRs so that they can be pinged/closed based on their inactivity, or respond to comments by linking known issues based on some pattern, etc.). These handlers will also be polled over a predefined interval (just in case they have to do something after a certain period of time).
+### Structure
 
-All the handlers have per-repo configuration. There's a `config.json` local to every handler, which determines how it should respond to an event. It has two basic keys. The `"active"` key tells whether the handler should be considered while processing an event-related payload, and `"repos"` (may) contain the per-repo config. Repository names are usually of the form `"owner/repo"`, but since it allows regex patterns, you can have dangerous matches like `"owner/*"` (which matches all the repos of an owner) and `".*"` (which matches any repo of any owner, i.e., every payload it gets). Finally, there's a `"sync"` key which tells whether it's a sync handler.
+All handlers live inside `handlers`, grouped into directories corresponding to each [webhook event](https://developer.github.com/webhooks/#events), so that we'll know which event triggers a handler, or in other words, which events have to be enabled while setting up a new integration. We definitely don't wanna check all the permissions offered by Github, as it thrashes your server with payloads from every single event!
 
-There's a global [`config.json`](https://github.com/servo-automation/highfive/blob/master/cgi-bin/config.json) where we can enable/disable a group of handlers corresponding to an event.
+Highfive has another group of handlers called "sync" handlers, which store their state information in a database. All payloads (regardless of their event) are piped through these handlers, so that they can keep their states updated. Since these handlers have state information, they're powerful! (for instance, we could have a handler to locally maintain issues/PRs matching a query, or keep track of open PRs so that they can be pinged/closed based on their inactivity, or respond to comments by linking known issues based on some pattern, etc.).
+
+The database for the sync handlers is usually a local JSON store, but if you have the `DATABASE_URL` environment variable set up (which Heroku does), then that will be used instead.
+
+All the handlers have per-repo configuration. There's a `config.json` local to every handler, which determines how it should respond to an event. The `"active"` key tells whether the handler should be considered while processing an event-related payload, and `"repos"` (may) contain the per-repo config. Repository names are usually of the form `"owner/repo"`, but since it allows regex patterns, you can have dangerous matches like `"owner/.*"` (which matches all the repos of an owner) and `".*"` (which matches any repo of any owner, i.e., every payload it gets). Finally, there's a `"sync"` key which tells whether it's a sync handler.
+
+There's also a global [`config.json`](https://github.com/servo-automation/highfive/blob/master/cgi-bin/config.json) where we can enable/disable a group of handlers corresponding to an event.
 
 ### Tests
 
@@ -50,8 +56,8 @@ Github's payload JSONs are huge! They have a lot of useful information, but we w
 - Finally, grab the integration ID from your integration's settings page.
 - Update the global `config.json` with the PEM key, secret, the integration ID, and remove the events which you don't wanna handle. Make appropriate changes to `config.json` in the individual handlers.<sup>[1]</sup>
 - Create an app at Heroku, `cd` into this repo, and use the [toolbelt](https://devcenter.heroku.com/articles/heroku-command-line) to set the remote to your heroku app: <br /> `heroku git:remote -a <app-name>`
-- Commit and push to heroku!
 - The webhook URL is your heroku app's `POST` URL.
+- Commit and push to heroku!
 - Create the integration, and now you'll be be able to install the integration in any repo/org you have admin access to.
 
 **Note:** Ideally, you shouldn't share your PEM key or the secret with anyone (not even Heroku), but for the sake of making this thing to work, we don't have a choice. If you've got your own server, then there's nothing to worry about :)
