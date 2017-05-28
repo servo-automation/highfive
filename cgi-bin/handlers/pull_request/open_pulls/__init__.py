@@ -107,8 +107,8 @@ MAX_DAYS = 4
 
 
 def check_pulls(api, db, inst_id, self_name):
-    for number in db.get_obj(inst_id, path=[self_name]):        # Check existing PRs
-        data = db.get_obj(inst_id, path=[self_name, number])
+    for number in db.get_obj(inst_id, self_name):       # Check existing PRs
+        data = db.get_obj(inst_id, '%s_%s' % (self_name, number))
 
         if data.get('owner') and data.get('repo'):
             api.owner, api.repo = data['owner'], data['repo']
@@ -144,7 +144,7 @@ def check_pulls(api, db, inst_id, self_name):
             api.close_issue()
             continue
 
-        db.write_obj(data, inst_id, path=[self_name, number])
+        db.write_obj(data, inst_id, '%s_%s' % (self_name, number))
 
 
 def manage_pulls(api, db, inst_id, self_name):
@@ -157,9 +157,10 @@ def manage_pulls(api, db, inst_id, self_name):
     if not (api.is_open and payload.get('pull_request')):
         return
 
-    data = db.get_obj(inst_id, path=[self_name, str(api.issue_number)])
-    if not data:
-        data = PR_OBJ_DEFAULT
+    pr_list = db.get_obj(inst_id, self_name) or []
+    data = db.get_obj(inst_id, '%s_%s' % (self_name, api.issue_number)) or PR_OBJ_DEFAULT
+    if api.issue_number not in pr_list:
+        pr_list.append(api.issue_number)
 
     if data.get('owner') is None and api.owner:
         data['owner'] = api.owner
@@ -184,14 +185,15 @@ def manage_pulls(api, db, inst_id, self_name):
         data['labels'] = list(set(data['labels']).union([payload['label']['name']]))
     elif action == 'unlabeled':
         data['labels'] = list(set(data['labels']).difference([payload['label']['name']]))
-    elif action == 'closed' and os.path.exists(pr_path):
+    elif action == 'closed':
         api.logger.debug('PR #%s closed. Removing JSON...', api.issue_number)
-        os.remove(pr_path)
+        db.remove_obj(inst_id, '%s_%s' % (self_name, api.issue_number))
         return
     # FIXME: Maybe check commit event, pull changes, run stuff locally and post comments
     # (test-tidy for example)
 
-    db.write_obj(data, inst_id, path=[self_name, str(api.issue_number)])
+    db.write_obj(data, inst_id, '%s_%s' % (self_name, api.issue_number))
+    db.write_obj(pr_list, inst_id, self_name)
 
 
 REPO_SPECIFIC_HANDLERS = {

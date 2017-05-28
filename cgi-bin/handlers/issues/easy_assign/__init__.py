@@ -43,7 +43,7 @@ MAX_DAYS = 4
 def check_easy_issues(api, db, inst_id, self_name):
     payload = api.payload
     action = payload.get('action')
-    data = db.get_obj(inst_id, path=[self_name])
+    data = db.get_obj(inst_id, self_name)
 
     if data.get('issues') is None:
         data['issues'] = {}
@@ -200,7 +200,7 @@ def check_easy_issues(api, db, inst_id, self_name):
                 api.post_comment(ISSUE_UNASSIGN_MSG)
                 data['issues'][number] = ISSUE_OBJ_DEFAULT      # reset data
 
-    db.write_obj(data, inst_id, path=[self_name])
+    db.write_obj(data, inst_id, self_name)
 
 
 REPO_SPECIFIC_HANDLERS = {
