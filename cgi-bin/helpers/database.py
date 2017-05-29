@@ -63,7 +63,7 @@ class JsonStore(Database):
 
 
 class PostgreSql(Database):
-    def __init__(self, _config):
+    def __init__(self):
         super(PostgreSql, self).__init__()
         url = urlparse(os.environ['DATABASE_URL'])
         self.kwargs = dict(
@@ -116,4 +116,4 @@ class PostgreSql(Database):
 
 
 def create_db(config):
-    return PostgreSql(config) if os.environ.get('DATABASE_URL') else JsonStore(config)
+    return PostgreSql() if os.environ.get('DATABASE_URL') else JsonStore(config)
