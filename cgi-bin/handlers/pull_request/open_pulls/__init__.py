@@ -1,4 +1,5 @@
 from HTMLParser import HTMLParser
+from copy import deepcopy
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
 
@@ -109,6 +110,7 @@ MAX_DAYS = 4
 def check_pulls(api, db, inst_id, self_name):
     for number in db.get_obj(inst_id, self_name):       # Check existing PRs
         data = db.get_obj(inst_id, '%s_%s' % (self_name, number))
+        old_data = deepcopy(data)
 
         if data.get('owner') and data.get('repo'):
             api.owner, api.repo = data['owner'], data['repo']
@@ -116,7 +118,7 @@ def check_pulls(api, db, inst_id, self_name):
             api.logger.debug('No info about owner and repo in JSON. Skipping this cycle...')
             continue
 
-        last_active = data['last_active']
+        last_active = data.get('last_active')
         if not last_active:
             continue
 
@@ -129,36 +131,35 @@ def check_pulls(api, db, inst_id, self_name):
         api.logger.debug("PR #%s has had its time. Something's gonna happen.", number)
         api.issue_number = number
         data['last_active'] = str(now)
-        assignee = data['assignee']
-        status = data['status']
+        status = data.get('status')
 
         if status is None:
-            if assignee:
-                api.post_comment(PR_PING_MSG % assignee)
-            else:
-                api.post_comment(PR_ANON_PING)
+            api.post_comment(PR_PING_MSG % data['author'])
             data['status'] = 'commented'
         elif status == 'commented':
-            api.logger.debug('Closing PR #%s after grace period', pr_num)
+            api.logger.debug('Closing PR #%s after grace period', number)
             api.post_comment(PR_CLOSE_MSG)
             api.close_issue()
             continue
 
-        db.write_obj(data, inst_id, '%s_%s' % (self_name, number))
+        if data != old_data:
+            db.write_obj(data, inst_id, '%s_%s' % (self_name, number))
 
 
 def manage_pulls(api, db, inst_id, self_name):
     payload = api.payload
     action = payload.get('action')
     if action is None:
-        check_pulls(api, db, inst_id, self_name)
-        return
-
-    if not (api.is_open and payload.get('pull_request')):
-        return
+        return check_pulls(api, db, inst_id, self_name)
 
     pr_list = db.get_obj(inst_id, self_name) or []
+    old_list = deepcopy(pr_list)
+    if not (api.is_open and (api.issue_number in pr_list or api.is_pull)):
+        return      # Note that issue_comment event will never have "pull_request"
+
     data = db.get_obj(inst_id, '%s_%s' % (self_name, api.issue_number)) or PR_OBJ_DEFAULT
+    remove_data = False
+    old_data = deepcopy(data)
     if api.issue_number not in pr_list:
         pr_list.append(api.issue_number)
 
@@ -166,8 +167,6 @@ def manage_pulls(api, db, inst_id, self_name):
         data['owner'] = api.owner
     if data.get('repo') is None and api.repo:
         data['repo'] = api.repo
-
-    data['last_active'] = payload['pull_request']['updated_at']
 
     if action == 'created':                 # comment
         find_reviewer(data, api)
@@ -181,19 +180,27 @@ def manage_pulls(api, db, inst_id, self_name):
         data['labels'] = api.labels
         data['body'] = payload['pull_request']['body']
         data['assignee'] = payload['pull_request']['assignee']
+        data['last_active'] = payload['pull_request']['updated_at']
     elif action == 'labeled':
         data['labels'] = list(set(data['labels']).union([payload['label']['name']]))
+        data['last_active'] = payload['pull_request']['updated_at']
     elif action == 'unlabeled':
         data['labels'] = list(set(data['labels']).difference([payload['label']['name']]))
+        data['last_active'] = payload['pull_request']['updated_at']
     elif action == 'closed':
         api.logger.debug('PR #%s closed. Removing JSON...', api.issue_number)
-        db.remove_obj(inst_id, '%s_%s' % (self_name, api.issue_number))
-        return
+        pr_list.remove(api.issue_number)
+        remove_data = True
     # FIXME: Maybe check commit event, pull changes, run stuff locally and post comments
     # (test-tidy for example)
 
-    db.write_obj(data, inst_id, '%s_%s' % (self_name, api.issue_number))
-    db.write_obj(pr_list, inst_id, self_name)
+    if remove_data:
+        db.remove_obj(inst_id, '%s_%s' % (self_name, api.issue_number))
+    elif data != old_data:
+        db.write_obj(data, inst_id, '%s_%s' % (self_name, api.issue_number))
+
+    if pr_list != old_list:
+        db.write_obj(pr_list, inst_id, self_name)
 
 
 REPO_SPECIFIC_HANDLERS = {

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
 
@@ -44,6 +45,7 @@ def check_easy_issues(api, db, inst_id, self_name):
     payload = api.payload
     action = payload.get('action')
     data = db.get_obj(inst_id, self_name)
+    old_data = deepcopy(data)
 
     if data.get('issues') is None:
         data['issues'] = {}
@@ -200,7 +202,8 @@ def check_easy_issues(api, db, inst_id, self_name):
                 api.post_comment(ISSUE_UNASSIGN_MSG)
                 data['issues'][number] = ISSUE_OBJ_DEFAULT      # reset data
 
-    db.write_obj(data, inst_id, self_name)
+    if data != old_data:
+        db.write_obj(data, inst_id, self_name)
 
 
 REPO_SPECIFIC_HANDLERS = {
