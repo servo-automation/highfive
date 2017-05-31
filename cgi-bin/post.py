@@ -17,7 +17,9 @@ if __name__ == '__main__':
         config = json.load(fd)
 
     runner = Runner(config)
+
     if os.environ.get('SYNC'):
+        runner.check_installations()
         runner.poke_data()
     else:
         sign = os.environ['HTTP_X_HUB_SIGNATURE']
@@ -25,6 +27,8 @@ if __name__ == '__main__':
         _status, payload = runner.verify_payload(sign, sys.stdin.read())
         if payload is not None:
             runner.handle_payload(payload, event)
+
+    runner.clear_queue()
 
     with open(CONFIG_PATH, 'w') as fd:      # caches some data
         json.dump(runner.config, fd)

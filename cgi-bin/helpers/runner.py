@@ -209,12 +209,20 @@ class Runner(object):
         inst_handler = self.installations[inst_id]
         self.sync_runners.setdefault(inst_id, SyncHandler(inst_handler))
 
+    def check_installations(self):
+        for _id in self.db.get_installations():
+            self.set_installation(_id)
+
+    def clear_queue(self):
+        for sync_runner in self.sync_runners.itervalues():
+            sync_runner.clear_queue()
+
     def handle_payload(self, payload, event):
         inst_id = payload['installation']['id']
         self.set_installation(inst_id)
         if event in self.enabled_events:
             if self.name in payload.get('sender', {'login': None})['login']:
-                self.logger.debug('Skipping payload for event %r sent by self', event)
+                self.logger.debug('Skipping payload (for event: %s) sent by self', event)
             else:
                 self.logger.info('Received payload for for installation %s'
                                  ' (event: %s, action: %s)', inst_id, event, payload.get('action'))
@@ -226,31 +234,21 @@ class Runner(object):
         self.sync_runners[inst_id].post(payload)    # will be queued and taken care of by the worker
 
     def poke_data(self):
-        self.logger.debug('Poking available installation data...')
-        for _id in self.db.get_installations():
-            self.set_installation(_id)
-
         for _id, sync_runner in self.sync_runners.items():
             # poke all the sync handlers (of all installations) on hand with fake payloads
-            self.logger.info('Poking runner for installation %s with empty payload', _id)
+            self.logger.info('Poking handlers for installation %s with empty payload', _id)
             sync_runner.post({})
-            sync_runner.clear_queue()   # clear the queue immediately since this is for CGI
 
     def start_sync(self):
         self.logger.info('Spawning a new thread for sync handlers...')
-        for _id in self.db.get_installations():
-             self.set_installation(_id)
-
+        self.check_installations()
         next_check_time = int(time.time()) + SYNC_HANDLER_SLEEP_SECS
+
         while True:
             cur_time = int(time.time())
             if cur_time >= next_check_time:
                 next_check_time += SYNC_HANDLER_SLEEP_SECS
-                for _id, sync_runner in self.sync_runners.items():
-                    # poke all the sync handlers (of all installations) on hand with fake payloads
-                    self.logger.info('Poking runner for installation %s with empty payload', _id)
-                    sync_runner.post({})
+                self.poke_data()
 
             sleep(WORKER_SLEEP_SECS)
-            for _id, sync_runner in self.sync_runners.items():
-                sync_runner.clear_queue()
+            self.clear_queue()
