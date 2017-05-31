@@ -89,28 +89,27 @@ class PostgreSql(Database):
             SELECT table_name FROM information_schema.tables
             WHERE table_type = 'BASE TABLE' AND table_schema = 'public'
         ''', fetch=True)
-        return map(lambda v: int(v[0][2:]), res)    # listing all tables (in the format T_ID)
+        return map(lambda v: int(v[0][2:]), res)    # listing all tables (in the format t_ID)
 
     def get_obj(self, inst_id, key):
-        self._execute_query('CREATE TABLE IF NOT EXISTS T_%s ( key varchar(%s), data varchar(%s) )',
+        self._execute_query('CREATE TABLE IF NOT EXISTS t_%s ( key varchar(%s), data varchar(%s) )',
                             inst_id, DB_KEY_LEN, DB_JSON_LEN)
-        res = self._execute_query('SELECT data FROM T_%s WHERE key = %s', inst_id, key, fetch=True)
-        return json.loads(res[0][0])        # assume only one value exists
+        res = self._execute_query('SELECT data FROM t_%s WHERE key = %s', inst_id, key, fetch=True)
+        return json.loads(res[0][0]) if res else {}
 
     def remove_obj(self, inst_id, key):
-        self._execute_query('DELETE FROM T_%s WHERE key = %s', inst_id, key)
+        self._execute_query('DELETE FROM t_%s WHERE key = %s', inst_id, key)
 
     def write_obj(self, data, inst_id, key):
         data = json.dumps(data)
         # There's no easy way to do this (insert/replace) in Postgres
         # (we should execute these simultaneously and hope that no collision occurs)
-        self._execute_query('''
-            UPDATE T_%s SET data = %s WHERE key = %s;
-            INSERT INTO T_%s (key, data)
-            SELECT %s, %s
-            WHERE NOT EXISTS (SELECT 1 FROM T_%s WHERE key = %s);
-        ''', inst_id, data, key, inst_id, key, data, inst_id, key)
+        res = self._execute_query('SELECT 1 FROM t_%s WHERE key = %s', inst_id, key, fetch=True)
+        if res:
+            self._execute_query('UPDATE t_%s SET data = %s WHERE key = %s;', inst_id, data, key)
+        else:
+            self._execute_query('INSERT INTO t_%s VALUES (%s, %s)', inst_id, key, data)
 
 
-def create_db(config):
-    return PostgreSql() if os.environ.get('DATABASE_URL') else JsonStore(config)
+def create_db(dump_path):
+    return PostgreSql() if os.environ.get('DATABASE_URL') else JsonStore(dump_path)

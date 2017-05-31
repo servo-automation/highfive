@@ -1,4 +1,3 @@
-from StringIO import StringIO
 from flask import Flask, abort, request
 from threading import Thread
 
@@ -24,7 +23,7 @@ if __name__ == '__main__':
     def handle_payload():
         headers, raw_payload = request.headers, request.data
         sign = headers['X-Hub-Signature']
-        status, payload = runner.verify_payload(sign, StringIO(raw_payload))
+        status, payload = runner.verify_payload(sign, raw_payload)
         if status is not None:
             abort(status)
 

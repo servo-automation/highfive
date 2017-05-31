@@ -22,7 +22,7 @@ if __name__ == '__main__':
     else:
         sign = os.environ['HTTP_X_HUB_SIGNATURE']
         event = os.environ['HTTP_X_GITHUB_EVENT'].lower()
-        _status, payload = runner.verify_payload(sign, payload_fd=sys.stdin)
+        _status, payload = runner.verify_payload(sign, sys.stdin.read())
         if payload is not None:
             runner.handle_payload(payload, event)
 

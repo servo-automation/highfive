@@ -207,10 +207,10 @@ REPO_SPECIFIC_HANDLERS = {
     "servo/servo": manage_pulls
 }
 
-def pr_manager(api, _config, data):
+def pr_manager(api, _config, db, inst_id, name):
     handler = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS)
     if handler:
-        handler(api, data)
+        handler(api, db, inst_id, name)
 
 
 methods = [pr_manager]

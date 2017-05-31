@@ -146,13 +146,13 @@ class Runner(object):
     def __init__(self, config):
         self.name = config['name']
         self.logger = get_logger(__name__)
-        self.dump_path = config['dump_path']
         self.enabled_events = config.get('enabled_events', [])
         self.integration_id = config['integration_id']
         self.secret = str(config.get('secret', ''))
         self.installations = {}
         self.sync_runners = {}
-        self.db = create_db(config)
+        self.config = config
+        self.db = create_db(config['dump_path'])
 
         if not self.enabled_events:
             self.enabled_events = AVAILABLE_EVENTS
@@ -160,9 +160,9 @@ class Runner(object):
         with open(config['pem_file'], 'r') as fd:
             self.pem_key = fd.read()
 
-    def verify_payload(self, header_sign, payload_fd):
+    def verify_payload(self, header_sign, raw_payload):
         try:
-            payload = json.load(payload_fd)
+            payload = json.loads(raw_payload)
         except Exception as err:
             self.logger.debug('Cannot decode payload JSON: %s', err)
             return 400, None
@@ -209,7 +209,7 @@ class Runner(object):
                                  ' (event: %s, action: %s)', inst_id, event, payload.get('action'))
                 self.installations[inst_id].add(payload, event)
         else:   # no matching events
-            self.logger.info("(event %s, action: %s) doesn't match any enabled events (installation %s)."
+            self.logger.info("(event: %s, action: %s) doesn't match any enabled events (installation %s)."
                              " Skipping payload-dependent handlers...", event, payload.get('action'), inst_id)
         # We pass all the payloads through sync handlers regardless of the event (they're unconstrained)
         self.sync_runners[inst_id].post(payload)
