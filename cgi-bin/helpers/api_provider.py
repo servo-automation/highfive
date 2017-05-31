@@ -167,3 +167,6 @@ class GithubAPIProvider(APIProvider):
     def close_issue(self):
         url = self.issue_url % (self.owner, self.repo, self.issue_number)
         self._request('PATCH', url, {'state': 'closed'})
+
+    def is_from_self(self):
+        return self.name in self.sender

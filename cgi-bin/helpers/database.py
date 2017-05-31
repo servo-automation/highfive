@@ -7,9 +7,6 @@ DB_JSON_LEN = 10000
 DB_KEY_LEN = 100
 
 class Database(object):
-    def __init___(self):
-        self.logger = get_logger(__name__)
-
     def get_installations(self):
         raise NotImplementedError
 
@@ -25,7 +22,7 @@ class Database(object):
 
 class JsonStore(Database):
     def __init__(self, config):
-        super(JsonStore, self).__init__()
+        self.logger = get_logger(__name__)
         self.dump_path = config['dump_path']
 
     def get_installations(self):
@@ -64,7 +61,7 @@ class JsonStore(Database):
 
 class PostgreSql(Database):
     def __init__(self):
-        super(PostgreSql, self).__init__()
+        self.logger = get_logger(__name__)
         url = urlparse(os.environ['DATABASE_URL'])
         self.kwargs = dict(
             database=url.path[1:],
@@ -78,7 +75,7 @@ class PostgreSql(Database):
         result = None
         conn = psycopg2.connect(**self.kwargs)
         cursor = conn.cursor()
-        self.logger.debug('Executing query %r', query[0] % tuple(query[1:]))
+        self.logger.debug('Executing query: %s', query[0] % tuple(query[1:]))
         cursor.execute(query[0], tuple(query[1:]))
         if kwargs.get('fetch'):
             result = cursor.fetchall()
