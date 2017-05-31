@@ -251,6 +251,6 @@ class Runner(object):
                     self.logger.info('Poking runner for installation %s with empty payload', _id)
                     sync_runner.post({})
 
-            sleep(SLEEP_SECS)
+            sleep(WORKER_SLEEP_SECS)
             for _id, sync_runner in self.sync_runners.items():
                 sync_runner.clear_queue()

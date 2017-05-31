@@ -1,5 +1,5 @@
 
-def check_files(api, config):
+def payload_handler(api, config):
     repos = config.get('repos')
     pr = api.payload.get('pull_request')
     if not (repos and pr and api.payload.get('action') == 'opened'):
@@ -33,6 +33,3 @@ def check_files(api, config):
         message.append(" * @{}: {}".format(watcher, ', '.join(files)))
 
     api.post_comment('\n'.join(message))
-
-
-methods = [check_files]

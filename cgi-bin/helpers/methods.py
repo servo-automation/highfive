@@ -1,4 +1,4 @@
-import json, logging, os, re
+import imp, json, logging, os, re
 
 ROOT = os.path.dirname(os.path.dirname(__file__))
 CONFIG_PATH = os.path.join(ROOT, 'config.json')
@@ -133,9 +133,7 @@ def get_handlers(event_name, sync=False):
             if (sync and not sync_handler) or (sync_handler and not sync):
                 continue
 
-            with open(handler_path, 'r') as fd:
-                source = fd.read()
-                exec source in locals()     # hack
-
-            for method in methods:      # methods will come into existence here
-                yield handler_dir, lambda api, *args: method(api, handler_config, *args)
+            module = imp.load_module('handlers.' + handler_name, None, handler_dir,
+                                     ('', '', imp.PKG_DIRECTORY))
+            yield (handler_dir,
+                   lambda api, *args: module.payload_handler(api, handler_config, *args))

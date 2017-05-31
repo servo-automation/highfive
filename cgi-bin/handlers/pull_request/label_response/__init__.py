@@ -1,7 +1,7 @@
 from time import sleep
 
 
-def manage_pr_labels(api, config):
+def payload_handler(api, config):
     repos = config.get('repos')
     action = api.payload.get('action')
     pr = api.payload.get('pull_request')
@@ -41,6 +41,3 @@ def manage_pr_labels(api, config):
     # or whether a label doesn't exist (while adding a new one)
     # APIProvider will take care of it!
     api.update_labels(labels_to_add, labels_to_remove)
-
-
-methods = [manage_pr_labels]

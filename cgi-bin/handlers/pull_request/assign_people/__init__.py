@@ -1,5 +1,5 @@
 
-def check_new_pr(api, config):
+def payload_handler(api, config):
     repos = config.get('repos')
     pr = api.payload.get('pull_request')
     if not (repos and pr and api.payload.get('action') == 'opened'):
@@ -23,6 +23,3 @@ def check_new_pr(api, config):
         return
 
     api.set_assignees(chosen_ones)
-
-
-methods = [check_new_pr]

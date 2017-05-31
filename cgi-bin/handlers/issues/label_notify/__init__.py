@@ -1,5 +1,5 @@
 
-def notify_watchers(api, config):
+def payload_handler(api, config):
     repos = config.get('repos')
     if not (repos and api.payload.get('action') == 'labeled'):
         return
@@ -29,6 +29,3 @@ def notify_watchers(api, config):
         mentions = map(lambda name: '@%s' % name, watchers_to_be_notified)
         comment = 'cc %s' % ' '.join(mentions)
         api.post_comment(comment)
-
-
-methods = [notify_watchers]

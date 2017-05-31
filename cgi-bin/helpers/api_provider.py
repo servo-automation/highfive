@@ -27,11 +27,11 @@ class APIProvider(object):
                 break
         self.creator = node['user']['login'].lower()        # (optional) creator of issue/pull
 
-        self.issue_number = None
-        if self.payload.get('pull_request'):    # Having an integer seems to cause trouble at certain times.
-            self.issue_number = str(self.payload['pull_request']['number'])
-        elif self.payload.get('issue'):
-            self.issue_number = str(self.payload['issue']['number'])
+        node = self.get_matching_path(['number'])
+        num = node.get('number')
+        if num is not None:
+            num = str(num)          # Having an integer seems to cause trouble at certain times.
+        self.issue_number = num
 
         # Github labels are unique and case-insensitive (which is really helpful!)
         node = self.get_matching_path(['labels'])

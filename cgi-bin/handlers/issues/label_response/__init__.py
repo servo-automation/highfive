@@ -1,5 +1,5 @@
 
-def check_labels(api, config):
+def payload_handler(api, config):
     repos = config.get('repos')
     if not (repos and api.payload.get('action') == 'labeled'):
         return
@@ -9,6 +9,3 @@ def check_labels(api, config):
     for label, comment in repo_config.items():
         if api.payload['label']['name'].lower() == label.lower():
             api.post_comment(comment)
-
-
-methods = [check_labels]

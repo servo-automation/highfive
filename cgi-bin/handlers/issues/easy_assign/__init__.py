@@ -211,10 +211,7 @@ REPO_SPECIFIC_HANDLERS = {
     "servo/servo": check_easy_issues
 }
 
-def easy_issues(api, _config, db, inst_id, name):
+def payload_handler(api, _config, db, inst_id, name):
     handler = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS)
     if handler:
         handler(api, db, inst_id, name)
-
-
-methods = [easy_issues]

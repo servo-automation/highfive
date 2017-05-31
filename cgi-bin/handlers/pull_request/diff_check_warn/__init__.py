@@ -51,7 +51,7 @@ REPO_SPECIFIC_HANDLERS = {
 }
 
 
-def check_diff(api, config):
+def payload_handler(api, config):
     repos = config.get('repos')
     pr = api.payload.get('pull_request')
     if not (pr and api.payload.get('action') == 'opened'):
@@ -91,6 +91,3 @@ def check_diff(api, config):
         lines = '\n'.join(map(lambda line: ' * %s' % line, messages))
         comment = ':warning: **Warning!** :warning:\n\n%s' % lines
         api.post_comment(comment)
-
-
-methods = [check_diff]
