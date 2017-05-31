@@ -1,3 +1,4 @@
+from Queue import Queue
 from StringIO import StringIO
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
@@ -11,6 +12,7 @@ from methods import AVAILABLE_EVENTS, get_handlers, get_logger
 
 import hashlib, hmac, itertools, json, os, time, requests
 
+WORKER_SLEEP_SECS = 0.25
 SYNC_HANDLER_SLEEP_SECS = 3600
 
 # Implementation of digest comparison from Django
@@ -131,15 +133,24 @@ class SyncHandler(object):
         self._id = inst_handler._id
         self.runner = inst_handler.runner   # FIXME: Too many indirections (refactor them someday)
         self.request = inst_handler.queue_request
+        self.queue = Queue()
 
     def post(self, payload):
-        # This relies on InstallationHandler's request queueing
-        api = GithubAPIProvider(self.runner.name, payload, self.request)
-        # Since these handlers don't belong to any particular event, they're supposed to
-        # exist in `issues` and `pull_request` (with 'sync' flag enabled in their config)
-        for path, handler in itertools.chain(get_handlers('issues', sync=True),
-                                             get_handlers('pull_request', sync=True)):
-            handler(api, self.runner.db, self._id, os.path.basename(path))
+        self.queue.put(payload)
+
+    def clear_queue(self):
+        while not self.queue.empty():
+            payload = self.queue.get()
+            # Since these handlers don't belong to any particular event, they're supposed to
+            # exist in `issues` and `pull_request` (with 'sync' flag enabled in their config)
+            for path, handler in itertools.chain(get_handlers('issues', sync=True),
+                                                 get_handlers('pull_request', sync=True)):
+                # It's necessary to instantiate this class every time (since we could
+                # monkey-patch along the way). There's one more way to "monkey-unpatch"
+                # (by saving the snapshot of a class (dict) and restoring)
+                # but that could lead to bad code.
+                api = GithubAPIProvider(self.runner.name, payload, self.request)
+                handler(api, self.runner.db, self._id, os.path.basename(path))
 
 
 class Runner(object):
@@ -212,7 +223,7 @@ class Runner(object):
             self.logger.info("(event: %s, action: %s) doesn't match any enabled events (installation %s)."
                              " Skipping payload-dependent handlers...", event, payload.get('action'), inst_id)
         # We pass all the payloads through sync handlers regardless of the event (they're unconstrained)
-        self.sync_runners[inst_id].post(payload)
+        self.sync_runners[inst_id].post(payload)    # will be queued and taken care of by the worker
 
     def poke_data(self):
         self.logger.debug('Poking available installation data...')
@@ -223,20 +234,23 @@ class Runner(object):
             # poke all the sync handlers (of all installations) on hand with fake payloads
             self.logger.info('Poking runner for installation %s with empty payload', _id)
             sync_runner.post({})
+            sync_runner.clear_queue()   # clear the queue immediately since this is for CGI
 
     def start_sync(self):
         self.logger.info('Spawning a new thread for sync handlers...')
         for _id in self.db.get_installations():
              self.set_installation(_id)
 
+        next_check_time = int(time.time()) + SYNC_HANDLER_SLEEP_SECS
         while True:
-            start = int(time.time())
-            for _id, sync_runner in self.sync_runners.items():
-                # poke all the sync handlers (of all installations) on hand with fake payloads
-                self.logger.info('Poking runner for installation %s with empty payload', _id)
-                sync_runner.post({})
+            cur_time = int(time.time())
+            if cur_time >= next_check_time:
+                next_check_time += SYNC_HANDLER_SLEEP_SECS
+                for _id, sync_runner in self.sync_runners.items():
+                    # poke all the sync handlers (of all installations) on hand with fake payloads
+                    self.logger.info('Poking runner for installation %s with empty payload', _id)
+                    sync_runner.post({})
 
-            end = int(time.time())
-            interval = SYNC_HANDLER_SLEEP_SECS - (end - start)
-            self.logger.debug('Going to sleep for %s seconds', interval)
-            sleep(interval)
+            sleep(SLEEP_SECS)
+            for _id, sync_runner in self.sync_runners.items():
+                sync_runner.clear_queue()
