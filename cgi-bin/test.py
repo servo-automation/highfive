@@ -76,6 +76,9 @@ class TestAPIProvider(APIProvider):
         with open(path) as fd:
             return fd.read()
 
+    def close_issue(self):
+        self.closed = True
+
     def evaluate(self):
         for key, expect_val in self.expected.items():
             val = getattr(self, key)

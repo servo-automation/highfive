@@ -1,0 +1,58 @@
+{
+  "expected": [{
+    "comments": ["Is this still being worked on?"]
+  }, {
+    "comments": ["Ping @someone! Did you look into this? You got any questions for us?"]
+  }, {
+    "labels": ["e-easy"],
+    "comments": ["This is now open for anyone to jump in!"]
+  }],
+  "initial": [{
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "7105": {
+            "assignee": "0xdeadbeef",
+            "status": "assigned",
+            "pr_number": null,
+            "last_active": "1970-01-01T00:00:00Z"
+          }
+        }
+      }
+    }
+  }, {
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "7105": {
+            "assignee": "someone",
+            "status": "assigned",
+            "pr_number": null,
+            "last_active": "1970-01-01T00:00:00Z"
+          }
+        }
+      }
+    }
+  }, {
+    "labels": ["e-easy", "c-assigned"],
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "7105": {
+            "assignee": "someone",
+            "status": "commented",
+            "pr_number": null,
+            "last_active": "1970-01-01T00:00:00Z"
+          }
+        }
+      }
+    }
+  }],
+  "payload": {}
+}

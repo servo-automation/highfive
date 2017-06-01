@@ -116,6 +116,7 @@ def check_pulls(api, config, db, inst_id, self_name):
             api.logger.debug('No info about owner and repo in JSON. Skipping this cycle...')
             continue
 
+        config = api.get_matches_from_config(config)
         last_active = data.get('last_active')
         if not last_active:
             continue
@@ -209,9 +210,9 @@ REPO_SPECIFIC_HANDLERS = {
 
 
 def payload_handler(api, config, db, inst_id, name):
-    repo_config = api.get_matches_from_config(config)
-    if repo_config:
-        manage_pulls(api, repo_config, db, inst_id, name)
+    config = api.get_matches_from_config(config)
+    if config:
+        manage_pulls(api, config, db, inst_id, name)
 
     other_handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS) or []
     for handler in other_handlers:

@@ -1,0 +1,49 @@
+{
+  "initial": [{
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "84": {
+            "assignee": null,
+            "status": null,
+            "pr_number": null,
+            "last_active": null
+          }
+        }
+      }
+    }
+  }],
+  "expected": [{
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {}
+      }
+    }
+  }],
+  "payload": {
+    "sender": {
+      "login": "jdm"
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "label": {
+      "name": "E-easy"
+    },
+    "action": "unlabeled",
+    "issue": {
+      "state": "open",
+      "number": 84,
+      "user": {
+        "login": "nox"
+      }
+    }
+  }
+}

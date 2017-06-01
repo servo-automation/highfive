@@ -50,6 +50,10 @@ class APIProvider(object):
 
     # Per-repo configuration
     def get_matches_from_config(self, config, default={}):
+        if not (self.owner and self.repo):
+            assert not self.payload     # This happens only when we call sync handlers
+            return config
+
         string = '%s/%s' % (self.owner, self.repo)
         for pattern in config:
             pat_lower = pattern.lower()

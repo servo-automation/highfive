@@ -1,0 +1,87 @@
+{
+  "expected": [{
+    "comments": ["It looks like this has already been assigned to someone. I'll leave the decision to a core contributor."],
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "7105": {
+            "assignee": "0xdeadbeef",
+            "status": "assigned",
+            "pr_number": null,
+            "last_active": "some time"
+          }
+        }
+      }
+    }
+  }, {
+    "comments": ["It looks like this has already been assigned to someone. I'll leave the decision to a core contributor."],
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "7105": {
+            "assignee": "someone",
+            "status": "assigned",
+            "pr_number": null,
+            "last_active": "some time"
+          }
+        }
+      }
+    }
+  }],
+  "initial": [{
+    "db": {}
+  }, {
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "7105": {
+            "assignee": "someone",
+            "status": "assigned",
+            "pr_number": null,
+            "last_active": "some time"
+          }
+        }
+      }
+    }
+  }],
+  "payload": {
+    "sender": {
+      "login": "someone_else"
+    },
+    "comment": {
+      "body": "@highfive: assign me",
+      "updated_at": "some time",
+      "user": {
+        "login": "someone_else"
+      }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "action": "created",
+    "issue": {
+      "number": 7105,
+      "state": "open",
+      "labels": [
+        {
+          "name": "E-easy"
+        },
+        {
+          "name": "L-python"
+        },
+        {
+          "name": "C-assigned"
+        }
+      ]
+    }
+  }
+}

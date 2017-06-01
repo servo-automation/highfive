@@ -74,7 +74,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
 
     elif action == 'created' and not api.is_pull and not api.is_from_self():
         msg = payload['comment']['body']
-        match = re.search(r'@%s(?:\[bot\])?[: ]*assign (.*)' % api.name, str(msg.lower()))
+        match = re.search(r'@%s(?:\[bot\])?[: ]*assign @?(.*)' % api.name, str(msg.lower()))
         if match:
             name = match.group(1).split(' ')[0]
             if name == 'me':
@@ -104,10 +104,12 @@ def check_easy_issues(api, config, db, inst_id, self_name):
                     data['issues'][api.issue_number]['last_active'] = payload['comment']['updated_at']
             else:
                 if api.creator in reviewers:
+                    api.logger.debug('Got assign request. Assigning to %r', name)
                     data['issues'][api.issue_number] = default()
                     data['issues'][api.issue_number]['assignee'] = name
                     data['issues'][api.issue_number]['status'] = 'assigned'
                     data['issues'][api.issue_number]['last_active'] = payload['comment']['updated_at']
+                    api.update_labels(add=[config['assign_label']])
                     api.post_comment(api.rand_choice(config['assign_success']).format(assignee=name))
                 else:
                     api.post_comment(api.rand_choice(config['non_reviewer_ack']))
@@ -148,17 +150,19 @@ def check_easy_issues(api, config, db, inst_id, self_name):
             data['issues'][api.issue_number] = default()
             comment = api.rand_choice(config['issue_assign'])
             api.post_comment(comment.format(bot=api.name))
-        elif (label == config['assign_label'] and not api.is_from_self() and
-              is_issue_in_data and data['issues'][api.issue_number]['assignee'] is None):
-            # issue has been assigned just now (by someone other than the bot), it's in our DB,
-            # and it hasn't been assigned to anyone previously
+        elif (api.cur_label == config['assign_label'] and not api.is_from_self()):
             api.logger.debug('Issue #%s has been assigned to... someone?', api.issue_number)
+            # We always override here, because labels can be added only by collaborators and
+            # so, their decision is final.
+            if not is_issue_in_data:
+                data['issues'][api.issue_number] = default()
+
             data['issues'][api.issue_number]['assignee'] = '0xdeadbeef'
             data['issues'][api.issue_number]['status'] = 'assigned'
             data['issues'][api.issue_number]['last_active'] = payload['issue']['updated_at']
 
-    elif (action == 'unlabeled' and is_issue_in_data and not api.is_pull):
-        if api.cur_label == config['easy_label']:
+    elif (action == 'unlabeled' and not api.is_pull):
+        if api.cur_label == config['easy_label'] and is_issue_in_data:
             api.logger.debug('Issue #%s is no longer E-easy. Removing related data...',
                              api.issue_number)
             data['issues'].pop(api.issue_number)
@@ -174,6 +178,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
             api.logger.debug('No info about owner and repo in JSON. Skipping this cycle...')
             return
 
+        config = api.get_matches_from_config(config)
         # Note that the `api` variable beyond this point shouldn't be trusted for
         # anything more than the names of owner, repo, its methods and its logger.
         # All other variables are invalid.
@@ -213,6 +218,6 @@ def check_easy_issues(api, config, db, inst_id, self_name):
 
 
 def payload_handler(api, config, db, inst_id, name):
-    repo_config = api.get_matches_from_config(config)
-    if repo_config:
-        check_easy_issues(api, repo_config, db, inst_id, name)
+    config = api.get_matches_from_config(config)
+    if config:
+        check_easy_issues(api, config, db, inst_id, name)

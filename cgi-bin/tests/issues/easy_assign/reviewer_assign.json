@@ -1,0 +1,86 @@
+{
+  "expected": [{
+    "labels": ["c-assigned"],
+    "comments": ["Hey @foobar! Thanks for your interest in working on this issue. It's now assigned to you!"],
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "7105": {
+            "assignee": "foobar",
+            "status": "assigned",
+            "pr_number": null,
+            "last_active": "some new time"
+          }
+        }
+      }
+    }
+  }, {
+    "labels": ["c-assigned"],
+    "comments": ["Hey @foobar! Thanks for your interest in working on this issue. It's now assigned to you!"],
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "7105": {
+            "assignee": "foobar",
+            "status": "assigned",
+            "pr_number": null,
+            "last_active": "some new time"
+          }
+        }
+      }
+    }
+  }],
+  "initial": [{
+    "db": {}
+  }, {
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "7105": {
+            "assignee": "someone",
+            "status": "assigned",
+            "pr_number": null,
+            "last_active": "some old time"
+          }
+        }
+      }
+    }
+  }],
+  "payload": {
+    "sender": {
+      "login": "wafflespeanut"
+    },
+    "comment": {
+      "body": "@highfive: assign @foobar",
+      "updated_at": "some new time",
+      "user": {
+        "login": "wafflespeanut"
+      }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "action": "created",
+    "issue": {
+      "number": 7105,
+      "state": "open",
+      "labels": [
+        {
+          "name": "E-easy"
+        },
+        {
+          "name": "L-python"
+        }
+      ]
+    }
+  }
+}
