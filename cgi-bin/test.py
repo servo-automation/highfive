@@ -1,19 +1,35 @@
 from helpers.api_provider import APIProvider
+from helpers.database import Database
 from helpers.json_cleanup import JsonCleaner
 from helpers.methods import AVAILABLE_EVENTS, CONFIG_PATH, HANDLERS_DIR, ROOT
-from helpers.methods import get_handlers, get_path_parent
+from helpers.methods import get_handlers, get_logger, get_path_parent
 
-import json, os, sys
+import itertools, json, logging, os, sys
 
 TESTS_DIR = os.path.join(ROOT, 'tests')
+
+
+class TestDatabase(Database):
+    def __init__(self, db_dict):
+        self.stuff = db_dict
+
+    def get_obj(self, _id, key):
+        return self.stuff.get(key, {})
+
+    def remove_obj(self, _id, key):
+        self.stuff.pop(key)
+
+    def write_obj(self, data, _id, key):
+        self.stuff[key] = data
 
 
 class TestAPIProvider(APIProvider):
     # Since we're going for getting/setting attributes, we should make sure
     # that we're using the same names for both initial/expected values (in JSON)
     # and the class variables
-    def __init__(self, payload, initial, expected):
-        super(TestAPIProvider, self).__init__(payload)
+    def __init__(self, name, payload, initial, expected):
+        super(TestAPIProvider, self).__init__(name, payload)
+        self.logger = get_logger(__name__)
         self.expected = expected
 
         for key, val in expected.items():
@@ -27,9 +43,15 @@ class TestAPIProvider(APIProvider):
         for key, val in initial.items():    # set/override the values
             setattr(self, key, val)
 
+        if hasattr(self, 'db'):
+            self.db = TestDatabase(self.db)
+
     def get_matching_path(self, matches, node=None):
         node = self.payload if node is None else self.payload[node]
         return get_path_parent(node, matches, get_obj=lambda marker: marker._node)
+
+    def rand_choice(self, values):
+        return values[0]    # so that the results are consistent
 
     def get_labels(self):
         return self.labels
@@ -57,6 +79,9 @@ class TestAPIProvider(APIProvider):
     def evaluate(self):
         for key, expect_val in self.expected.items():
             val = getattr(self, key)
+            if key == 'db':
+                val = val.stuff
+
             assert val == expect_val, \
                 "Value found '%s' != expected value '%s'" % (val, expect_val)
 
@@ -66,14 +91,23 @@ if __name__ == '__main__':
     name, args = sys.argv[0], sys.argv[1:]
     overwrite = True if 'write' in args else False
     warn = not overwrite
+    logging.basicConfig(level=logging.ERROR)
 
     with open(CONFIG_PATH, 'r') as fd:
         config = json.load(fd)
 
     # The "tests" directory should have the same structure as that of the "handlers"
     for event in AVAILABLE_EVENTS:
-        for path, handler in get_handlers(event):
+        handler_gen = itertools.chain(enumerate(get_handlers(event)),
+                                      enumerate(get_handlers(event, sync=True)))
+        prev = -1
+        is_sync = False
+        for i, (path, handler) in handler_gen:
+            is_sync = True if i < prev else is_sync     # hack for finding sync handlers
+            prev = i
+
             local_path = path.split(os.sep)[len(HANDLERS_DIR.split(os.sep)):]
+            handler_name = os.path.basename(path)
             test_payloads_dir = os.path.join(TESTS_DIR, *local_path)
             if not os.path.exists(test_payloads_dir):   # a handler should have at least one test
                 print 'Test not found for handler in %s' % os.sep.join(local_path)
@@ -94,8 +128,11 @@ if __name__ == '__main__':
 
                 wrapper = JsonCleaner({'payload': test_data['payload']})
                 for (initial, expected) in zip(initial_vals, expected_vals):
-                    api = TestAPIProvider(wrapper.json['payload'], initial, expected)
-                    handler(api)
+                    api = TestAPIProvider(config['name'], wrapper.json['payload'], initial, expected)
+                    if is_sync:
+                        handler(api, api.db, 1, handler_name)
+                    else:
+                        handler(api)
                     tests += 1
 
                     try:

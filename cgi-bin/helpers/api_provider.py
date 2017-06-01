@@ -1,11 +1,12 @@
 from methods import get_path_parent, get_logger
 
-import contextlib, re, urllib2
+import contextlib, random, re, urllib2
 import methods
 
 
 class APIProvider(object):
-    def __init__(self, payload):
+    def __init__(self, name, payload):
+        self.name = name
         self.payload = payload
         # NOTE: Since the handlers are executed in a function's local namespace, they don't have
         # access to any nearby modules, and hence, this redirection...
@@ -57,6 +58,9 @@ class APIProvider(object):
                 return config[pattern]
         return default
 
+    def rand_choice(self, values):
+        return random.choice(values)
+
     def get_labels(self):
         raise NotImplementedError
 
@@ -106,6 +110,9 @@ class APIProvider(object):
     def close_issue(self):
         raise NotImplementedError
 
+    def is_from_self(self):
+        return self.name in self.sender
+
 
 class GithubAPIProvider(APIProvider):
     base_url = 'https://api.github.com/'
@@ -116,8 +123,7 @@ class GithubAPIProvider(APIProvider):
     diff_url = 'https://github.com/%s/%s/pull/%s.diff'
 
     def __init__(self, name, payload, request_method):
-        self.name = name
-        super(GithubAPIProvider, self).__init__(payload)
+        super(GithubAPIProvider, self).__init__(name, payload)
         self._request = request_method
         self.logger = get_logger(__name__)
 
@@ -168,6 +174,3 @@ class GithubAPIProvider(APIProvider):
     def close_issue(self):
         url = self.issue_url % (self.owner, self.repo, self.issue_number)
         self._request('PATCH', url, {'state': 'closed'})
-
-    def is_from_self(self):
-        return self.name in self.sender

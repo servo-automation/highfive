@@ -10,13 +10,13 @@ class Database(object):
     def get_installations(self):
         raise NotImplementedError
 
-    def get_obj(self, _id, path):
+    def get_obj(self, _id, key):
         raise NotImplementedError
 
-    def remove_obj(self, _id, path):
+    def remove_obj(self, _id, key):
         raise NotImplementedError
 
-    def write_obj(self, _id, path):
+    def write_obj(self, data, _id, key):
         raise NotImplementedError
 
 

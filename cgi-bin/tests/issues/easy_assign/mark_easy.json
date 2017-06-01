@@ -1,0 +1,50 @@
+{
+  "expected": {
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "16179": {
+            "assignee": null,
+            "status": null,
+            "pr_number": null,
+            "last_active": null
+          }
+        }
+      }
+    },
+    "comments": ["Hi! If you have any questions regarding this issue, feel free to make a comment here, or ask it in the `#servo` channel in [IRC](https://wiki.mozilla.org/IRC).\n\nIf you intend to work on this issue, then add `@highfive: assign me` to your comment, and I'll assign this to you. :smile:"]
+  },
+  "initial": {},
+  "payload": {
+    "action": "labeled",
+    "issue": {
+      "state": "open",
+      "labels": [
+        {
+          "name": "E-easy"
+        },
+        {
+          "name": "L-python"
+        }
+      ],
+      "number": 16179,
+      "user": {
+        "login": "jdm"
+      }
+    },
+    "sender": {
+      "login": "jdm"
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "label": {
+      "name": "E-easy"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "expected": {
+    "db": {
+      "open_pulls": ["1"],
+      "open_pulls_1": {
+        "owner": "servo",
+        "repo": "servo",
+        "status": null,
+        "number": "1",
+        "last_active": null,
+        "body": "blah blah blah",
+        "author": "wafflespeanut",
+        "assignee": null,
+        "labels": [],
+        "comments": []
+      }
+    }
+  },
+  "initial": {},
+  "payload": {
+    "number": 1,
+    "pull_request": {
+      "state": "open",
+      "updated_at": null,
+      "assignee": null,
+      "body": "blah blah blah",
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      },
+      "url": null,
+      "user": {
+        "login": "Wafflespeanut"
+      }
+    },
+    "action": "opened",
+    "sender": {
+      "login": "Wafflespeanut"
+    }
+  }
+}

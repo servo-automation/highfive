@@ -1,7 +1,6 @@
 from copy import deepcopy
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
-from random import choice
 
 import json, os, re
 
@@ -48,7 +47,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
                 if assignee is None:        # PR author hasn't claimed the issue
                     api.logger.debug('Assignee has not requested issue assignment.'
                                      ' Marking issue as assigned')
-                    api.post_comment(choice(config['dup_effort']))
+                    api.post_comment(api.rand_choice(config['dup_effort']))
                     api.issue_number = number
                     api.update_labels(add=[config['assign_label']])
 
@@ -56,7 +55,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
                     api.logger.debug('Assignee collision: Expected %r but PR author is %r',
                                      assignee, api.creator)
                     # Currently, we just drop a notification in the PR
-                    comment = choice(config['possible_dup'])
+                    comment = api.rand_choice(config['possible_dup'])
                     api.post_comment(comment.format(issue=number))
 
     elif (action == 'created' and                       # comment
@@ -68,11 +67,11 @@ def check_easy_issues(api, config, db, inst_id, self_name):
             if name == 'me':
                 if config['assign_label'] in api.labels:
                     api.logger.debug('Assignee collision. Leaving it to core contributor...')
-                    api.post_comment(choice(config['assign_fail']))
+                    api.post_comment(api.rand_choice(config['assign_fail']))
                 else:
                     api.logger.debug('Got assign request. Assigning to %r', api.creator)
                     api.update_labels(add=[config['assign_label']])
-                    comment = choice(config['assign_success'])
+                    comment = api.rand_choice(config['assign_success'])
                     api.post_comment(comment.format(assignee=api.creator))
                     # Mutate data only if we have the data
                     if is_issue_in_data:
@@ -105,7 +104,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
               any(i['pr_number'] == num for i in data['issues'].itervalues())):
             issue_num = filter(lambda i: data['issues'][i]['pr_number'] == num, data['issues'])[0]
             api.logger.debug('PR #%s is being closed. Removing related data...', num)
-            comment = choice(config['previous_work']) + ' ' + choice(config['issue_unassign'])
+            comment = api.rand_choice(config['previous_work']) + ' ' + api.rand_choice(config['issue_unassign'])
             api.issue_number = issue_num
             api.post_comment(comment.format(author=api.creator, pull=num))
             api.update_labels(remove=[config['assign_label']])
@@ -121,7 +120,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
             api.logger.debug('Issue #%s has been marked E-easy. Posting welcome comment...',
                               api.issue_number)
             data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
-            comment = choice(config['issue_assign'])
+            comment = api.rand_choice(config['issue_assign'])
             api.post_comment(comment.format(bot=api.name))
         elif label == config['assign_label'] and is_issue_in_data and not api.is_from_self():
             api.logger.debug('Issue #%s has been assigned to... someone?', api.issue_number)
@@ -170,14 +169,14 @@ def check_easy_issues(api, config, db, inst_id, self_name):
             if status == 'assigned':
                 api.logger.debug('Pinging %r in issue #%s', assignee, number)
                 if assignee == '0xdeadbeef':
-                    api.post_comment(choice(config['unknown_ping']))
+                    api.post_comment(api.rand_choice(config['unknown_ping']))
                 else:
-                    api.post_comment(choice(config['known_ping']).format(assignee=assignee))
+                    api.post_comment(api.rand_choice(config['known_ping']).format(assignee=assignee))
                 data['issues'][number]['status'] = 'commented'
             elif status == 'commented':
                 api.logger.debug('Unassigning issue #%s after grace period', number)
                 api.update_labels(remove=[config['assign_label']])
-                api.post_comment(choice(config['issue_unassign']))      # another payload will reset the data
+                api.post_comment(api.rand_choice(config['issue_unassign']))      # another payload will reset the data
 
     if data != old_data:
         db.write_obj(data, inst_id, self_name)
