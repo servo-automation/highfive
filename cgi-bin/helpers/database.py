@@ -1,7 +1,8 @@
 from methods import ROOT, get_logger
 from urlparse import urlparse
 
-import json, os, psycopg2
+import json, os
+psychopg2 = None
 
 DB_JSON_LEN = 10000
 DB_KEY_LEN = 100
@@ -61,6 +62,10 @@ class JsonStore(Database):
 
 class PostgreSql(Database):
     def __init__(self):
+        global psychopg2
+        if not psychopg2:
+            import psychopg2 as pg2
+            psychopg2 = pg2
         self.logger = get_logger(__name__)
         url = urlparse(os.environ['DATABASE_URL'])
         self.kwargs = dict(

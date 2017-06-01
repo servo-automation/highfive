@@ -2,16 +2,23 @@
 
 from __future__ import print_function
 
+try:
+    import setup_env
+except:
+    pass
+
 from helpers.methods import CONFIG_PATH, get_logger
 from helpers.runner import Runner
 
-import cgi, json, logging, os, sys
+import cgi, cgitb, json, logging, os, sys
 
 if __name__ == '__main__':
-    print("Content-Type: text/plain\r\n")
+    print("Content-Type: text/html;charset=utf-8\r\n")
     print('\r\n')
     logging.basicConfig(level=logging.DEBUG)
     logger = get_logger(__name__)
+
+    cgitb.enable()
 
     with open(CONFIG_PATH, 'r') as fd:
         config = json.load(fd)

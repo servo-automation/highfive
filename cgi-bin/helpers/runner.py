@@ -3,7 +3,7 @@ from StringIO import StringIO
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
 from gzip import GzipFile
-from jose import jwt
+import jwt
 from time import sleep
 
 from api_provider import GithubAPIProvider
@@ -162,7 +162,7 @@ class Runner(object):
         self.installations = {}
         self.sync_runners = {}
         self.config = config
-        self.db = PostgreSql() if os.environ.get('DATABASE_URL') else JsonStore(config['dump_path'])
+        self.db = PostgreSql() if os.environ.get('DATABASE_URL') else JsonStore(config)
 
         if not self.enabled_events:
             self.enabled_events = AVAILABLE_EVENTS
