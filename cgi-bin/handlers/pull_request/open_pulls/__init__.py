@@ -2,8 +2,21 @@ from HTMLParser import HTMLParser
 from copy import deepcopy
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
+from random import choice
 
 import json, os, re
+
+PR_OBJ_DEFAULT = {
+    'status': None,         # None or 'commented'
+    'body': None,
+    'author': None,
+    'number': None,
+    'assignee': None,
+    'last_active': None,
+    'labels': [],
+    'comments': [],
+}
+
 
 def check_failure_log(api):
     comment = api.payload['comment']['body']
@@ -85,29 +98,7 @@ def check_bors_msg(api, data):
     data['labels'] = api.labels
 
 
-PR_OBJ_DEFAULT = {
-    'status': None,
-    'body': None,
-    'author': None,
-    'number': None,
-    'assignee': None,
-    'last_active': None,
-    'labels': [],
-    'comments': [],
-}
-
-PR_CLOSE_MSG = ("Okay, I'm gonna close this based on inactivity. If you change your mind"
-                " about working on this issue again, feel free to ping us and we'll reopen"
-                " it for you. Thanks for taking a stab at this :smile:")
-
-# FIXME: Choose randomly
-PR_PING_MSG = 'Hey @%s! Are you planning to finish this off?'
-PR_ANON_PING = "What's going on here?"
-
-MAX_DAYS = 4
-
-
-def check_pulls(api, db, inst_id, self_name):
+def check_pulls(api, config, db, inst_id, self_name):
     for number in db.get_obj(inst_id, self_name):       # Check existing PRs
         data = db.get_obj(inst_id, '%s_%s' % (self_name, number))
         old_data = deepcopy(data)
@@ -124,7 +115,7 @@ def check_pulls(api, db, inst_id, self_name):
 
         last_active = datetime_parse(last_active)
         now = datetime.now(last_active.tzinfo)
-        if (now - last_active).days <= MAX_DAYS:
+        if (now - last_active).days <= config['grace_period_days']:
             api.logger.debug('PR #%s is stil in grace period', number)
             continue
 
@@ -134,11 +125,13 @@ def check_pulls(api, db, inst_id, self_name):
         status = data.get('status')
 
         if status is None:
-            api.post_comment(PR_PING_MSG % data['author'])
+            comment = choice(config['pr_ping_msg'])
+            api.post_comment(comment.format(author=data['author']))
             data['status'] = 'commented'
         elif status == 'commented':
             api.logger.debug('Closing PR #%s after grace period', number)
-            api.post_comment(PR_CLOSE_MSG)
+            comment = choice(config['pr_close_msg'])
+            api.post_comment(comment.format(author=data['author']))
             api.close_issue()
             continue
 
@@ -146,11 +139,11 @@ def check_pulls(api, db, inst_id, self_name):
             db.write_obj(data, inst_id, '%s_%s' % (self_name, number))
 
 
-def manage_pulls(api, db, inst_id, self_name):
+def manage_pulls(api, config, db, inst_id, self_name):
     payload = api.payload
     action = payload.get('action')
     if action is None:
-        return check_pulls(api, db, inst_id, self_name)
+        return check_pulls(api, config, db, inst_id, self_name)
 
     pr_list = db.get_obj(inst_id, self_name) or []
     old_list = deepcopy(pr_list)
@@ -203,11 +196,7 @@ def manage_pulls(api, db, inst_id, self_name):
         db.write_obj(pr_list, inst_id, self_name)
 
 
-REPO_SPECIFIC_HANDLERS = {
-    "servo/servo": manage_pulls
-}
-
-def payload_handler(api, _config, db, inst_id, name):
-    handler = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS)
-    if handler:
-        handler(api, db, inst_id, name)
+def payload_handler(api, config, db, inst_id, name):
+    repo_config = api.get_matches_from_config(config)
+    if repo_config:
+        manage_pulls(api, repo_config, db, inst_id, name)

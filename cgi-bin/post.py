@@ -30,5 +30,5 @@ if __name__ == '__main__':
 
     runner.clear_queue()
 
-    with open(CONFIG_PATH, 'w') as fd:      # caches some data
+    with open(CONFIG_PATH, 'w') as fd:      # caches some API data
         json.dump(runner.config, fd)

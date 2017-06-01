@@ -7,7 +7,7 @@ from jose import jwt
 from time import sleep
 
 from api_provider import GithubAPIProvider
-from database import create_db
+from database import JsonStore, PostgreSql
 from methods import AVAILABLE_EVENTS, get_handlers, get_logger
 
 import hashlib, hmac, itertools, json, os, time, requests
@@ -45,11 +45,12 @@ class InstallationHandler(object):
         self._id = inst_id
         self.installation_url = self.installation_url % inst_id
         # Github offers 5000 requests per hour (per installation) for an integration
-        # (all these will be overridden when we sync the token and "/rate_limit" endpoint)
-        self.remaining = self.runner.config.get('remaining', 0)
-        self.reset_time = self.runner.config.get('reset', int(time.time()) - 60)
-        self.next_token_sync = datetime_parse(self.runner.config.get('expires_at', '%s' % datetime.now()))
-        self.token = self.runner.config.get('token')
+        # (all these will be overridden once we sync the token with "/rate_limit" endpoint)
+        api_data = self.runner.config.get(inst_id, {})
+        self.remaining = api_data.get('remaining', 0)
+        self.reset_time = api_data.get('reset', int(time.time()) - 60)
+        self.next_token_sync = datetime_parse(api_data.get('expires_at', '%s' % datetime.now()))
+        self.token = api_data.get('token')
 
     def sync_token(self):
         now = datetime.now(self.next_token_sync.tzinfo)     # should be timezone-aware version
@@ -64,7 +65,7 @@ class InstallationHandler(object):
             }
 
             auth = 'Bearer %s' % jwt.encode(auth_payload, self.runner.pem_key, 'RS256')
-            resp = self._request(auth, 'POST', self.installation_url)
+            resp = self._request('POST', self.installation_url, auth=auth)
             self.token = resp['token']      # installation token (expires in 1 hour)
             self.logger.debug('Token expires on %s', resp['expires_at'])
             self.next_token_sync = datetime_parse(resp['expires_at'])
@@ -72,16 +73,15 @@ class InstallationHandler(object):
     def wait_time(self):
         now = int(time.time())
         if now >= self.reset_time:
-            auth = 'token %s' % self.token
-            data = self._request(auth, 'GET', self.rate_limit_url)
+            data = self._request('GET', self.rate_limit_url)
             self.reset_time = data['rate']['reset']
             self.remaining = data['rate']['remaining']
             self.logger.debug('Current time: %s, Remaining requests: %s, Reset time: %s',
                               now, self.remaining, self.reset_time)
         return (self.reset_time - now) / float(self.remaining)          # (uniform) wait time per request
 
-    def _request(self, auth, method, url, data=None):       # not supposed to be called by any handler
-        self.headers['Authorization'] = auth
+    def _request(self, method, url, auth=None, data=None):      # not supposed to be called by any handler
+        self.headers['Authorization'] = 'token %s' if auth is None else auth
         data = json.dumps(data) if data is not None  else data
         req_method = getattr(requests, method.lower())              # hack
         self.logger.info('%s: %s (data: %s)', method, url, data)
@@ -119,8 +119,7 @@ class InstallationHandler(object):
         sleep(interval)
         self.remaining -= 1
         self.update_config()
-        auth = 'token %s' % self.token
-        return self._request(auth, method, url, data)
+        return self._request(method, url, data)
 
     def add(self, payload, event):
         api = GithubAPIProvider(self.runner.name, payload, self.queue_request)
@@ -147,8 +146,8 @@ class SyncHandler(object):
                                                  get_handlers('pull_request', sync=True)):
                 # It's necessary to instantiate this class every time (since we could
                 # monkey-patch along the way). There's one more way to "monkey-unpatch"
-                # (by saving the snapshot of a class (dict) and restoring)
-                # but that could lead to bad code.
+                # (by saving a snapshot of the class (its dict) and restoring it later)
+                # but that could lead to *dangerous* code.
                 api = GithubAPIProvider(self.runner.name, payload, self.request)
                 handler(api, self.runner.db, self._id, os.path.basename(path))
 
@@ -163,7 +162,7 @@ class Runner(object):
         self.installations = {}
         self.sync_runners = {}
         self.config = config
-        self.db = create_db(config['dump_path'])
+        self.db = PostgreSql() if os.environ.get('DATABASE_URL') else JsonStore(config['dump_path'])
 
         if not self.enabled_events:
             self.enabled_events = AVAILABLE_EVENTS

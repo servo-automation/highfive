@@ -109,7 +109,3 @@ class PostgreSql(Database):
             self._execute_query('UPDATE t_%s SET data = %s WHERE key = %s;', inst_id, data, key)
         else:
             self._execute_query('INSERT INTO t_%s VALUES (%s, %s)', inst_id, key, data)
-
-
-def create_db(dump_path):
-    return PostgreSql() if os.environ.get('DATABASE_URL') else JsonStore(dump_path)

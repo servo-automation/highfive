@@ -1,4 +1,16 @@
 {
     "active": true,
-    "sync": true
+    "sync": true,
+    "servo/servo": {
+        "grace_period_days": 4,
+        "pr_close_msg": [
+            "Okay, I'm gonna close this based on inactivity. If you change your mind about working on this issue again, feel free to ping us and we'll reopen it for you. Thanks for taking a stab at this :smile:"
+        ],
+        "pr_ping_msg": [
+            "Hey @{author}! Are you planning to finish this off?",
+            "Hi @{author}. Are you still working on this?",
+            "Is this still being worked on?",
+            "What's the status of this?"
+        ]
+    }
 }

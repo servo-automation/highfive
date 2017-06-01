@@ -1,4 +1,37 @@
 {
     "active": true,
-    "sync": true
+    "sync": true,
+    "servo/servo": {
+        "grace_period_days": 4,
+        "assign_label": "c-assigned",
+        "issue_assign": [
+            "Hi! If you have any questions regarding this issue, feel free to make a comment here, or ask it in the `#servo` channel in [IRC](https://wiki.mozilla.org/IRC).\n\nIf you intend to work on this issue, then add `@{bot}: assign me` to your comment, and I'll assign this to you. :smile:"
+        ],
+        "dup_effort": [
+            "Hello there! Thanks for picking up this issue! We really appreciate your effort. But, in the future, please get the issue assigned to yourself before working on it, so that we can avoid duplicate efforts. :smile:"
+        ],
+        "possible_dup": [
+            "Hmm, it appears to me that the author of this pull request isn't the one who claimed #{issue} :thinking:"
+        ],
+        "assign_fail": [
+            "It looks like this has already been assigned to someone. I'll leave the decision to a core contributor."
+        ],
+        "assign_success": [
+            "Hey @{assignee}! Thanks for your interest in working on this issue. It's now assigned to you!"
+        ],
+        "previous_work": [
+            "Previous work by @{author} on #{pull}.",
+            "@{author} worked on this previously in #{pull}."
+        ],
+        "issue_unassign": [
+            "This is now open for anyone to jump in!"
+        ],
+        "known_ping": [
+            "Ping @{assignee}! Did you look into this? You got any questions for us?",
+            "Hey @{assignee}, did you look into this? Need help with something?"
+        ],
+        "unknown_ping": [
+            "Is this still being worked on?"
+        ]
+    }
 }

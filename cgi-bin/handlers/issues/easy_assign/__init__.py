@@ -1,35 +1,9 @@
 from copy import deepcopy
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
+from random import choice
 
 import json, os, re
-
-ASSIGN_MSG = ('Hi! If you have any questions regarding this issue, feel free to make'
-              ' a comment here, or ask it in the `#servo` channel in '
-              '[IRC](https://wiki.mozilla.org/IRC).\n\n'
-              'If you intend to work on this issue, then add `@%s: assign me`'
-              ' to your comment, and I\'ll assign this to you. :smile:')
-
-DUP_EFFORT_MSG = ('Hello there! Thanks for picking up this issue! We really appreciate your effort.'
-                  ' But, in the future, please get the issue assigned to yourself before working'
-                  ' on it, so that we can avoid duplicate efforts. :smile:')
-
-POSSIBLE_DUP = ("Hmm, it appears to me that the author of this pull request"
-                " isn't the one who claimed #%s :thinking:")
-
-RESPONSE_FAIL = ('It looks like this has already been assigned to someone.'
-                 ' I\'ll leave the decision to a core contributor.')
-
-RESPONSE_OK = ('Hey @%s! Thanks for your interest in working on this issue.'
-               ' It\'s now assigned to you!')
-
-PR_ADDRESS_MSG = 'Previous work on #%s. '
-ISSUE_UNASSIGN_MSG = 'This is now open for anyone to jump in!'
-
-# FIXME: These responses may occur often, and should probably have a list of messages
-# to be chosen at random
-ISSUE_PING_MSG = 'Ping @%s! Did you look into this? You got any questions for us?'
-ISSUE_ANON_PING = 'Is this still being worked on?'
 
 ISSUE_OBJ_DEFAULT = {
     'assignee': None,
@@ -38,10 +12,8 @@ ISSUE_OBJ_DEFAULT = {
     'pr_number': None,
 }
 
-MAX_DAYS = 4
 
-
-def check_easy_issues(api, db, inst_id, self_name):
+def check_easy_issues(api, config, db, inst_id, self_name):
     payload = api.payload
     action = payload.get('action')
     data = db.get_obj(inst_id, self_name)
@@ -76,15 +48,16 @@ def check_easy_issues(api, db, inst_id, self_name):
                 if assignee is None:        # PR author hasn't claimed the issue
                     api.logger.debug('Assignee has not requested issue assignment.'
                                      ' Marking issue as assigned')
-                    api.post_comment(DUP_EFFORT_MSG)
+                    api.post_comment(choice(config['dup_effort']))
                     api.issue_number = number
-                    api.update_labels(add=['c-assigned'])
+                    api.update_labels(add=[config['assign_label']])
 
                 elif api.creator != assignee:       # PR author isn't the assignee
                     api.logger.debug('Assignee collision: Expected %r but PR author is %r',
                                      assignee, api.creator)
                     # Currently, we just drop a notification in the PR
-                    api.post_comment(POSSIBLE_DUP % number)
+                    comment = choice(config['possible_dup'])
+                    api.post_comment(comment.format(issue=number))
 
     elif (action == 'created' and                       # comment
           payload.get('pull_request') is None):
@@ -93,13 +66,14 @@ def check_easy_issues(api, db, inst_id, self_name):
         if match:
             name = match.group(1).split(' ')[0]
             if name == 'me':
-                if 'c-assigned' in api.labels:
+                if config['assign_label'] in api.labels:
                     api.logger.debug('Assignee collision. Leaving it to core contributor...')
-                    api.post_comment(RESPONSE_FAIL)
+                    api.post_comment(choice(config['assign_fail']))
                 else:
                     api.logger.debug('Got assign request. Assigning to %r', api.creator)
-                    api.update_labels(add=['c-assigned'])
-                    api.post_comment(RESPONSE_OK % api.creator)
+                    api.update_labels(add=[config['assign_label']])
+                    comment = choice(config['assign_success'])
+                    api.post_comment(comment.format(assignee=api.creator))
                     # Mutate data only if we have the data
                     if is_issue_in_data:
                         data['issues'][api.issue_number]['assignee'] = api.creator
@@ -123,18 +97,19 @@ def check_easy_issues(api, db, inst_id, self_name):
                 data['issues'][api.issue_number]['status'] = 'assigned'
 
     elif action == 'closed':
+        num = api.issue_number
         if ('e-easy' in api.labels and is_issue_in_data):
-            api.logger.debug('Issue #%s is being closed. Removing related data...', api.issue_number)
-            data['issues'].pop(api.issue_number)
+            api.logger.debug('Issue #%s is being closed. Removing related data...', num)
+            data['issues'].pop(num)
         elif (payload.get('pull_request') and
-              any(i['pr_number'] == api.issue_number for i in data['issues'].itervalues())):
-            num = filter(lambda i: data['issues'][i]['pr_number'] == api.issue_number, data['issues'])[0]
-            api.logger.debug('PR #%s is being closed. Removing related data...', api.issue_number)
-            comment = PR_ADDRESS_MSG % api.issue_number + ISSUE_UNASSIGN_MSG
-            api.issue_number = num
-            api.post_comment(comment)
-            api.update_labels(remove=['c-assigned'])
-            data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
+              any(i['pr_number'] == num for i in data['issues'].itervalues())):
+            issue_num = filter(lambda i: data['issues'][i]['pr_number'] == num, data['issues'])[0]
+            api.logger.debug('PR #%s is being closed. Removing related data...', num)
+            comment = choice(config['previous_work']) + ' ' + choice(config['issue_unassign'])
+            api.issue_number = issue_num
+            api.post_comment(comment.format(author=api.creator, pull=num))
+            api.update_labels(remove=[config['assign_label']])
+            data['issues'][issue_num] = ISSUE_OBJ_DEFAULT
 
     elif action == 'reopened':      # FIXME: Also handle reopening issues?
         pass
@@ -146,8 +121,9 @@ def check_easy_issues(api, db, inst_id, self_name):
             api.logger.debug('Issue #%s has been marked E-easy. Posting welcome comment...',
                               api.issue_number)
             data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
-            api.post_comment(ASSIGN_MSG % api.name)
-        elif label == 'c-assigned' and is_issue_in_data and not api.is_from_self():
+            comment = choice(config['issue_assign'])
+            api.post_comment(comment.format(bot=api.name))
+        elif label == config['assign_label'] and is_issue_in_data and not api.is_from_self():
             api.logger.debug('Issue #%s has been assigned to... someone?', api.issue_number)
             data['issues'][api.issue_number]['assignee'] = '0xdeadbeef'
 
@@ -157,7 +133,7 @@ def check_easy_issues(api, db, inst_id, self_name):
             api.logger.debug('Issue #%s is no longer E-easy. Removing related data...',
                              api.issue_number)
             data['issues'].pop(api.issue_number)
-        elif payload['label']['name'].lower() == 'c-assigned':
+        elif payload['label']['name'].lower() == config['assign_label']:
             api.logger.debug('Issue #%s has been unassigned. Setting issue to default data...',
                              api.issue_number)
             data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
@@ -180,7 +156,7 @@ def check_easy_issues(api, db, inst_id, self_name):
 
             last_active = datetime_parse(last_active)
             now = datetime.now(last_active.tzinfo)
-            if (now - last_active).days <= MAX_DAYS:
+            if (now - last_active).days <= config['grace_period_days']:
                 api.logger.debug('Issue #%s is stil in grace period', number)
                 continue
             elif status == 'pull':          # PR handler will take care
@@ -194,24 +170,20 @@ def check_easy_issues(api, db, inst_id, self_name):
             if status == 'assigned':
                 api.logger.debug('Pinging %r in issue #%s', assignee, number)
                 if assignee == '0xdeadbeef':
-                    api.post_comment(ISSUE_ANON_PING)
+                    api.post_comment(choice(config['unknown_ping']))
                 else:
-                    api.post_comment(ISSUE_PING_MSG % assignee)
+                    api.post_comment(choice(config['known_ping']).format(assignee=assignee))
                 data['issues'][number]['status'] = 'commented'
             elif status == 'commented':
                 api.logger.debug('Unassigning issue #%s after grace period', number)
-                api.update_labels(remove=['c-assigned'])
-                api.post_comment(ISSUE_UNASSIGN_MSG)        # another payload will reset the data
+                api.update_labels(remove=[config['assign_label']])
+                api.post_comment(choice(config['issue_unassign']))      # another payload will reset the data
 
     if data != old_data:
         db.write_obj(data, inst_id, self_name)
 
 
-REPO_SPECIFIC_HANDLERS = {
-    "servo/servo": check_easy_issues
-}
-
-def payload_handler(api, _config, db, inst_id, name):
-    handler = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS)
-    if handler:
-        handler(api, db, inst_id, name)
+def payload_handler(api, config, db, inst_id, name):
+    repo_config = api.get_matches_from_config(config)
+    if repo_config:
+        check_easy_issues(api, repo_config, db, inst_id, name)
