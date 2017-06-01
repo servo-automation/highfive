@@ -28,7 +28,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
     is_issue_in_data = data['issues'].has_key(api.issue_number) if api.issue_number else None
 
     if action == 'opened':                  # issue or PR
-        if payload.get('pull_request'):
+        if api.is_pull:
             pr_body = payload['pull_request']['body']
             # check whether the PR addresses an issue in our store
             match = re.search(r'(?:fixe?|close|resolve)[s|d]? #([0-9]*)', pr_body)
@@ -57,27 +57,48 @@ def check_easy_issues(api, config, db, inst_id, self_name):
                     # Currently, we just drop a notification in the PR
                     comment = api.rand_choice(config['possible_dup'])
                     api.post_comment(comment.format(issue=number))
+        elif config['easy_label'] in api.labels:        # it's an issue and contains appropriate labels
+            if config['assign_label'] in api.labels:
+                api.logger.debug('Issue #%s has been assigned to someone (while opening)', api.issue_number)
+                data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
+                data['issues'][api.issue_number]['assignee'] = '0xdeadbeef'
+                data['issues'][api.issue_number]['status'] = 'assigned'
+                data['issues'][api.issue_number]['last_active'] = payload['issue']['updated_at']
+            else:
+                api.logger.debug('Issue #%s has been marked as easy (while opening). Posting welcome comment...',
+                                 api.issue_number)
+                data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
 
-    elif (action == 'created' and                       # comment
-          payload.get('pull_request') is None):
+    elif action == 'created' and not api.is_pull and not api.is_from_self():
         msg = payload['comment']['body']
         match = re.search(r'@%s(?:\[bot\])?[: ]*assign (.*)' % api.name, str(msg.lower()))
         if match:
             name = match.group(1).split(' ')[0]
             if name == 'me':
                 if config['assign_label'] in api.labels:
+                    if not is_issue_in_data:
+                        data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
+                        data['issues'][api.issue_number]['assignee'] = '0xdeadbeef'
+
+                    data['issues'][api.issue_number]['status'] = 'assigned'
+                    data['issues'][api.issue_number]['last_active'] = payload['comment']['updated_at']
+
                     api.logger.debug('Assignee collision. Leaving it to core contributor...')
                     api.post_comment(api.rand_choice(config['assign_fail']))
                 else:
+                    # This way, assigning applies to "any" issue. If it's assigned, then
+                    # highfive will start tracking those issues and the associating PRs.
+                    if not is_issue_in_data:
+                        data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
+
                     api.logger.debug('Got assign request. Assigning to %r', api.creator)
                     api.update_labels(add=[config['assign_label']])
                     comment = api.rand_choice(config['assign_success'])
                     api.post_comment(comment.format(assignee=api.creator))
-                    # Mutate data only if we have the data
-                    if is_issue_in_data:
-                        data['issues'][api.issue_number]['assignee'] = api.creator
-                        data['issues'][api.issue_number]['status'] = 'assigned'
-                        data['issues'][api.issue_number]['last_active'] = payload['comment']['updated_at']
+
+                    data['issues'][api.issue_number]['assignee'] = api.creator
+                    data['issues'][api.issue_number]['status'] = 'assigned'
+                    data['issues'][api.issue_number]['last_active'] = payload['comment']['updated_at']
             else:
                 # FIXME: Make core-contributors assign issues for people
                 # and update local JSON store from their comment.
@@ -88,7 +109,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
             # FIXME: Someone has commented in the issue. Multiple things to investigate.
             # What if the assignee had asked some question and no one answered?
             # What if the issue gets blocked on something else?
-            # For now, we assume that our reviewers don't leave an issue/PR unnoticed for 4 days!
+            # For now, we assume that our reviewers don't leave an easy issue unnoticed for 4 days!
             # Maybe we could have another handler for pinging the reviewer if a question
             # remains unanswered for a while.
             data['issues'][api.issue_number]['last_active'] = payload['comment']['updated_at']
@@ -97,11 +118,10 @@ def check_easy_issues(api, config, db, inst_id, self_name):
 
     elif action == 'closed':
         num = api.issue_number
-        if ('e-easy' in api.labels and is_issue_in_data):
+        if is_issue_in_data:
             api.logger.debug('Issue #%s is being closed. Removing related data...', num)
             data['issues'].pop(num)
-        elif (payload.get('pull_request') and
-              any(i['pr_number'] == num for i in data['issues'].itervalues())):
+        elif (api.is_pull and any(i['pr_number'] == num for i in data['issues'].itervalues())):
             issue_num = filter(lambda i: data['issues'][i]['pr_number'] == num, data['issues'])[0]
             api.logger.debug('PR #%s is being closed. Removing related data...', num)
             comment = api.rand_choice(config['previous_work']) + ' ' + api.rand_choice(config['issue_unassign'])
@@ -113,26 +133,30 @@ def check_easy_issues(api, config, db, inst_id, self_name):
     elif action == 'reopened':      # FIXME: Also handle reopening issues?
         pass
 
-    elif (action == 'labeled' and
-          payload.get('pull_request') is None):
-        label = payload['label']['name'].lower()
-        if label == 'e-easy':
+    elif action == 'labeled' and api.is_open and not api.is_pull:
+        if api.cur_label == config['easy_label'] and not is_issue_in_data:
+            # NOTE: We also make sure that the issue isn't in our data (since we do the
+            # same thing when an issue is opened with an easy label)
             api.logger.debug('Issue #%s has been marked E-easy. Posting welcome comment...',
                               api.issue_number)
             data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
             comment = api.rand_choice(config['issue_assign'])
             api.post_comment(comment.format(bot=api.name))
-        elif label == config['assign_label'] and is_issue_in_data and not api.is_from_self():
+        elif (label == config['assign_label'] and not api.is_from_self() and
+              is_issue_in_data and data['issues'][api.issue_number]['assignee'] is None):
+            # issue has been assigned just now (by someone other than the bot), it's in our DB,
+            # and it hasn't been assigned to anyone previously
             api.logger.debug('Issue #%s has been assigned to... someone?', api.issue_number)
             data['issues'][api.issue_number]['assignee'] = '0xdeadbeef'
+            data['issues'][api.issue_number]['status'] = 'assigned'
+            data['issues'][api.issue_number]['last_active'] = payload['issue']['updated_at']
 
-    elif (action == 'unlabeled' and is_issue_in_data and
-          payload.get('pull_request') is None):
-        if payload['label']['name'].lower() == 'e-easy':
+    elif (action == 'unlabeled' and is_issue_in_data and not api.is_pull):
+        if api.cur_label == config['easy_label']:
             api.logger.debug('Issue #%s is no longer E-easy. Removing related data...',
                              api.issue_number)
             data['issues'].pop(api.issue_number)
-        elif payload['label']['name'].lower() == config['assign_label']:
+        elif api.cur_label == config['assign_label']:
             api.logger.debug('Issue #%s has been unassigned. Setting issue to default data...',
                              api.issue_number)
             data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT

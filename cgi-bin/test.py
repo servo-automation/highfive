@@ -43,8 +43,9 @@ class TestAPIProvider(APIProvider):
         for key, val in initial.items():    # set/override the values
             setattr(self, key, val)
 
-        if hasattr(self, 'db'):
-            self.db = TestDatabase(self.db)
+        if not hasattr(self, 'db'):
+            self.db = {}
+        self.db = TestDatabase(self.db)
 
     def get_matching_path(self, matches, node=None):
         node = self.payload if node is None else self.payload[node]

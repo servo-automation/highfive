@@ -20,6 +20,9 @@ class APIProvider(object):
 
         # payload sender and (optional) creator of issue/pull/comment
         self.sender = payload['sender']['login'].lower() if payload.get('sender') else None
+        self.current_label = None
+        if payload.get('label'):
+            self.cur_label = payload['label']['name'].lower()
 
         node = self.get_matching_path(['user', 'login']) or {'user': {'login': ''}}
         for value in ['comment', 'pull_request', 'issue']:

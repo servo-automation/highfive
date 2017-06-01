@@ -3,6 +3,7 @@
     "sync": true,
     "servo/servo": {
         "grace_period_days": 4,
+        "easy_label": "e-easy",
         "assign_label": "c-assigned",
         "issue_assign": [
             "Hi! If you have any questions regarding this issue, feel free to make a comment here, or ask it in the `#servo` channel in [IRC](https://wiki.mozilla.org/IRC).\n\nIf you intend to work on this issue, then add `@{bot}: assign me` to your comment, and I'll assign this to you. :smile:"
@@ -17,7 +18,8 @@
             "It looks like this has already been assigned to someone. I'll leave the decision to a core contributor."
         ],
         "assign_success": [
-            "Hey @{assignee}! Thanks for your interest in working on this issue. It's now assigned to you!"
+            "Hey @{assignee}! Thanks for your interest in working on this issue. It's now assigned to you!",
+            "Hi @{assignee}! Thank you for choosing to work on this issue. I've now assigned this to you!"
         ],
         "previous_work": [
             "Previous work by @{author} on #{pull}.",
@@ -28,7 +30,8 @@
         ],
         "known_ping": [
             "Ping @{assignee}! Did you look into this? You got any questions for us?",
-            "Hey @{assignee}, did you look into this? Need help with something?"
+            "Hey @{assignee}, did you look into this? Need help with something?",
+            "@{assignee} Are you still working on this?"
         ],
         "unknown_ping": [
             "Is this still being worked on?"
