@@ -4,18 +4,21 @@ from datetime import datetime
 from dateutil.parser import parse as datetime_parse
 from random import choice
 
+from helpers.methods import find_reviewers
+
 import json, os, re
 
-PR_OBJ_DEFAULT = {
-    'status': None,         # None or 'commented'
-    'body': None,
-    'author': None,
-    'number': None,
-    'assignee': None,
-    'last_active': None,
-    'labels': [],
-    'comments': [],
-}
+def default():
+    return {
+        'status': None,         # None or 'commented'
+        'body': None,
+        'author': None,
+        'number': None,
+        'assignee': None,
+        'last_active': None,
+        'labels': [],
+        'comments': [],
+    }
 
 
 def check_failure_log(api):
@@ -55,7 +58,10 @@ def check_failure_log(api):
         api.post_comment('\n'.join(comments))
 
 
-def find_reviewer(api, data):
+def find_reviewer(api):
+    if action != 'created':
+        return
+
     comment = api.payload['comment']['body']
 
     def get_approver():
@@ -73,12 +79,15 @@ def find_reviewer(api, data):
         api.set_assignees(reviewers.split(','))
         return
 
-    reviewers = api.methods.find_reviewers(comment)
+    reviewers = find_reviewers(comment)
     if reviewers:
         api.set_assignees(reviewers)
 
 
-def check_bors_msg(api, data):
+def check_bors_msg(api):
+    if api.creator != 'bors-servo' or action != 'created':
+        return
+
     comment = api.payload['comment']['body']
     api.logger.debug('Checking comment by bors...')
     if 'has been approved by' in comment or 'Testing commit' in comment:
@@ -94,8 +103,6 @@ def check_bors_msg(api, data):
 
     elif 'Please resolve the merge conflicts' in comment:
         api.update_labels(add=['S-needs-rebase'], remove=['S-awaiting-merge'])
-
-    data['labels'] = api.labels
 
 
 def check_pulls(api, config, db, inst_id, self_name):
@@ -150,7 +157,7 @@ def manage_pulls(api, config, db, inst_id, self_name):
     if not (api.is_open and (api.issue_number in pr_list or api.is_pull)):
         return      # Note that issue_comment event will never have "pull_request"
 
-    data = db.get_obj(inst_id, '%s_%s' % (self_name, api.issue_number)) or PR_OBJ_DEFAULT
+    data = db.get_obj(inst_id, '%s_%s' % (self_name, api.issue_number)) or default()
     remove_data = False
     old_data = deepcopy(data)
     if api.issue_number not in pr_list:
@@ -161,10 +168,7 @@ def manage_pulls(api, config, db, inst_id, self_name):
     if data.get('repo') is None and api.repo:
         data['repo'] = api.repo
 
-    if action == 'created':                 # comment
-        find_reviewer(data, api)
-        if api.creator == 'bors-servo':
-            check_bors_msg(data, api)
+    if action == 'created':         # issue comment
         data['last_active'] = payload['comment']['updated_at']
         data['comments'].append(payload['comment']['body'])
     elif action == 'opened':                # PR created
@@ -196,7 +200,19 @@ def manage_pulls(api, config, db, inst_id, self_name):
         db.write_obj(pr_list, inst_id, self_name)
 
 
+REPO_SPECIFIC_HANDLERS = {
+    'servo/servo': [
+        find_reviewers,
+        check_bors_msg,
+    ],
+}
+
+
 def payload_handler(api, config, db, inst_id, name):
     repo_config = api.get_matches_from_config(config)
     if repo_config:
         manage_pulls(api, repo_config, db, inst_id, name)
+
+    other_handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS) or []
+    for handler in other_handlers:
+        handler(api)

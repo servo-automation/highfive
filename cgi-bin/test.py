@@ -43,9 +43,8 @@ class TestAPIProvider(APIProvider):
         for key, val in initial.items():    # set/override the values
             setattr(self, key, val)
 
-        if not hasattr(self, 'db'):
-            self.db = {}
-        self.db = TestDatabase(self.db)
+        if hasattr(self, 'db'):
+            self.db = TestDatabase(self.db)
 
     def get_matching_path(self, matches, node=None):
         node = self.payload if node is None else self.payload[node]
@@ -84,7 +83,7 @@ class TestAPIProvider(APIProvider):
                 val = val.stuff
 
             assert val == expect_val, \
-                "Value found '%s' != expected value '%s'" % (val, expect_val)
+                "Expected value: %s\nValue found: %s" % (expect_val, val)
 
 
 if __name__ == '__main__':
@@ -139,7 +138,9 @@ if __name__ == '__main__':
                     try:
                         api.evaluate()
                     except AssertionError as err:
-                        print '\nError while testing %r with payload %r:\n%s' % (path, test_path, err)
+                        print '\nError while testing %r with payload %r:\n%s' % \
+                              (os.sep.join(local_path),
+                               os.sep.join(test_path.split(os.sep)[len(HANDLERS_DIR.split(os.sep)):]), err)
                         failed += 1
 
                 cleaned = wrapper.clean(warn)   # final cleanup for unused nodes in JSON

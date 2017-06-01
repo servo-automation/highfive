@@ -54,7 +54,7 @@ Github's payload JSONs are huge! They have a lot of useful information, but we w
 - Generate a private key for your integration (it's necessary to get the auth token for making API requests).
 - Generate a random key and put it in the "secret" box of your integration. When Github sends the payload, its [HMAC-SHA1 signature](https://developer.github.com/webhooks/securing/) will be verified by the script on execution.
 - Finally, grab the integration ID from your integration's settings page.
-- Update the global `config.json` with the PEM key, secret, the integration ID, and remove the events which you don't wanna handle. Make appropriate changes to `config.json` in the individual handlers.<sup>[1]</sup>
+- Update the `collaborators.json` with the core contributors, then the global `config.json` with the PEM key, secret, the integration ID, and remove the events which you don't wanna handle. Make appropriate changes to `config.json` in the individual handlers.<sup>[1]</sup>
 - Create an app at Heroku, `cd` into this repo, and use the [toolbelt](https://devcenter.heroku.com/articles/heroku-command-line) to set the remote to your heroku app: <br /> `heroku git:remote -a <app-name>`
 - The webhook URL is your heroku app's `POST` URL.
 - Commit and push to heroku!

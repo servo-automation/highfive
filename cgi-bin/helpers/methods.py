@@ -7,6 +7,9 @@ AVAILABLE_EVENTS = filter(lambda p: os.path.isdir(os.path.join(HANDLERS_DIR, p))
                           os.listdir(HANDLERS_DIR))
 LOGGERS = {}
 
+with open(os.path.join(ROOT, 'collaborators.json'), 'r') as fd:
+    COLLABORATORS = json.load(fd)
+
 def get_logger(name):
     '''
     `logger.getLogger()` creates a new instance for all calls. This makes sure that

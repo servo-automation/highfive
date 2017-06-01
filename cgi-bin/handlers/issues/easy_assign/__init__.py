@@ -2,15 +2,17 @@ from copy import deepcopy
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
 
+from helpers.methods import COLLABORATORS
+
 import json, os, re
 
-ISSUE_OBJ_DEFAULT = {
-    'assignee': None,
-    'status': None,             # None, 'assigned', 'pull', 'commented'
-    'last_active': None,
-    'pr_number': None,
-}
-
+def default():      # create a new value every call, so that the values don't get overridden
+    return {
+        'assignee': None,
+        'status': None,             # None, 'assigned', 'pull', 'commented'
+        'last_active': None,
+        'pr_number': None,
+    }
 
 def check_easy_issues(api, config, db, inst_id, self_name):
     payload = api.payload
@@ -26,6 +28,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
         data['repo'] = api.repo
 
     is_issue_in_data = data['issues'].has_key(api.issue_number) if api.issue_number else None
+    reviewers = api.get_matches_from_config(COLLABORATORS) or []
 
     if action == 'opened':                  # issue or PR
         if api.is_pull:
@@ -60,14 +63,14 @@ def check_easy_issues(api, config, db, inst_id, self_name):
         elif config['easy_label'] in api.labels:        # it's an issue and contains appropriate labels
             if config['assign_label'] in api.labels:
                 api.logger.debug('Issue #%s has been assigned to someone (while opening)', api.issue_number)
-                data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
+                data['issues'][api.issue_number] = default()
                 data['issues'][api.issue_number]['assignee'] = '0xdeadbeef'
                 data['issues'][api.issue_number]['status'] = 'assigned'
                 data['issues'][api.issue_number]['last_active'] = payload['issue']['updated_at']
             else:
                 api.logger.debug('Issue #%s has been marked as easy (while opening). Posting welcome comment...',
                                  api.issue_number)
-                data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
+                data['issues'][api.issue_number] = default()
 
     elif action == 'created' and not api.is_pull and not api.is_from_self():
         msg = payload['comment']['body']
@@ -77,7 +80,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
             if name == 'me':
                 if config['assign_label'] in api.labels:
                     if not is_issue_in_data:
-                        data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
+                        data['issues'][api.issue_number] = default()
                         data['issues'][api.issue_number]['assignee'] = '0xdeadbeef'
 
                     data['issues'][api.issue_number]['status'] = 'assigned'
@@ -89,7 +92,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
                     # This way, assigning applies to "any" issue. If it's assigned, then
                     # highfive will start tracking those issues and the associating PRs.
                     if not is_issue_in_data:
-                        data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
+                        data['issues'][api.issue_number] = default()
 
                     api.logger.debug('Got assign request. Assigning to %r', api.creator)
                     api.update_labels(add=[config['assign_label']])
@@ -100,11 +103,14 @@ def check_easy_issues(api, config, db, inst_id, self_name):
                     data['issues'][api.issue_number]['status'] = 'assigned'
                     data['issues'][api.issue_number]['last_active'] = payload['comment']['updated_at']
             else:
-                # FIXME: Make core-contributors assign issues for people
-                # and update local JSON store from their comment.
-                # For this to work, we should get the core contributors through the API.
-                # (Maintain a dump, or make a request once we encounter the first payload?)
-                pass
+                if api.creator in reviewers:
+                    data['issues'][api.issue_number] = default()
+                    data['issues'][api.issue_number]['assignee'] = name
+                    data['issues'][api.issue_number]['status'] = 'assigned'
+                    data['issues'][api.issue_number]['last_active'] = payload['comment']['updated_at']
+                    api.post_comment(api.rand_choice(config['assign_success']).format(assignee=name))
+                else:
+                    api.post_comment(api.rand_choice(config['non_reviewer_ack']))
         elif is_issue_in_data:
             # FIXME: Someone has commented in the issue. Multiple things to investigate.
             # What if the assignee had asked some question and no one answered?
@@ -128,7 +134,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
             api.issue_number = issue_num
             api.post_comment(comment.format(author=api.creator, pull=num))
             api.update_labels(remove=[config['assign_label']])
-            data['issues'][issue_num] = ISSUE_OBJ_DEFAULT
+            data['issues'][issue_num] = default()
 
     elif action == 'reopened':      # FIXME: Also handle reopening issues?
         pass
@@ -139,7 +145,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
             # same thing when an issue is opened with an easy label)
             api.logger.debug('Issue #%s has been marked E-easy. Posting welcome comment...',
                               api.issue_number)
-            data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
+            data['issues'][api.issue_number] = default()
             comment = api.rand_choice(config['issue_assign'])
             api.post_comment(comment.format(bot=api.name))
         elif (label == config['assign_label'] and not api.is_from_self() and
@@ -159,7 +165,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
         elif api.cur_label == config['assign_label']:
             api.logger.debug('Issue #%s has been unassigned. Setting issue to default data...',
                              api.issue_number)
-            data['issues'][api.issue_number] = ISSUE_OBJ_DEFAULT
+            data['issues'][api.issue_number] = default()
 
     elif action is None:    # check the timestamps and post comments as necessary
         if data.get('owner') and data.get('repo'):

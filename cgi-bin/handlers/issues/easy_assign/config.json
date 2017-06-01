@@ -35,6 +35,10 @@
         ],
         "unknown_ping": [
             "Is this still being worked on?"
+        ],
+        "non_reviewer_ack": [
+            "Sorry, can't do.",
+            "Sorry, can't find you in the list of reviewers."
         ]
     }
 }

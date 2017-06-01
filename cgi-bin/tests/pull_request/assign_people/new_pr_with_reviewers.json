@@ -1,6 +1,6 @@
 {
   "expected": {
-    "assignee": ["jdm", "Manishearth", "Wafflespeanut"]
+    "assignee": ["jdm", "Manishearth", "wafflespeanut"]
   },
   "initial": {},
   "payload": {
@@ -9,7 +9,7 @@
       "state": "open",
       "assignee": null,
       "url": null,
-      "body": "r? @jdm,@Manishearth @Wafflespeanut",
+      "body": "r? @jdm,@Manishearth @wafflespeanut",
       "base": {
         "repo": {
           "owner": {

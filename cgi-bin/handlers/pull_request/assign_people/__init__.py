@@ -1,19 +1,19 @@
+from helpers.methods import COLLABORATORS, find_reviewers
+
 
 def payload_handler(api, config):
-    repos = config.get('repos')
-    pr = api.payload.get('pull_request')
-    if not (repos and pr and api.payload.get('action') == 'opened'):
+    reviewers = api.get_matches_from_config(COLLABORATORS) or []
+    if not (reviewers and api.is_pull and api.payload.get('action') == 'opened'):
         return
 
     # If the PR already has an assignee, then don't try to assign one
-    if pr['assignee']:
+    if api.payload['pull_request']['assignee']:
         return
 
-    chosen_ones = api.methods.find_reviewers(pr['body'])
+    chosen_ones = find_reviewers(api.payload['pull_request']['body'])
 
     if not chosen_ones:    # go for reviewer rotation
-        repo_config = api.get_matches_from_config(repos)
-        reviewers = filter(lambda name: name.lower() != api.creator, repo_config.get('assignees', []))
+        reviewers = filter(lambda name: name.lower() != api.creator, reviewers)
         if not reviewers:
             return
 

@@ -4,13 +4,13 @@
         "servo/servo": {
             "aneeshusa": ["A-infrastructure"],
             "fitzgen": ["A-devtools", "A-profiling"],
-            "Wafflespeanut": ["A-mach", "L-python"]
+            "wafflespeanut": ["A-mach", "L-python"]
         },
         "servo/highfive": {
             "jdm": ["enhancement"]
         },
-        "servo-automation/*": {
-            "Wafflespeanut": []
+        "servo-automation/": {
+            "wafflespeanut": []
         }
     }
 }

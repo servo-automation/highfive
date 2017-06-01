@@ -33,13 +33,13 @@
                 "components/script",
                 "components/script_traits"
             ],
-            "Wafflespeanut": [ "python/" ]
+            "wafflespeanut": [ "python/" ]
         },
         "servo/highfive": {
             "jdm": []
         },
-        "servo-automation/*": {
-            "Wafflespeanut": []
+        "servo-automation/": {
+            "wafflespeanut": []
         },
         "test/test": {
             "test_user": [
