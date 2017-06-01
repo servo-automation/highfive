@@ -1,8 +1,6 @@
 {
     "active": true,
-    "repos": {
-        "owner/repo": {
-            "_some_label": "message"
-        }
+    "owner/repo": {
+        "_some_label": "message"
     }
 }

@@ -1,41 +1,39 @@
 {
     "active": true,
-    "repos": {
-        "servo/servo": {
-            "content": {
-                "unsafe ": "These commits have **unsafe code**. Please review it carefully!",
-                "<title></title>": "These commits include an empty title element (`<title></title>`). Consider adding appropriate metadata."
+    "servo/servo": {
+        "content": {
+            "unsafe ": "These commits have **unsafe code**. Please review it carefully!",
+            "<title></title>": "These commits include an empty title element (`<title></title>`). Consider adding appropriate metadata."
+        },
+        "files": {
+            "tests/wpt/css-tests": "This pull request modifies the contents of `tests/wpt/css-tests/`, which are overwriten occasionally whenever the directory is synced from upstream."
+        },
+        "test_check": [
+            {
+                "name": "gfx",
+                "path": "components/gfx/",
+                "test_paths": ["tests/unit", "tests/wpt"]
             },
-            "files": {
-                "tests/wpt/css-tests": "This pull request modifies the contents of `tests/wpt/css-tests/`, which are overwriten occasionally whenever the directory is synced from upstream."
+            {
+                "name": "layout",
+                "path": "components/layout/",
+                "test_paths": ["tests/unit", "tests/wpt"]
             },
-            "test_check": [
-                {
-                    "name": "gfx",
-                    "path": "components/gfx/",
-                    "test_paths": ["tests/unit", "tests/wpt"]
-                },
-                {
-                    "name": "layout",
-                    "path": "components/layout/",
-                    "test_paths": ["tests/unit", "tests/wpt"]
-                },
-                {
-                    "name": "net",
-                    "path": "components/net/",
-                    "test_paths": ["tests/unit"]
-                },
-                {
-                    "name": "script",
-                    "path": "components/script/",
-                    "test_paths": ["tests/unit", "tests/wpt/"]
-                },
-                {
-                    "name": "style",
-                    "path": "components/style/",
-                    "test_paths": ["tests/unit", "tests/wpt"]
-                }
-            ]
-        }
+            {
+                "name": "net",
+                "path": "components/net/",
+                "test_paths": ["tests/unit"]
+            },
+            {
+                "name": "script",
+                "path": "components/script/",
+                "test_paths": ["tests/unit", "tests/wpt/"]
+            },
+            {
+                "name": "style",
+                "path": "components/style/",
+                "test_paths": ["tests/unit", "tests/wpt"]
+            }
+        ]
     }
 }

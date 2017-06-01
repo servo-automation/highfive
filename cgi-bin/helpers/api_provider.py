@@ -7,7 +7,8 @@ class APIProvider(object):
     def __init__(self, name, payload):
         self.name = name
         self.payload = payload
-        self.pull_url = payload['pull_request']['url'] if payload.get('pull_request') else None
+        self.is_pull = self.payload.get('pull_request') is not None
+        self.pull_url = payload['pull_request']['url'] if self.is_pull else None
         self.diff = None
 
         node = self.get_matching_path(['owner', 'login'])
@@ -36,13 +37,12 @@ class APIProvider(object):
         # Github labels are unique and case-insensitive (which is really helpful!)
         node = self.get_matching_path(['labels'])
         self.labels = map(lambda obj: obj['name'].lower(), node.get('labels', []))
-        self.is_pull = self.payload.get('pull_request') is not None
 
         self.is_open = None
-        if self.payload.get('issue'):
+        if self.is_pull:
+            self.is_open = self.payload['pull_request']['state'] == 'open'
+        elif self.payload.get('issue'):
             self.is_open = self.payload['issue']['state'] == 'open'
-        elif self.payload.get('pull_request'):
-            self.is_open = self.payload['pull_request']['state']
 
     def get_matching_path(self, matches, node=None):    # making the helper available for handlers
         node = self.payload if node is None else self.payload[node]

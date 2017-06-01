@@ -2,27 +2,24 @@ from time import sleep
 
 
 def payload_handler(api, config):
-    repos = config.get('repos')
-    action = api.payload.get('action')
-    pr = api.payload.get('pull_request')
-    if not (repos and pr):
+    labels = api.get_matches_from_config(config)
+    if not (labels and api.is_pull):
         return
 
+    action = api.payload.get('action')
     is_new = action == 'opened'
     is_update = action == 'synchronize'
     is_closed = action == 'closed'
     is_mergeable = None
+    labels_to_add, labels_to_remove = [], []
 
     if not is_closed:   # Mergeability is useful only when it's opened/updated
-        is_mergeable = pr['mergeable']
+        is_mergeable = api.payload['pull_request']['mergeable']
         # It's a bool. If it's None, then the data isn't available yet!
         while is_mergeable is None:
             sleep(2)                    # wait for Github to determine mergeability
             pull = api.get_pull()
             is_mergeable = pull['mergeable']
-
-    labels = api.get_matches_from_config(repos)
-    labels_to_add, labels_to_remove = [], []
 
     if is_new or is_update:
         labels_to_add += labels.get('open_or_update_add', [])

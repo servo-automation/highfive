@@ -2,7 +2,7 @@ from helpers.methods import COLLABORATORS, find_reviewers
 
 
 def payload_handler(api, config):
-    reviewers = api.get_matches_from_config(COLLABORATORS) or []
+    reviewers = api.get_matches_from_config(COLLABORATORS)
     if not (reviewers and api.is_pull and api.payload.get('action') == 'opened'):
         return
 

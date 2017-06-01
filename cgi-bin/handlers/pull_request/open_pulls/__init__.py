@@ -59,7 +59,7 @@ def check_failure_log(api):
 
 
 def find_reviewer(api):
-    if action != 'created':
+    if api.payload.get('action') != 'created':
         return
 
     comment = api.payload['comment']['body']
@@ -85,7 +85,7 @@ def find_reviewer(api):
 
 
 def check_bors_msg(api):
-    if api.creator != 'bors-servo' or action != 'created':
+    if api.creator != 'bors-servo' or api.payload.get('action') != 'created':
         return
 
     comment = api.payload['comment']['body']

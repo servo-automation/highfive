@@ -54,13 +54,11 @@ REPO_SPECIFIC_HANDLERS = {
 
 
 def payload_handler(api, config):
-    repos = config.get('repos')
-    pr = api.payload.get('pull_request')
-    if not (pr and api.payload.get('action') == 'opened'):
+    config = api.get_matches_from_config(config)
+    if not (api.is_pull and api.payload.get('action') == 'opened'):
         return
 
     messages = set()    # so that we filter duplicates
-    repo_config = api.get_matches_from_config(repos)
 
     def get_messages(lines, matches):
         for line in lines:
@@ -68,15 +66,15 @@ def payload_handler(api, config):
                 if re.search(match, line):
                     messages.update([msg])
 
-    matches = repo_config.get('content', {})
+    matches = config.get('content', {})
     lines = api.get_added_lines()
     get_messages(lines, matches)
 
-    matches = repo_config.get('files', {})
+    matches = config.get('files', {})
     paths = list(api.get_changed_files())
     get_messages(paths, matches)
 
-    test_check_result = _check_tests(api, repo_config, paths)
+    test_check_result = _check_tests(api, config, paths)
     if test_check_result:
         messages.update([test_check_result])
 

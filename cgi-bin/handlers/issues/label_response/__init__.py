@@ -1,11 +1,9 @@
 
 def payload_handler(api, config):
-    repos = config.get('repos')
-    if not (repos and api.payload.get('action') == 'labeled'):
+    config = api.get_matches_from_config(config)
+    if not (config and api.payload.get('action') == 'labeled'):
         return
 
-    repo_config = api.get_matches_from_config(repos)
-
-    for label, comment in repo_config.items():
-        if api.payload['label']['name'].lower() == label.lower():
+    for label, comment in config.items():
+        if api.cur_label == label.lower():
             api.post_comment(comment)

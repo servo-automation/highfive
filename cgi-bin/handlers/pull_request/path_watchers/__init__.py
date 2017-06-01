@@ -1,15 +1,12 @@
 
 def payload_handler(api, config):
-    repos = config.get('repos')
-    pr = api.payload.get('pull_request')
-    if not (repos and pr and api.payload.get('action') == 'opened'):
+    config = api.get_matches_from_config(config)
+    if not (config and api.is_pull and api.payload.get('action') == 'opened'):
         return
 
     mentions = {}
-    repo_config = api.get_matches_from_config(repos)
-
     for path in api.get_changed_files():
-        for user, watched in repo_config.items():
+        for user, watched in config.items():
             if user == api.creator:     # don't mention the creator
                 continue
 
