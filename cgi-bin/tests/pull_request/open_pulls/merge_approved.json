@@ -15,10 +15,7 @@
   },
   "payload": {
     "comment": {
-      "body": ":pushpin: Commit 90d7d11 has been approved by `larsbergstrom+dzbarsky`\n\n<!-- @bors-servo r=larsbergstrom+dzbarsky 90d7d11a23e650e03c0283f49b54e9f748c66fee -->",
-      "user": {
-        "login": "bors-servo"
-      }
+      "body": ":pushpin: Commit 90d7d11 has been approved by `larsbergstrom+dzbarsky`\n\n<!-- @bors-servo r=larsbergstrom+dzbarsky 90d7d11a23e650e03c0283f49b54e9f748c66fee -->"
     },
     "repository": {
       "owner": {
@@ -29,7 +26,13 @@
     "action": "created",
     "issue": {
       "number": 7075,
-      "state": "open"
+      "state": "open",
+      "user": {
+        "login": "jdm"
+      }
+    },
+    "sender": {
+      "login": "bors-servo"
     }
   }
 }

@@ -1,14 +1,11 @@
 {
   "initial": {},
   "expected": {
-    "assignee": ["nox", "wafflespeanut"]
+    "assignee": ["Manishearth", "Ms2ger"]
   },
   "payload": {
     "comment": {
-      "body": "@bors-servo: r=nox,wafflespeanut",
-      "user": {
-        "login": "jdm"
-      }
+      "body": "r? @Manishearth for XXX and @Ms2ger for YYY"
     },
     "repository": {
       "owner": {
@@ -19,7 +16,13 @@
     "action": "created",
     "issue": {
       "number": 7075,
-      "state": "open"
+      "state": "open",
+      "user": {
+        "login": "jdm"
+      }
+    },
+    "sender": {
+      "login": "jdm"
     }
   }
 }

@@ -25,10 +25,7 @@
   ],
   "payload": {
     "comment": {
-      "body": ":hourglass: Testing commit 926cb90 with merge abf7399...",
-      "user": {
-        "login": "bors-servo"
-      }
+      "body": ":hourglass: Testing commit 926cb90 with merge abf7399..."
     },
     "repository": {
       "owner": {
@@ -39,7 +36,13 @@
     "action": "created",
     "issue": {
       "number": 7105,
-      "state": "open"
+      "state": "open",
+      "user": {
+        "login": "jdm"
+      }
+    },
+    "sender": {
+      "login": "bors-servo"
     }
   }
 }

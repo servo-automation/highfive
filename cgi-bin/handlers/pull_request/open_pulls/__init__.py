@@ -203,7 +203,7 @@ def manage_pulls(api, config, db, inst_id, self_name):
 
 REPO_SPECIFIC_HANDLERS = {
     'servo/servo': [
-        find_reviewers,
+        find_reviewer,
         check_bors_msg,
     ],
 }

@@ -11,10 +11,7 @@
   },
   "payload": {
     "comment": {
-      "body": ":umbrella: The latest upstream changes (presumably #6741) made this pull request unmergeable. Please resolve the merge conflicts.",
-      "user": {
-        "login": "bors-servo"
-      }
+      "body": ":umbrella: The latest upstream changes (presumably #6741) made this pull request unmergeable. Please resolve the merge conflicts."
     },
     "repository": {
       "owner": {
@@ -25,7 +22,13 @@
     "action": "created",
     "issue": {
       "number": 7075,
-      "state": "open"
+      "state": "open",
+      "user": {
+        "login": "jdm"
+      }
+    },
+    "sender": {
+      "login": "bors-servo"
     }
   }
 }

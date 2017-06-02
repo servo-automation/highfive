@@ -31,6 +31,7 @@ class TestAPIProvider(APIProvider):
         super(TestAPIProvider, self).__init__(name, payload)
         self.logger = get_logger(__name__)
         self.expected = expected
+        self.db = {}
 
         for key, val in expected.items():
             # Initialize with a new instance of the expected value's type
@@ -73,7 +74,7 @@ class TestAPIProvider(APIProvider):
         self.assignee = assignees
 
     def get_page_content(self, path):
-        with open(path) as fd:
+        with open(os.path.join(ROOT, path)) as fd:
             return fd.read()
 
     def close_issue(self):

@@ -12,10 +12,7 @@
   },
   "payload": {
     "comment": {
-      "body": ":broken_heart: Test failed - [linux2](tests/issue_comment/check_comments/builders/test_builder_result.json)",
-      "user": {
-        "login": "bors-servo"
-      }
+      "body": ":broken_heart: Test failed - [linux2](tests/pull_request/open_pulls/builders/test_builder_result.json)"
     },
     "repository": {
       "owner": {
@@ -26,7 +23,13 @@
     "action": "created",
     "issue": {
       "number": 7075,
-      "state": "open"
+      "state": "open",
+      "user": {
+        "login": "wafflespeanut"
+      }
+    },
+    "sender": {
+      "login": "bors-servo"
     }
   }
 }
