@@ -1,7 +1,7 @@
 from flask import Flask, abort, request
 from threading import Thread
 
-from helpers.methods import CONFIG_PATH, get_logger
+from helpers.methods import CONFIG, get_logger
 from helpers.runner import Runner
 
 import json, logging, os
@@ -10,14 +10,11 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     logger = get_logger(__name__)
 
-    with open(CONFIG_PATH, 'r') as fd:
-        config = json.load(fd)
-
-    runner = Runner(config)
+    runner = Runner(CONFIG)
     sync_thread = Thread(target=runner.start_sync)
     sync_thread.daemon = True
     sync_thread.start()
-    app = Flask(config['name'])
+    app = Flask(CONFIG['name'])
 
     @app.route('/', methods=['POST'])
     def handle_payload():

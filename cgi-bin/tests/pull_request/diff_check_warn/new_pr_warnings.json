@@ -39,6 +39,9 @@
           },
           "name": "servo"
         }
+      },
+      "user": {
+        "login": "someone"
       }
     },
     "action": "opened"

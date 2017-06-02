@@ -58,10 +58,7 @@
     },
     "comment": {
       "body": "@highfive: assign @foobar",
-      "updated_at": "some new time",
-      "user": {
-        "login": "wafflespeanut"
-      }
+      "updated_at": "some new time"
     },
     "repository": {
       "owner": {
@@ -80,7 +77,10 @@
         {
           "name": "L-python"
         }
-      ]
+      ],
+      "user": {
+        "login": "someone"
+      }
     }
   }
 }

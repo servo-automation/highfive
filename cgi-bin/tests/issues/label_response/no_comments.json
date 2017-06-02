@@ -16,7 +16,10 @@
     "action": "labeled",
     "issue": {
       "state": "open",
-      "number": 130
+      "number": 130,
+      "user": {
+        "login": "someone"
+      }
     }
   }
 }

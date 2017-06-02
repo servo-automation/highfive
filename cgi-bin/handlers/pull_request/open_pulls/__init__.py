@@ -72,7 +72,7 @@ def find_reviewer(api):
             if approval.group(1) == '=':    # "r=foo" or "r=foo,bar"
                 reviewer = approval.group(2)
                 return reviewer
-            return api.creator      # fall back and assign the approver
+            return api.sender       # fall back and assign the approver
 
     reviewers = get_approver()
     if reviewers:
@@ -85,7 +85,7 @@ def find_reviewer(api):
 
 
 def check_bors_msg(api):
-    if api.creator != 'bors-servo' or api.payload.get('action') != 'created':
+    if api.sender != 'bors-servo' or api.payload.get('action') != 'created':
         return
 
     comment = api.payload['comment']['body']

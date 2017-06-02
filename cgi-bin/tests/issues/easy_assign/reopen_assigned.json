@@ -1,0 +1,50 @@
+{
+  "expected": [{
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "1754": {
+            "assignee": "0xdeadbeef",
+            "status": "assigned",
+            "pr_number": null,
+            "last_active": "some time"
+          }
+        }
+      }
+    }
+  }],
+  "initial": [{
+    "db": {}
+  }],
+  "payload": {
+    "number": 1754,
+    "issue": {
+      "state": "open",
+      "updated_at": "some time",
+      "labels": [{
+        "name": "L-Python"
+      }, {
+        "name": "E-easy"
+      }, {
+        "name": "C-assigned"
+      }],
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      },
+      "user": {
+        "login": "wafflespeanut"
+      }
+    },
+    "action": "reopened",
+    "sender": {
+      "login": "wafflespeanut"
+    }
+  }
+}

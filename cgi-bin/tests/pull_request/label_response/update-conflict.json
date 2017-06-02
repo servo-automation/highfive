@@ -23,7 +23,10 @@
         }
       },
       "mergeable": false,
-      "url": null
+      "url": null,
+      "user": {
+        "login": "someone"
+      }
     },
     "action": "synchronize"
   }

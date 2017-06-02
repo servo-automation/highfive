@@ -1,7 +1,6 @@
 import imp, json, logging, os, re
 
 ROOT = os.path.dirname(os.path.dirname(__file__))
-CONFIG_PATH = os.path.join(ROOT, 'config.json')
 HANDLERS_DIR = os.path.join(ROOT, 'handlers')
 AVAILABLE_EVENTS = filter(lambda p: os.path.isdir(os.path.join(HANDLERS_DIR, p)),
                           os.listdir(HANDLERS_DIR))
@@ -9,6 +8,10 @@ LOGGERS = {}
 
 with open(os.path.join(ROOT, 'collaborators.json'), 'r') as fd:
     COLLABORATORS = json.load(fd)
+with open(os.path.join(ROOT, 'config.json'), 'r') as fd:
+    CONFIG = json.load(fd)
+    if not os.path.exists(CONFIG['dump_path']):
+        os.makedirs(CONFIG['dump_path'])
 
 def get_logger(name):
     '''

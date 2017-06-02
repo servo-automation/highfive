@@ -18,6 +18,9 @@
           },
           "name": "servo"
         }
+      },
+      "user": {
+        "login": "emilio"
       }
     },
     "action": "opened"

@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-from helpers.methods import CONFIG_PATH, get_logger
+from helpers.methods import CONFIG, get_logger
 from helpers.runner import Runner
 
 import cgi, json, logging, os, sys
@@ -13,8 +13,11 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     logger = get_logger(__name__)
 
-    with open(CONFIG_PATH, 'r') as fd:
-        config = json.load(fd)
+    config = CONFIG
+    auth_path = os.path.join(CONFIG['dump_path'], 'config_dump')
+    if os.path.exists(auth_path):
+        with open(auth_path, 'r') as fd:
+            config = json.load(fd)
 
     runner = Runner(config)
 
@@ -30,5 +33,5 @@ if __name__ == '__main__':
 
     runner.clear_queue()
 
-    with open(CONFIG_PATH, 'w') as fd:      # caches some API data
+    with open(auth_path, 'w') as fd:        # caches some API data
         json.dump(runner.config, fd)

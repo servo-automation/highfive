@@ -21,13 +21,6 @@ class APIProvider(object):
         if payload.get('label'):
             self.cur_label = payload['label']['name'].lower()
 
-        node = self.get_matching_path(['user', 'login']) or {'user': {'login': ''}}
-        for value in ['comment', 'pull_request', 'issue']:
-            if self.payload.get(value):
-                node = self.get_matching_path(['user', 'login'], value) or {'user': {'login': ''}}
-                break
-        self.creator = node['user']['login'].lower()        # (optional) creator of issue/pull
-
         node = self.get_matching_path(['number'])
         num = node.get('number')
         if num is not None:
@@ -40,13 +33,14 @@ class APIProvider(object):
 
         self.is_open = None
         if self.is_pull:
+            self.creator = self.payload['pull_request']['user']['login']
             self.is_open = self.payload['pull_request']['state'] == 'open'
         elif self.payload.get('issue'):
+            self.creator = self.payload['issue']['user']['login']
             self.is_open = self.payload['issue']['state'] == 'open'
 
-    def get_matching_path(self, matches, node=None):    # making the helper available for handlers
-        node = self.payload if node is None else self.payload[node]
-        return get_path_parent(node, matches)
+    def get_matching_path(self, matches):       # making the helper available for handlers
+        return get_path_parent(self.payload, matches)
 
     # Per-repo configuration
     def get_matches_from_config(self, config, default={}):

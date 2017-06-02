@@ -1,0 +1,121 @@
+{
+  "expected": [{
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "74": {
+            "assignee": "someone",
+            "status": "pull",
+            "pr_number": "1",
+            "last_active": "some time"
+          }
+        }
+      }
+    }
+  }, {
+    "comments": ["Hmm, it appears to me that the author of this pull request isn't the one who claimed #74 :thinking:"],
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "74": {
+            "assignee": "someone",
+            "status": "pull",
+            "pr_number": "1",
+            "last_active": "some time"
+          }
+        }
+      }
+    }
+  }, {
+    "comments": ["Hello there! Thanks for picking up this issue! We really appreciate your effort. But, in the future, please get the issue assigned to yourself before working on it, so that we can avoid duplicate efforts. :smile:"],
+    "labels": ["c-assigned"],
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "74": {
+            "assignee": "someone",
+            "status": "pull",
+            "pr_number": "1",
+            "last_active": "some time"
+          }
+        }
+      }
+    }
+  }],
+  "initial": [{
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "74": {
+            "assignee": "someone",
+            "status": "assigned",
+            "pr_number": null,
+            "last_active": "some time"
+          }
+        }
+      }
+    }
+  }, {
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "74": {
+            "assignee": "someone else",
+            "status": "assigned",
+            "pr_number": null,
+            "last_active": "some time"
+          }
+        }
+      }
+    }
+  }, {
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "74": {
+            "assignee": null,
+            "status": null,
+            "pr_number": null,
+            "last_active": null
+          }
+        }
+      }
+    }
+  }],
+  "payload": {
+    "number": 1,
+    "pull_request": {
+      "state": "open",
+      "updated_at": "some time",
+      "body": "blah blah blah fixes #74",
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      },
+      "url": null,
+      "user": {
+        "login": "someone"
+      }
+    },
+    "action": "opened",
+    "sender": {
+      "login": "someone"
+    }
+  }
+}

@@ -30,11 +30,11 @@ def check_easy_issues(api, config, db, inst_id, self_name):
     is_issue_in_data = data['issues'].has_key(api.issue_number) if api.issue_number else None
     reviewers = api.get_matches_from_config(COLLABORATORS) or []
 
-    if action == 'opened':                  # issue or PR
+    if action == 'opened' or action == 'reopened':          # issue or PR
         if api.is_pull:
             pr_body = payload['pull_request']['body']
             # check whether the PR addresses an issue in our store
-            match = re.search(r'(?:fixe?|close|resolve)[s|d]? #([0-9]*)', pr_body)
+            match = re.search(r'(?:fixe?|close|resolve)[s|d]? #([0-9]*)', str(pr_body))
             number = match.group(1) if match else None
             if number and data['issues'].has_key(number):
                 api.logger.debug('PR #%s addresses issue #%s', api.issue_number, number)
@@ -103,8 +103,8 @@ def check_easy_issues(api, config, db, inst_id, self_name):
                     data['issues'][api.issue_number]['status'] = 'assigned'
                     data['issues'][api.issue_number]['last_active'] = payload['comment']['updated_at']
             else:
-                if api.creator in reviewers:
-                    api.logger.debug('Got assign request. Assigning to %r', name)
+                if api.sender in reviewers:
+                    api.logger.debug('Got assign request from reviewer. Assigning to %r', name)
                     data['issues'][api.issue_number] = default()
                     data['issues'][api.issue_number]['assignee'] = name
                     data['issues'][api.issue_number]['status'] = 'assigned'
@@ -131,15 +131,18 @@ def check_easy_issues(api, config, db, inst_id, self_name):
             data['issues'].pop(num)
         elif (api.is_pull and any(i['pr_number'] == num for i in data['issues'].itervalues())):
             issue_num = filter(lambda i: data['issues'][i]['pr_number'] == num, data['issues'])[0]
-            api.logger.debug('PR #%s is being closed. Removing related data...', num)
-            comment = api.rand_choice(config['previous_work']) + ' ' + api.rand_choice(config['issue_unassign'])
-            api.issue_number = issue_num
-            api.post_comment(comment.format(author=api.creator, pull=num))
-            api.update_labels(remove=[config['assign_label']])
-            data['issues'][issue_num] = default()
-
-    elif action == 'reopened':      # FIXME: Also handle reopening issues?
-        pass
+            if api.sender == api.creator:
+                api.logger.debug('PR #%s is being closed by its author. Keeping issue assigned...')
+                data['issues'][issue_num]['status'] = 'assigned'
+                data['issues'][issue_num]['last_active'] = payload['pull_request']['updated_at']
+                data['issues'][issue_num]['pr_number'] = None
+            else:
+                api.logger.debug('PR #%s has been closed by a collaborator. Removing related data...', num)
+                comment = api.rand_choice(config['previous_work']) + ' ' + api.rand_choice(config['issue_unassign'])
+                api.issue_number = issue_num
+                api.post_comment(comment.format(author=api.creator, pull=num))
+                api.update_labels(remove=[config['assign_label']])
+                data['issues'][issue_num] = default()
 
     elif action == 'labeled' and api.is_open and not api.is_pull:
         if api.cur_label == config['easy_label'] and not is_issue_in_data:

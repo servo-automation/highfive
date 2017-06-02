@@ -1,0 +1,57 @@
+{
+  "expected": [{
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "74": {
+            "assignee": "someone",
+            "status": "assigned",
+            "pr_number": null,
+            "last_active": "some time"
+          }
+        }
+      }
+    }
+  }],
+  "initial": [{
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "74": {
+            "assignee": "someone",
+            "status": "assigned",
+            "pr_number": "1234",
+            "last_active": "some old time"
+          }
+        }
+      }
+    }
+  }],
+  "payload": {
+    "number": 1234,
+    "pull_request": {
+      "state": "closed",
+      "updated_at": "some time",
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      },
+      "url": null,
+      "user": {
+        "login": "someone"
+      }
+    },
+    "action": "closed",
+    "sender": {
+      "login": "someone"
+    }
+  }
+}

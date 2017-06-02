@@ -1,7 +1,7 @@
 from helpers.api_provider import APIProvider
 from helpers.database import Database
 from helpers.json_cleanup import JsonCleaner
-from helpers.methods import AVAILABLE_EVENTS, CONFIG_PATH, HANDLERS_DIR, ROOT
+from helpers.methods import AVAILABLE_EVENTS, CONFIG, HANDLERS_DIR, ROOT
 from helpers.methods import get_handlers, get_logger, get_path_parent
 
 import itertools, json, logging, os, sys
@@ -96,9 +96,6 @@ if __name__ == '__main__':
     warn = not overwrite
     logging.basicConfig(level=logging.ERROR)
 
-    with open(CONFIG_PATH, 'r') as fd:
-        config = json.load(fd)
-
     # The "tests" directory should have the same structure as that of the "handlers"
     for event in AVAILABLE_EVENTS:
         handler_gen = itertools.chain(enumerate(get_handlers(event)),
@@ -131,7 +128,7 @@ if __name__ == '__main__':
 
                 wrapper = JsonCleaner({'payload': test_data['payload']})
                 for (initial, expected) in zip(initial_vals, expected_vals):
-                    api = TestAPIProvider(config['name'], wrapper.json['payload'], initial, expected)
+                    api = TestAPIProvider(CONFIG['name'], wrapper.json['payload'], initial, expected)
                     if is_sync:
                         handler(api, api.db, 1, handler_name)
                     else:

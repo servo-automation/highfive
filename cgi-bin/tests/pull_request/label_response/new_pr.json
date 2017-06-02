@@ -18,7 +18,10 @@
         }
       },
       "mergeable": true,
-      "url": null
+      "url": null,
+      "user": {
+        "login": "someone"
+      }
     },
     "action": "opened"
   }
