@@ -11,7 +11,7 @@ with open(os.path.join(ROOT, 'collaborators.json'), 'r') as fd:
 with open(os.path.join(ROOT, 'config.json'), 'r') as fd:
     CONFIG = json.load(fd)
     if not os.path.exists(CONFIG['dump_path']):
-        os.makedirs(CONFIG['dump_path'])
+        os.mkdir(CONFIG['dump_path'])
 
 def get_logger(name):
     '''

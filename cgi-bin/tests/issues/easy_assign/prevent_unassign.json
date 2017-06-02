@@ -1,6 +1,5 @@
 {
   "expected": {
-    "comments": ["Hey @someone! Thanks for your interest in working on this issue. It's now assigned to you!"],
     "db": {
       "easy_assign": {
         "owner": "servo",
@@ -10,22 +9,35 @@
             "assignee": "someone",
             "status": "assigned",
             "pr_number": null,
-            "last_active": "some time"
+            "last_active": "some new time"
           }
         }
       }
     }
   },
   "initial": {
-    "db": {}
+    "db": {
+      "easy_assign": {
+        "owner": "servo",
+        "repo": "servo",
+        "issues": {
+          "7105": {
+            "assignee": "someone",
+            "status": "commented",
+            "pr_number": null,
+            "last_active": "1970-01-01T00:00:00Z"
+          }
+        }
+      }
+    }
   },
   "payload": {
     "sender": {
       "login": "someone"
     },
     "comment": {
-      "body": "@highfive: assign me",
-      "updated_at": "some time"
+      "body": "Hey, I've got this question, blah blah blah",
+      "updated_at": "some new time"
     },
     "repository": {
       "owner": {

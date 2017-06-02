@@ -1,3 +1,4 @@
+from copy import deepcopy
 from methods import get_path_parent, get_logger
 
 import contextlib, random, re, urllib2
@@ -43,17 +44,24 @@ class APIProvider(object):
         return get_path_parent(self.payload, matches)
 
     # Per-repo configuration
-    def get_matches_from_config(self, config, default={}):
+    def get_matches_from_config(self, config):
         if not (self.owner and self.repo):
             assert not self.payload     # This happens only when we call sync handlers
             return config
 
+        result = None
         string = '%s/%s' % (self.owner, self.repo)
         for pattern in config:
             pat_lower = pattern.lower()
             if re.search(pat_lower, string):
-                return config[pattern]
-        return default
+                if not result:
+                    result = deepcopy(config[pattern])
+                elif isinstance(result, list):
+                    result.extend(config[pattern])
+                elif isinstance(result, dict):
+                    result.update(config[pattern])
+
+        return result
 
     def rand_choice(self, values):
         return random.choice(values)

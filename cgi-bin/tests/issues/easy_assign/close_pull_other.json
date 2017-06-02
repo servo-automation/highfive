@@ -1,21 +1,22 @@
 {
-  "expected": [{
+  "expected": {
+    "comments": ["Previous work by @someone on #1234. This is now open for anyone to jump in!"],
     "db": {
       "easy_assign": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
           "74": {
-            "assignee": "someone",
-            "status": "assigned",
+            "assignee": null,
+            "status": null,
             "pr_number": null,
-            "last_active": "some time"
+            "last_active": null
           }
         }
       }
     }
-  }],
-  "initial": [{
+  },
+  "initial": {
     "db": {
       "easy_assign": {
         "owner": "servo",
@@ -30,12 +31,11 @@
         }
       }
     }
-  }],
+  },
   "payload": {
     "number": 1234,
     "pull_request": {
       "state": "closed",
-      "updated_at": "some time",
       "base": {
         "repo": {
           "owner": {
@@ -51,7 +51,7 @@
     },
     "action": "closed",
     "sender": {
-      "login": "someone"
+      "login": "highfive"
     }
   }
 }

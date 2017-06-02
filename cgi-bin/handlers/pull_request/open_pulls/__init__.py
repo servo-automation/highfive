@@ -17,7 +17,7 @@ def default():
         'assignee': None,
         'last_active': None,
         'labels': [],
-        'comments': [],
+        # 'comments': [],       # FIXME: do we need comments?
     }
 
 
@@ -58,7 +58,7 @@ def check_failure_log(api):
         api.post_comment('\n'.join(comments))
 
 
-def find_reviewer(api):
+def assign_reviewer(api):
     if api.payload.get('action') != 'created':
         return
 
@@ -171,13 +171,13 @@ def manage_pulls(api, config, db, inst_id, self_name):
 
     if action == 'created':         # issue comment
         data['last_active'] = payload['comment']['updated_at']
-        data['comments'].append(payload['comment']['body'])
+        # data['comments'].append(payload['comment']['body'])
     elif action == 'opened':                # PR created
         data['author'] = api.creator
         data['number'] = api.issue_number
         data['labels'] = api.labels
         data['body'] = payload['pull_request']['body']
-        data['assignee'] = payload['pull_request']['assignee']
+        data['assignee'] = payload['pull_request'].get('assignee', {'login': None})['login']
         data['last_active'] = payload['pull_request']['updated_at']
     elif action == 'labeled':
         data['labels'] = list(set(data['labels']).union([payload['label']['name']]))
@@ -202,8 +202,10 @@ def manage_pulls(api, config, db, inst_id, self_name):
 
 
 REPO_SPECIFIC_HANDLERS = {
+    'servo/': [
+        assign_reviewer,
+    ],
     'servo/servo': [
-        find_reviewer,
         check_bors_msg,
     ],
 }

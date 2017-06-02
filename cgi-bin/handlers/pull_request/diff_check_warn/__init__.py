@@ -54,7 +54,7 @@ REPO_SPECIFIC_HANDLERS = {
 
 
 def payload_handler(api, config):
-    config = api.get_matches_from_config(config)
+    config = api.get_matches_from_config(config) or {}
     if not (api.is_pull and api.payload.get('action') == 'opened'):
         return
 
@@ -79,7 +79,7 @@ def payload_handler(api, config):
         messages.update([test_check_result])
 
     # Run the repo-specific handlers (if any)
-    handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS, {})
+    handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS) or {}
     for name, methods in handlers.items():
         for method in methods:
             _input = locals().get(name, [])     # `lines` and `paths`

@@ -11,8 +11,7 @@
         "body": "blah blah blah",
         "author": "wafflespeanut",
         "assignee": null,
-        "labels": [],
-        "comments": []
+        "labels": []
       }
     }
   },
@@ -22,7 +21,6 @@
     "pull_request": {
       "state": "open",
       "updated_at": null,
-      "assignee": null,
       "body": "blah blah blah",
       "base": {
         "repo": {
