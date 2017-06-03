@@ -30,9 +30,9 @@ def payload_handler(api, config):
         labels_to_add += conflict_remove if is_mergeable else conflict_add
         labels_to_remove += conflict_add if is_mergeable else conflict_remove
 
-    elif is_closed:
-        labels_to_add += labels.get('close_or_merge_add', [])
-        labels_to_remove += labels.get('close_or_merge_remove', [])
+    elif is_closed and api.payload['pull_request'].get('merged'):
+        labels_to_add += labels.get('merge_add', [])
+        labels_to_remove += labels.get('merge_remove', [])
 
     # We don't have to explicitly check whether a label exists (while removing),
     # or whether a label doesn't exist (while adding a new one)

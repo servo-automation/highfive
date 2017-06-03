@@ -1,20 +1,21 @@
 {
   "initial": {
-    "labels": ["S-awaiting-merge", "S-needs-code-changes"]
+    "labels": ["S-awaiting-merge", "A-foo"]
   },
   "expected": {
-    "labels": ["s-needs-code-changes"]
+    "labels": ["a-foo", "s-needs-deploy"]
   },
   "payload": {
     "number": 1,
     "pull_request": {
       "state": "open",
+      "merged": true,
       "base": {
         "repo": {
           "owner": {
             "login": "servo"
           },
-          "name": "servo"
+          "name": "saltfs"
         }
       },
       "url": null,
