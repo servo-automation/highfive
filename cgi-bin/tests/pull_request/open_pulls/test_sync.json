@@ -1,0 +1,112 @@
+{
+  "initial": [{
+    "db": {
+      "open_pulls": ["123"],
+      "open_pulls_123": {
+        "owner": "servo",
+        "repo": "servo",
+        "status": null,
+        "body": "",
+        "author": "jdm",
+        "number": "123",
+        "assignee": "Manishearth",
+        "last_active": "1970-01-01T00:00:00Z",
+        "last_push": "1970-01-01T00:00:00Z",
+        "labels": [],
+        "comments": [{
+          "body": "r? @Manishearth for XXX and @Ms2ger for YYY",
+          "who": "jdm",
+          "when": "1970-01-01T00:00:00Z"
+        }, {
+          "body": "needs tidy fix",
+          "who": "Manishearth",
+          "when": "1970-01-02T00:00:00Z"
+        }]
+      }
+    }
+  }, {
+    "db": {
+      "open_pulls": ["123"],
+      "open_pulls_123": {
+        "owner": "servo",
+        "repo": "servo",
+        "status": null,
+        "body": "",
+        "author": "jdm",
+        "number": "123",
+        "assignee": "Manishearth",
+        "last_active": "1970-01-01T00:00:00Z",
+        "last_push": "1970-01-01T00:00:00Z",
+        "labels": [],
+        "comments": [{
+          "body": "needs tidy fix",
+          "who": "Manishearth",
+          "when": "1970-01-02T00:00:00Z"
+        }]
+      }
+    }
+  }, {
+    "db": {
+      "open_pulls": ["123"],
+      "open_pulls_123": {
+        "owner": "servo",
+        "repo": "servo",
+        "status": null,
+        "body": "",
+        "author": "jdm",
+        "number": "123",
+        "assignee": "Manishearth",
+        "last_active": "1970-01-01T00:00:00Z",
+        "last_push": "1970-01-01T00:00:00Z",
+        "labels": [],
+        "comments": []
+      }
+    }
+  }, {
+    "db": {
+      "open_pulls": ["123"],
+      "open_pulls_123": {
+        "owner": "servo",
+        "repo": "servo",
+        "status": null,
+        "body": "",
+        "author": "jdm",
+        "number": "123",
+        "assignee": null,
+        "last_active": "1970-01-01T00:00:00Z",
+        "last_push": "1970-01-01T00:00:00Z",
+        "labels": [],
+        "comments": []
+      }
+    }
+  }, {
+    "db": {
+      "open_pulls": ["123"],
+      "open_pulls_123": {
+        "owner": "servo",
+        "repo": "servo",
+        "status": "commented",
+        "body": "",
+        "author": "jdm",
+        "number": "123",
+        "assignee": "someone",
+        "last_active": "1970-01-01T00:00:00Z",
+        "last_push": "1970-01-01T00:00:00Z",
+        "labels": [],
+        "comments": []
+      }
+    }
+  }],
+  "expected": [{
+    "comments": ["What's the status of this?"]
+  }, {
+    "comments": ["Hey @jdm! Are you planning to finish this off?"]
+  }, {
+    "comments": ["@Manishearth Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks."]
+  }, {
+    "comments": ["@asajeffrey Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks."]
+  }, {
+    "comments": ["Okay, I'm gonna close this based on inactivity. If you change your mind about working on this issue again, feel free to ping us and we'll reopen it for you. Thanks for taking a stab at this :smile:"]
+  }],
+  "payload": {}
+}

@@ -163,7 +163,7 @@ def check_pulls(api, config, db, inst_id, self_name):
             if should_ping_reviewer:
                 # Right now, we just ping the reviewer until he takes a look at this or assigns someone else
                 comment = api.rand_choice(config['review_ping'])
-                api.post_comment(comment.format(reviewer=new_assignee))
+                api.post_comment(comment.format(reviewer=data['assignee']))
 
         elif status == 'commented':
             api.logger.debug('Closing PR #%s after grace period', number)
@@ -184,8 +184,8 @@ def manage_pulls(api, config, db, inst_id, self_name):
 
     pr_list = db.get_obj(inst_id, self_name) or []
     old_list = deepcopy(pr_list)
-    if not api.is_pull:
-        return      # Note that issue_comment event will never have "pull_request"
+    # Note that issue_comment event will never have "pull_request" even if the comment
+    # is dropped in a PR. So, we can't check for pull_request here.
 
     data = db.get_obj(inst_id, '%s_%s' % (self_name, api.issue_number)) or default()
     remove_data = False
@@ -202,7 +202,6 @@ def manage_pulls(api, config, db, inst_id, self_name):
             data['last_active'] = api.last_updated
             comment = payload['comment']['body']
             data['status'] = None
-
             data['comments'].append({
                 'body': comment,
                 'when': api.last_updated,
@@ -224,7 +223,7 @@ def manage_pulls(api, config, db, inst_id, self_name):
             api.logger.debug('PR #%s closed. Removing JSON...', api.issue_number)
             pr_list.remove(api.issue_number)
             remove_data = True
-    elif action == 'opened' or action == 'reopened':
+    elif api.is_pull and action == 'opened' or action == 'reopened':
         pr_list.append(api.issue_number)
         data['author'] = api.creator
         data['number'] = api.issue_number
