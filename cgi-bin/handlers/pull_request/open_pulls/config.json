@@ -3,14 +3,22 @@
     "sync": true,
     "servo/servo": {
         "grace_period_days": 4,
-        "pr_close_msg": [
+        "pr_close": [
             "Okay, I'm gonna close this based on inactivity. If you change your mind about working on this issue again, feel free to ping us and we'll reopen it for you. Thanks for taking a stab at this :smile:"
         ],
-        "pr_ping_msg": [
+        "pr_ping": [
             "Hey @{author}! Are you planning to finish this off?",
-            "Hi @{author}. Are you still working on this?",
-            "Is this still being worked on?",
-            "What's the status of this?"
+            "Hi @{author}. Are you still working on this?"
+        ],
+        "pr_anon_ping": [
+            "Is this waiting on someone/something?",
+            "What's the status of this?",
+            "What's going on here?",
+            "Is this still being worked on?"
+        ],
+        "review_ping": [
+            "@{reviewer} Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks.",
+            "Hey @{reviewer}, it looks like this PR is hanging around for a while. Could you take a look at it, or pass it to someone else? Thanks."
         ]
     }
 }

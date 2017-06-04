@@ -7,10 +7,12 @@
         "repo": "servo",
         "status": null,
         "number": "1",
-        "last_active": null,
+        "last_active": "some time",
+        "last_push": "some time",
         "body": "blah blah blah",
         "author": "wafflespeanut",
-        "assignee": null,
+        "assignee": "booya",
+        "comments": [],
         "labels": []
       }
     }
@@ -20,7 +22,7 @@
     "number": 1,
     "pull_request": {
       "state": "open",
-      "updated_at": null,
+      "updated_at": "some time",
       "body": "blah blah blah",
       "base": {
         "repo": {
@@ -29,6 +31,9 @@
           },
           "name": "servo"
         }
+      },
+      "assignee": {
+        "login": "booya"
       },
       "url": null,
       "user": {

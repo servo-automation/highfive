@@ -9,7 +9,9 @@
     "number": 7087,
     "pull_request": {
       "state": "open",
-      "assignee": "SimonSapin",
+      "assignee": {
+        "login": "SimonSapin"
+      },
       "url": null,
       "base": {
         "repo": {

@@ -145,7 +145,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
                 data['issues'][issue_num] = default()
 
     elif action == 'labeled' and api.is_open and not api.is_pull:
-        if api.cur_label == config['easy_label'] and not is_issue_in_data:
+        if api.current_label == config['easy_label'] and not is_issue_in_data:
             # NOTE: We also make sure that the issue isn't in our data (since we do the
             # same thing when an issue is opened with an easy label)
             api.logger.debug('Issue #%s has been marked E-easy. Posting welcome comment...',
@@ -153,7 +153,7 @@ def check_easy_issues(api, config, db, inst_id, self_name):
             data['issues'][api.issue_number] = default()
             comment = api.rand_choice(config['issue_assign'])
             api.post_comment(comment.format(bot=api.name))
-        elif (api.cur_label == config['assign_label'] and not api.is_from_self()):
+        elif (api.current_label == config['assign_label'] and not api.is_from_self()):
             api.logger.debug('Issue #%s has been assigned to... someone?', api.issue_number)
             # We always override here, because labels can be added only by collaborators and
             # so, their decision is final.
@@ -165,11 +165,11 @@ def check_easy_issues(api, config, db, inst_id, self_name):
             data['issues'][api.issue_number]['last_active'] = payload['issue']['updated_at']
 
     elif (action == 'unlabeled' and not api.is_pull):
-        if api.cur_label == config['easy_label'] and is_issue_in_data:
+        if api.current_label == config['easy_label'] and is_issue_in_data:
             api.logger.debug('Issue #%s is no longer E-easy. Removing related data...',
                              api.issue_number)
             data['issues'].pop(api.issue_number)
-        elif api.cur_label == config['assign_label']:
+        elif api.current_label == config['assign_label']:
             api.logger.debug('Issue #%s has been unassigned. Setting issue to default data...',
                              api.issue_number)
             data['issues'][api.issue_number] = default()

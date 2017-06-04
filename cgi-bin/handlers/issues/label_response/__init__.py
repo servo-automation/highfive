@@ -5,5 +5,5 @@ def payload_handler(api, config):
         return
 
     for label, comment in config.items():
-        if api.cur_label == label.lower():
+        if api.current_label == label.lower():
             api.post_comment(comment)

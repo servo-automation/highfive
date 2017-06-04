@@ -13,14 +13,14 @@ class APIProvider(object):
         self.diff = None
 
         node = self.get_matching_path(['owner', 'login'])
-        self.owner = node.get('owner', {'login': ''})['login'].lower()
-        self.repo = node.get('name', '').lower()
+        self.owner = node['owner']['login'].lower() if node.get('owner') else None
+        self.repo = node['name'].lower() if node.get('name') else None
 
-        # payload sender and (optional) creator of issue/pull/comment
+        node = self.get_matching_path(['assignee'])
+        self.assignee = node['assignee']['login'].lower() if node.get('assignee') else None
+
         self.sender = payload['sender']['login'].lower() if payload.get('sender') else None
-        self.current_label = None
-        if payload.get('label'):
-            self.cur_label = payload['label']['name'].lower()
+        self.current_label = payload['label']['name'].lower() if payload.get('label') else None
 
         node = self.get_matching_path(['number'])
         num = node.get('number')
@@ -33,12 +33,17 @@ class APIProvider(object):
         self.labels = map(lambda obj: obj['name'].lower(), node.get('labels', []))
 
         self.is_open = None
+        self.creator = None
+        self.last_updated = None
+
         if self.is_pull:
             self.creator = self.payload['pull_request']['user']['login']
             self.is_open = self.payload['pull_request']['state'] == 'open'
+            self.last_updated = self.payload['pull_request'].get('updated_at')
         elif self.payload.get('issue'):
             self.creator = self.payload['issue']['user']['login']
             self.is_open = self.payload['issue']['state'] == 'open'
+            self.last_updated = self.payload['issue'].get('updated_at')
 
     def get_matching_path(self, matches):       # making the helper available for handlers
         return get_path_parent(self.payload, matches)

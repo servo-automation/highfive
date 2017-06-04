@@ -5,7 +5,7 @@ def payload_handler(api, config):
         return
 
     watchers_to_be_notified = []
-    existing_labels = set(api.labels) - set([api.cur_label])
+    existing_labels = set(api.labels) - set([api.current_label])
 
     for user, labels in config.items():
         user = user.lower()
@@ -19,7 +19,7 @@ def payload_handler(api, config):
             continue    # we've already notified the user
 
         # If we don't find any labels, then notify the user for any labelling event
-        if (api.labels and not labels) or api.cur_label in labels:
+        if (api.labels and not labels) or api.current_label in labels:
             watchers_to_be_notified.append(user)
 
     if watchers_to_be_notified:

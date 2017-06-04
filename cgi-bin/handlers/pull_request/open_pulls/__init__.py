@@ -2,9 +2,8 @@ from HTMLParser import HTMLParser
 from copy import deepcopy
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
-from random import choice
 
-from helpers.methods import find_reviewers
+from helpers.methods import COLLABORATORS, find_reviewers
 
 import json, os, re
 
@@ -16,8 +15,9 @@ def default():
         'number': None,
         'assignee': None,
         'last_active': None,
+        'last_push': None,
         'labels': [],
-        # 'comments': [],       # FIXME: do we need comments?
+        'comments': [],
     }
 
 
@@ -38,7 +38,7 @@ def check_failure_log(api):
         return
 
     build_stats = json.loads(json_stuff)
-    failure_regex = r'.*Tests with unexpected results:\n(.*)\n</span><span'
+    failure_regex = r'Tests with unexpected results:\n(.*)\n</span><span'
     comments = []
 
     for step in build_stats['steps']:
@@ -132,13 +132,42 @@ def check_pulls(api, config, db, inst_id, self_name):
         data['last_active'] = str(now)
         status = data.get('status')
 
+        if not data['assignee']:    # assign someone randomly if we don't find an assignee after grace period
+            reviewers = filter(lambda name: name.lower() != data['author'],
+                               api.get_matches_from_config(COLLABORATORS))
+            new_assignee = api.rand_choice(reviewers)
+            api.set_assignees([new_assignee])
+            comment = api.rand_choice(config['review_ping'])
+            api.post_comment(comment.format(reviewer=new_assignee))
+            continue    # skip this cycle
+
         if status is None:
-            comment = choice(config['pr_ping_msg'])
-            api.post_comment(comment.format(author=data['author']))
-            data['status'] = 'commented'
+            should_ping_reviewer = False
+            assignee_comments = filter(lambda d: d['who'] == data['assignee'], data['comments'])
+            author_comments = filter(lambda d: d['who'] == data['author'], data['comments'])
+            if not assignee_comments:
+                should_ping_reviewer = True     # reviewer hasn't commented at all!
+            elif not author_comments:
+                last_review = datetime_parse(assignee_comments[-1]['when'])
+                last_push = datetime_parse(data['last_push'])
+                if last_review < last_push:         # reviewer hasn't looked at this since the last push
+                    should_ping_reviewer = True
+                else:
+                    comment = api.rand_choice(config['pr_ping'])
+                    api.post_comment(comment.format(author=data['author']))
+                    data['status'] = 'commented'
+            else:
+                # It could be waiting on the assignee or the author. Right now, we just poke them both.
+                api.post_comment(api.rand_choice(config['pr_anon_ping']))
+
+            if should_ping_reviewer:
+                # Right now, we just ping the reviewer until he takes a look at this or assigns someone else
+                comment = api.rand_choice(config['review_ping'])
+                api.post_comment(comment.format(reviewer=new_assignee))
+
         elif status == 'commented':
             api.logger.debug('Closing PR #%s after grace period', number)
-            comment = choice(config['pr_close_msg'])
+            comment = api.rand_choice(config['pr_close'])
             api.post_comment(comment.format(author=data['author']))
             api.close_issue()
             continue
@@ -155,42 +184,54 @@ def manage_pulls(api, config, db, inst_id, self_name):
 
     pr_list = db.get_obj(inst_id, self_name) or []
     old_list = deepcopy(pr_list)
-    if not (api.is_open and (api.issue_number in pr_list or api.is_pull)):
+    if not api.is_pull:
         return      # Note that issue_comment event will never have "pull_request"
 
     data = db.get_obj(inst_id, '%s_%s' % (self_name, api.issue_number)) or default()
     remove_data = False
     old_data = deepcopy(data)
-    if api.issue_number not in pr_list:
-        pr_list.append(api.issue_number)
+    is_pr_in_list = api.issue_number in pr_list
 
     if data.get('owner') is None and api.owner:
         data['owner'] = api.owner
     if data.get('repo') is None and api.repo:
         data['repo'] = api.repo
 
-    if action == 'created':         # issue comment
-        data['last_active'] = payload['comment']['updated_at']
-        # data['comments'].append(payload['comment']['body'])
-    elif action == 'opened':                # PR created
+    if is_pr_in_list:
+        if action == 'created':
+            data['last_active'] = api.last_updated
+            comment = payload['comment']['body']
+            data['status'] = None
+
+            data['comments'].append({
+                'body': comment,
+                'when': api.last_updated,
+                'who': api.sender
+            })
+        elif action == 'synchronize':
+            data['last_push'] = data['last_active'] = api.last_updated
+            data['status'] = None
+        elif action == 'assigned' or action == 'unassigned':
+            data['assignee'] = api.assignee
+            data['last_active'] = api.last_updated
+        elif action == 'labeled':
+            data['labels'] = list(set(data['labels']).union([api.current_label]))
+            # data['last_active'] = api.last_updated
+        elif action == 'unlabeled':
+            data['labels'] = list(set(data['labels']).difference([api.current_label]))
+            # data['last_active'] = api.last_updated
+        elif action == 'closed':
+            api.logger.debug('PR #%s closed. Removing JSON...', api.issue_number)
+            pr_list.remove(api.issue_number)
+            remove_data = True
+    elif action == 'opened' or action == 'reopened':
+        pr_list.append(api.issue_number)
         data['author'] = api.creator
         data['number'] = api.issue_number
         data['labels'] = api.labels
         data['body'] = payload['pull_request']['body']
-        data['assignee'] = payload['pull_request'].get('assignee', {'login': None})['login']
-        data['last_active'] = payload['pull_request']['updated_at']
-    elif action == 'labeled':
-        data['labels'] = list(set(data['labels']).union([payload['label']['name']]))
-        data['last_active'] = payload['pull_request']['updated_at']
-    elif action == 'unlabeled':
-        data['labels'] = list(set(data['labels']).difference([payload['label']['name']]))
-        data['last_active'] = payload['pull_request']['updated_at']
-    elif action == 'closed':
-        api.logger.debug('PR #%s closed. Removing JSON...', api.issue_number)
-        pr_list.remove(api.issue_number)
-        remove_data = True
-    # FIXME: Maybe check commit event, pull changes, run stuff locally and post comments
-    # (test-tidy for example)
+        data['assignee'] = api.assignee
+        data['last_push'] = data['last_active'] = api.last_updated
 
     if remove_data:
         db.remove_obj(inst_id, '%s_%s' % (self_name, api.issue_number))
