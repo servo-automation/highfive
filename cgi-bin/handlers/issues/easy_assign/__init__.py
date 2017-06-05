@@ -94,12 +94,12 @@ def check_easy_issues(api, config, db, inst_id, self_name):
                     if not is_issue_in_data:
                         data['issues'][api.issue_number] = default()
 
-                    api.logger.debug('Got assign request. Assigning to %r', api.creator)
+                    api.logger.debug('Got assign request. Assigning to %r', api.sender)
                     api.update_labels(add=[config['assign_label']])
                     comment = api.rand_choice(config['assign_success'])
-                    api.post_comment(comment.format(assignee=api.creator))
+                    api.post_comment(comment.format(assignee=api.sender))
 
-                    data['issues'][api.issue_number]['assignee'] = api.creator
+                    data['issues'][api.issue_number]['assignee'] = api.sender
                     data['issues'][api.issue_number]['status'] = 'assigned'
                     data['issues'][api.issue_number]['last_active'] = payload['comment']['updated_at']
             else:
