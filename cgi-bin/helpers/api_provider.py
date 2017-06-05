@@ -8,7 +8,7 @@ class APIProvider(object):
     def __init__(self, name, payload):
         self.name = name
         self.payload = payload
-        self.is_pull = self.payload.get('pull_request') is not None
+        self.is_pull = payload.get('pull_request') != None
         self.pull_url = payload['pull_request']['url'] if self.is_pull else None
         self.diff = None
 

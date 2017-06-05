@@ -1,0 +1,34 @@
+{
+  "expected": [{
+    "db": {}
+  }],
+  "initial": [{
+    "db": {}
+  }],
+  "payload": {
+    "number": 1754,
+    "issue": {
+      "state": "open",
+      "labels": [{
+        "name": "L-Python"
+      }, {
+        "name": "E-easy"
+      }],
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      },
+      "user": {
+        "login": "wafflespeanut"
+      }
+    },
+    "action": "reopened",
+    "sender": {
+      "login": "wafflespeanut"
+    }
+  }
+}

@@ -188,6 +188,7 @@ def manage_pulls(api, config, db, inst_id, self_name):
     # is dropped in a PR. So, we can't check for pull_request here.
 
     data = db.get_obj(inst_id, '%s_%s' % (self_name, api.issue_number)) or default()
+
     remove_data = False
     old_data = deepcopy(data)
     is_pr_in_list = api.issue_number in pr_list
@@ -223,7 +224,7 @@ def manage_pulls(api, config, db, inst_id, self_name):
             api.logger.debug('PR #%s closed. Removing JSON...', api.issue_number)
             pr_list.remove(api.issue_number)
             remove_data = True
-    elif api.is_pull and action == 'opened' or action == 'reopened':
+    elif api.is_pull and (action == 'opened' or action == 'reopened'):
         pr_list.append(api.issue_number)
         data['author'] = api.creator
         data['number'] = api.issue_number
@@ -232,13 +233,12 @@ def manage_pulls(api, config, db, inst_id, self_name):
         data['assignee'] = api.assignee
         data['last_push'] = data['last_active'] = api.last_updated
 
-    if remove_data:
-        db.remove_obj(inst_id, '%s_%s' % (self_name, api.issue_number))
-    elif data != old_data:
-        db.write_obj(data, inst_id, '%s_%s' % (self_name, api.issue_number))
-
     if pr_list != old_list:
         db.write_obj(pr_list, inst_id, self_name)
+        if remove_data:
+            db.remove_obj(inst_id, '%s_%s' % (self_name, api.issue_number))
+        elif data != old_data:
+            db.write_obj(data, inst_id, '%s_%s' % (self_name, api.issue_number))
 
 
 REPO_SPECIFIC_HANDLERS = {
@@ -255,6 +255,9 @@ def payload_handler(api, config, db, inst_id, name):
     config = api.get_matches_from_config(config)
     if config:
         manage_pulls(api, config, db, inst_id, name)
+
+    if not api.payload:     # happens when we poke the handler states
+        return
 
     other_handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS) or []
     for handler in other_handlers:

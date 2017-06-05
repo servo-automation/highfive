@@ -80,8 +80,8 @@ class InstallationHandler(object):
                               now, self.remaining, self.reset_time)
         return (self.reset_time - now) / float(self.remaining)          # (uniform) wait time per request
 
-    def _request(self, method, url, auth=None, data=None):      # not supposed to be called by any handler
-        self.headers['Authorization'] = 'token %s' if auth is None else auth
+    def _request(self, method, url, data=None, auth=None):      # not supposed to be called by any handler
+        self.headers['Authorization'] = ('token %s' % self.token) if auth is None else auth
         data = json.dumps(data) if data is not None  else data
         req_method = getattr(requests, method.lower())              # hack
         self.logger.info('%s: %s (data: %s)', method, url, data)
