@@ -80,8 +80,11 @@ class InstallationHandler(object):
                               now, self.remaining, self.reset_time)
         return (self.reset_time - now) / float(self.remaining)          # (uniform) wait time per request
 
-    def _request(self, method, url, data=None, auth=None):      # not supposed to be called by any handler
-        self.headers['Authorization'] = ('token %s' % self.token) if auth is None else auth
+    def _request(self, method, url, data=None, auth=True):      # not supposed to be called by any handler
+        if auth:
+            self.headers['Authorization'] = ('token %s' % self.token) if auth is True else auth
+        else:
+            self.logger.info('Making an unauthenticated request...')
         data = json.dumps(data) if data is not None  else data
         req_method = getattr(requests, method.lower())              # hack
         self.logger.info('%s: %s (data: %s)', method, url, data)
@@ -113,13 +116,13 @@ class InstallationHandler(object):
             'token': self.token,
         }
 
-    def queue_request(self, method, url, data=None):
+    def queue_request(self, method, url, data=None, auth=True):
         self.sync_token()
         interval = self.wait_time()
         sleep(interval)
         self.remaining -= 1
         self.update_config()
-        return self._request(method, url, data)
+        return self._request(method=method, url=url, data=data, auth=auth)
 
     def add(self, payload, event):
         api = GithubAPIProvider(self.runner.name, payload, self.queue_request)

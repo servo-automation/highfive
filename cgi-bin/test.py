@@ -80,6 +80,12 @@ class TestAPIProvider(APIProvider):
     def close_issue(self):
         self.closed = True
 
+    def get_branch_head(self, owner=None, repo=None, branch=None):
+        return self.head
+
+    def edit_comment(self, _id, comment):
+        self.comments[str(_id)] = comment
+
     def evaluate(self):
         for key, expect_val in self.expected.items():
             val = getattr(self, key)

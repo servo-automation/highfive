@@ -123,11 +123,19 @@ class APIProvider(object):
     def is_from_self(self):
         return self.name in self.sender
 
+    def get_branch_head(self, branch):
+        raise NotImplementedError
+
+    def edit_comment(self, _id, comment):
+        raise NotImplementedError
+
 
 class GithubAPIProvider(APIProvider):
-    base_url = 'https://api.github.com/'
-    issue_url = base_url + 'repos/%s/%s/issues/%s'
+    base_url = 'https://api.github.com/repos/%s/%s'
+    issue_url = base_url + '/issues/%s'
+    branch_url = base_url + '/branches/%s'
     comments_post_url = issue_url + '/comments'
+    comments_patch_url = base_url + '/issues/comments/%s'
     labels_url = issue_url + '/labels'
     assignees_url = issue_url + '/assignees'
     diff_url = 'https://github.com/%s/%s/pull/%s.diff'
@@ -184,3 +192,14 @@ class GithubAPIProvider(APIProvider):
     def close_issue(self):
         url = self.issue_url % (self.owner, self.repo, self.issue_number)
         self._request('PATCH', url, {'state': 'closed'})
+
+    def edit_comment(self, _id, comment):
+        url = self.comments_patch_url % (self.owner, self.repo, _id)
+        self._request('PATCH', url, {'body': comment})
+
+    def get_branch_head(self, owner=None, repo=None, branch='master'):
+        owner = self.owner if owner is None else owner
+        repo = self.repo if repo is None else repo
+        url = self.branch_url % (owner, repo, branch)
+        is_auth = owner == self.owner and repo == self.repo
+        return self._request('GET', url, auth=is_auth)['commit']['sha']

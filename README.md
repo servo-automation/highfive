@@ -31,7 +31,8 @@ Github's payload JSONs are huge! They have a lot of useful information, but we w
 ### Required events (and their corresponding handlers):
 
 #### [`issue_comment`](https://developer.github.com/v3/activity/events/types/#issuecommentevent)
- - This is required for `pull_request/open_pulls`
+ - `comment_watcher`: It has a few handlers for watching comments. A generic handler watches out for links that point to `master` branch (rather than a specific revision) and edits those comments (besides that, there are a bunch of handlers specific to Servo).
+ - This event is also required for `pull_request/open_pulls`
 
 #### [`issues`](https://developer.github.com/v3/activity/events/types/#issuesevent)
  - `easy_assigned` (sync): This doesn't have a general configuration. This tracks the issues tagged `E-easy` (in Servo), assigns those issues to newcomers, tracks their PRs, pings them after a timeout, and unassigns the issues based on their inactivity.

@@ -1,0 +1,33 @@
+{
+  "initial": {
+    "head": "80488c4494911257e62c98388b36d94d74f9d330"
+  },
+  "expected": {
+    "comments": {
+      "999": "The code for tidy lives [here](https://github.com/servo/servo/tree/80488c4494911257e62c98388b36d94d74f9d330/python/tidy) (you should be looking at [this](https://github.com/servo/servo/blob/80488c4494911257e62c98388b36d94d74f9d330/python/tidy/servo_tidy/tidy.py#L1067-L1072))"
+    }
+  },
+  "payload": {
+    "comment": {
+      "id": 999,
+      "body": "The code for tidy lives [here](https://github.com/servo/servo/tree/master/python/tidy) (you should be looking at [this](https://github.com/servo/servo/blob/master/python/tidy/servo_tidy/tidy.py#L1067-L1072))"
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "action": "created",
+    "issue": {
+      "number": 7075,
+      "state": "open",
+      "user": {
+        "login": "jdm"
+      }
+    },
+    "sender": {
+      "login": "jdm"
+    }
+  }
+}

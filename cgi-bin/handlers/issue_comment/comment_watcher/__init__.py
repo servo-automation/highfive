@@ -102,7 +102,14 @@ def payload_handler(api, config):
     if api.payload.get('action') != 'created':
         return
 
-    #
+    body = str(api.payload['comment']['body'])
+    match = re.search('github.com/(.*?)/(.*?)/(?:(blob|tree))/master', body)
+    if match:
+        owner, repo = match.group(1), match.group(2)
+        comment_id = api.payload['comment']['id']
+        head = api.get_branch_head(owner=owner, repo=repo)
+        comment = re.sub(r'(?:(blob|tree))/master', r'\1/%s' % head, body)
+        api.edit_comment(comment_id, comment)
 
     other_handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS) or []
     for handler in other_handlers:
