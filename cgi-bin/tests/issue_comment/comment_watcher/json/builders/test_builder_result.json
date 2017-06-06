@@ -1,7 +1,7 @@
 {
     "steps": [{
         "logs": [
-            ["stdio", "tests/pull_request/open_pulls/json/builders/test_stdio"]
+            ["stdio", "tests/issue_comment/comment_watcher/json/builders/test_stdio"]
         ],
         "text": ["test", "failed"]
     }]

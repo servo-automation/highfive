@@ -1,0 +1,28 @@
+{
+  "initial": {},
+  "expected": {
+    "assignee": ["Manishearth", "Ms2ger"]
+  },
+  "payload": {
+    "comment": {
+      "body": "r? @Manishearth for XXX and r? @Ms2ger for YYY"
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "action": "created",
+    "issue": {
+      "number": 7075,
+      "state": "open",
+      "user": {
+        "login": "jdm"
+      }
+    },
+    "sender": {
+      "login": "jdm"
+    }
+  }
+}

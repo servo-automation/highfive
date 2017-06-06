@@ -30,17 +30,16 @@
         "last_push": "some time",
         "labels": [],
         "comments": [{
-          "body": "r? @Manishearth for XXX and r? @Ms2ger for YYY",
+          "body": "blah blah",
           "who": "jdm",
           "when": "some new time"
         }]
       }
-    },
-    "assignee": ["Manishearth", "Ms2ger"]
+    }
   },
   "payload": {
     "comment": {
-      "body": "r? @Manishearth for XXX and r? @Ms2ger for YYY"
+      "body": "blah blah"
     },
     "repository": {
       "owner": {

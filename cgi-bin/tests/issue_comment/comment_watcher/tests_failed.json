@@ -12,7 +12,7 @@
   },
   "payload": {
     "comment": {
-      "body": ":broken_heart: Test failed - [linux2](tests/pull_request/open_pulls/builders/test_builder_result.json)"
+      "body": ":broken_heart: Test failed - [linux2](tests/issue_comment/comment_watcher/builders/test_builder_result.json)"
     },
     "repository": {
       "owner": {
