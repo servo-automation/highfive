@@ -50,6 +50,9 @@ class NodeMarker(object):
     def lower(self):
         return str(self).lower()
 
+    def split(self, *args):
+        return str(self).split(*args)
+
     # If you access the element in the usual way, then "bam!"
     def __getitem__(self, key):
         self._node[key].mark()      # it will be marked as used!

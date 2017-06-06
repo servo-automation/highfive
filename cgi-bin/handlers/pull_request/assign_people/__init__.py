@@ -1,4 +1,4 @@
-from helpers.methods import COLLABORATORS, find_reviewers
+from helpers.methods import COLLABORATORS, find_reviewers, join_names
 
 
 def payload_handler(api, config):
@@ -19,10 +19,9 @@ def payload_handler(api, config):
 
         chosen_ones = [reviewers[int(api.issue_number) % len(reviewers)]]
 
-    if not chosen_ones:    # something's wrong?
-        return
-
     api.set_assignees(chosen_ones)
     msgs = api.get_matches_from_config(config) or []
     if msgs:
-        api.post_comment(api.rand_choice(msgs).format(reviewer=chosen_ones[0]))
+        first = [chosen_ones[0]]
+        rest = map(lambda s: '@' + s, chosen_ones[1:])
+        api.post_comment(api.rand_choice(msgs).format(reviewer=join_names(first + rest)))

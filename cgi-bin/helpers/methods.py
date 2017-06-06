@@ -34,17 +34,12 @@ def find_reviewers(comment):
     review request.
 
     For example,
-    'r? @foo @bar,@foobar'
-    'r? @foo,@bar, @foobar'
-    'r? @foo for XXX @bar, @foobar for YYY'
+    "r? @foo r? @bar and cc @foobar"
+    "r? @foo I've done blah blah r? @bar for baz"
 
-    All these comments return ['foo', 'bar', 'foobar']
+    Both these comments return ['foo', 'bar']
     '''
-    result = re.search(r'r\? @(.*)', str(comment))
-    if result:
-        reviewers = result.group(1)
-        names = filter(lambda s: s, reviewers.split('@'))
-        return map(lambda name: name.split()[0].strip(' ,'), names)
+    return re.findall('r\? @([A-Za-z0-9]+)', str(comment), re.DOTALL)
 
 
 def join_names(names):

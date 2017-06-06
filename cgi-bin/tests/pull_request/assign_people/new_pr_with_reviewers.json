@@ -1,7 +1,7 @@
 {
   "expected": {
-    "assignee": ["jdm", "Manishearth", "wafflespeanut"],
-    "comments": ["@jdm Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks."]
+    "assignee": ["jdm", "Manishearth"],
+    "comments": ["@jdm and @Manishearth Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks."]
   },
   "initial": {},
   "payload": {
@@ -10,7 +10,7 @@
       "state": "open",
       "assignee": null,
       "url": null,
-      "body": "r? @jdm,@Manishearth @wafflespeanut",
+      "body": "r? @jdm for foo r? @Manishearth for bar",
       "base": {
         "repo": {
           "owner": {

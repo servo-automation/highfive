@@ -30,7 +30,7 @@
         "last_push": "some time",
         "labels": [],
         "comments": [{
-          "body": "r? @Manishearth for XXX and @Ms2ger for YYY",
+          "body": "r? @Manishearth for XXX and r? @Ms2ger for YYY",
           "who": "jdm",
           "when": "some new time"
         }]
@@ -40,7 +40,7 @@
   },
   "payload": {
     "comment": {
-      "body": "r? @Manishearth for XXX and @Ms2ger for YYY"
+      "body": "r? @Manishearth for XXX and r? @Ms2ger for YYY"
     },
     "repository": {
       "owner": {
