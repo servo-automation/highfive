@@ -16,8 +16,8 @@
             "Is this still being worked on?"
         ],
         "review_ping": [
-            "@{reviewer} Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks.",
-            "Hey @{reviewer}, it looks like this PR is hanging around for a while. Could you take a look at it, or pass it to someone else? Thanks."
+            "@{reviewer} Could you review this pull request? (or maybe pass it to someone else?)",
+            "Hey @{reviewer}, it looks like this PR is hanging around for a while. Could you take a look at it, or pass it to someone else?"
         ]
     }
 }

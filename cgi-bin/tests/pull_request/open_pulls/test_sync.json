@@ -96,17 +96,40 @@
         "comments": []
       }
     }
+  }, {
+    "db": {
+      "open_pulls": ["123"],
+      "open_pulls_123": {
+        "owner": "servo",
+        "repo": "servo",
+        "status": null,
+        "body": "",
+        "author": "jdm",
+        "number": "123",
+        "assignee": "someone",
+        "last_active": "1970-01-01T00:00:00Z",
+        "last_push": "1970-01-03T00:00:00Z",
+        "labels": [],
+        "comments": [{
+          "body": "needs tidy fix",
+          "who": "someone",
+          "when": "1970-01-02T00:00:00Z"
+        }]
+      }
+    }
   }],
   "expected": [{
     "comments": ["What's the status of this?"]
   }, {
     "comments": ["Hey @jdm! Are you planning to finish this off?"]
   }, {
-    "comments": ["@Manishearth Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks."]
+    "comments": ["@Manishearth Could you review this pull request? (or maybe pass it to someone else?)"]
   }, {
-    "comments": ["@asajeffrey Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks."]
+    "comments": ["@asajeffrey Could you review this pull request? (or maybe pass it to someone else?)"]
   }, {
     "comments": ["Okay, I'm gonna close this based on inactivity. If you change your mind about working on this issue again, feel free to ping us and we'll reopen it for you. Thanks for taking a stab at this :smile:"]
+  }, {
+    "comments": ["@someone Could you review this pull request? (or maybe pass it to someone else?)"]
   }],
   "payload": {}
 }

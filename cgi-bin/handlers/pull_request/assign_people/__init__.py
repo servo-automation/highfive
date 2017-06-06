@@ -23,3 +23,6 @@ def payload_handler(api, config):
         return
 
     api.set_assignees(chosen_ones)
+    msgs = api.get_matches_from_config(config) or []
+    if msgs:
+        api.post_comment(api.rand_choice(msgs).format(reviewer=chosen_ones[0]))

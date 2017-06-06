@@ -147,18 +147,18 @@ def check_pulls(api, config, db, inst_id, self_name):
             author_comments = filter(lambda d: d['who'] == data['author'], data['comments'])
             if not assignee_comments:
                 should_ping_reviewer = True     # reviewer hasn't commented at all!
-            elif not author_comments:
+            else:
                 last_review = datetime_parse(assignee_comments[-1]['when'])
                 last_push = datetime_parse(data['last_push'])
                 if last_review < last_push:         # reviewer hasn't looked at this since the last push
                     should_ping_reviewer = True
-                else:
+                elif not author_comments:
                     comment = api.rand_choice(config['pr_ping'])
                     api.post_comment(comment.format(author=data['author']))
                     data['status'] = 'commented'
-            else:
-                # It could be waiting on the assignee or the author. Right now, we just poke them both.
-                api.post_comment(api.rand_choice(config['pr_anon_ping']))
+                else:
+                    # It could be waiting on the assignee or the author. Right now, we just poke them both.
+                    api.post_comment(api.rand_choice(config['pr_anon_ping']))
 
             if should_ping_reviewer:
                 # Right now, we just ping the reviewer until he takes a look at this or assigns someone else

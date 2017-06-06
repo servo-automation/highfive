@@ -1,6 +1,7 @@
 {
   "expected": {
-    "assignee": ["wafflespeanut"]
+    "assignee": ["wafflespeanut"],
+    "comments": ["@wafflespeanut Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks."]
   },
   "initial": {},
   "payload": {

@@ -1,3 +1,7 @@
 {
-    "active": true
+    "active": true,
+    "servo/": [
+        "@{reviewer} Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks.",
+        "Hey @{reviewer}, I've assigned this to you. Please review it (or `r? @someone` and I'll assign it to them). Thanks."
+    ]
 }
