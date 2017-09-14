@@ -8,7 +8,10 @@ LOGGERS = {}
 
 with open(os.path.join(ROOT, 'collaborators.json'), 'r') as fd:
     COLLABORATORS = json.load(fd)
-with open(os.path.join(ROOT, 'config.json'), 'r') as fd:
+
+_GLOBAL_CONFIG_PATH = os.environ.get('CONFIG',
+                                     os.path.join(ROOT, 'config.json'))
+with open(_GLOBAL_CONFIG_PATH, 'r') as fd:
     CONFIG = json.load(fd)
     if not os.path.exists(CONFIG['dump_path']):
         os.mkdir(CONFIG['dump_path'])

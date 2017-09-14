@@ -165,7 +165,7 @@ class Runner(object):
         self.installations = {}
         self.sync_runners = {}
         self.config = config
-        self.db = PostgreSql() if os.environ.get('DATABASE_URL') else JsonStore(config['dump_path'])
+        self.db = PostgreSql() if os.environ.get('DATABASE_URL') else JsonStore(config)
 
         if not self.enabled_events:
             self.enabled_events = AVAILABLE_EVENTS
