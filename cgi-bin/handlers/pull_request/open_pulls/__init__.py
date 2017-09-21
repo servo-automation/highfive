@@ -99,8 +99,11 @@ def manage_pulls(api, config, db, inst_id, self_name):
 
     pr_list = db.get_obj(inst_id, self_name) or []
     old_list = deepcopy(pr_list)
-    # Note that issue_comment event will never have "pull_request" even if the comment
-    # is dropped in a PR. So, we can't check for pull_request here.
+
+    # NOTE: issue_comment event will never have "pull_request" even if the comment
+    # is dropped in a PR. So, we should check whether the issue number is in our list.
+    if not (api.is_pull or api.issue_number in pr_list):
+        return
 
     data = db.get_obj(inst_id, '%s_%s' % (self_name, api.issue_number)) or default()
 
@@ -139,7 +142,7 @@ def manage_pulls(api, config, db, inst_id, self_name):
             api.logger.debug('PR #%s closed. Removing JSON...', api.issue_number)
             pr_list.remove(api.issue_number)
             remove_data = True
-    elif api.is_pull and (action == 'opened' or action == 'reopened'):
+    elif action == 'opened' or action == 'reopened':
         pr_list.append(api.issue_number)
         data['author'] = api.creator
         data['number'] = api.issue_number
@@ -150,10 +153,10 @@ def manage_pulls(api, config, db, inst_id, self_name):
 
     if pr_list != old_list:
         db.write_obj(pr_list, inst_id, self_name)
-        if remove_data:
-            db.remove_obj(inst_id, '%s_%s' % (self_name, api.issue_number))
-        elif data != old_data:
-            db.write_obj(data, inst_id, '%s_%s' % (self_name, api.issue_number))
+    if remove_data:
+        db.remove_obj(inst_id, '%s_%s' % (self_name, api.issue_number))
+    elif data != old_data:
+        db.write_obj(data, inst_id, '%s_%s' % (self_name, api.issue_number))
 
 
 def payload_handler(api, config, db, inst_id, name):

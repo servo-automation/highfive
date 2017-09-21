@@ -6,15 +6,15 @@ AVAILABLE_EVENTS = filter(lambda p: os.path.isdir(os.path.join(HANDLERS_DIR, p))
                           os.listdir(HANDLERS_DIR))
 LOGGERS = {}
 
-with open(os.path.join(ROOT, 'collaborators.json'), 'r') as fd:
-    COLLABORATORS = json.load(fd)
-
 _GLOBAL_CONFIG_PATH = os.environ.get('CONFIG',
                                      os.path.join(ROOT, 'config.json'))
 with open(_GLOBAL_CONFIG_PATH, 'r') as fd:
     CONFIG = json.load(fd)
     if not os.path.exists(CONFIG['dump_path']):
         os.mkdir(CONFIG['dump_path'])
+
+with open(CONFIG['collaborators'], 'r') as fd:
+    COLLABORATORS = json.load(fd)
 
 def init_logger():
     logging.basicConfig(level=logging.DEBUG,

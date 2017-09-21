@@ -1,8 +1,6 @@
 from Queue import Queue
-from StringIO import StringIO
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
-from gzip import GzipFile
 from jose import jwt
 from time import sleep
 
@@ -12,7 +10,7 @@ from methods import AVAILABLE_EVENTS, get_handlers, get_logger
 
 import hashlib, hmac, itertools, json, os, time, requests
 
-WORKER_SLEEP_SECS = 0.25
+WORKER_SLEEP_SECS = 1
 SYNC_HANDLER_SLEEP_SECS = 3600
 
 # Implementation of digest comparison from Django
@@ -80,7 +78,8 @@ class InstallationHandler(object):
                               now, self.remaining, self.reset_time)
         return (self.reset_time - now) / float(self.remaining)          # (uniform) wait time per request
 
-    def _request(self, method, url, data=None, auth=True):      # not supposed to be called by any handler
+    # NOTE: Not supposed to be called by any handler.
+    def _request(self, method, url, data=None, auth=True, headers=False):
         if auth:
             self.headers['Authorization'] = ('token %s' % self.token) if auth is True else auth
         else:
@@ -95,13 +94,6 @@ class InstallationHandler(object):
             self.logger.error('Got a %s response: %r', code, data)
             raise Exception
 
-        if resp.headers.get('Content-Encoding') == 'gzip':
-            try:
-                fd = GzipFile(fileobj=StringIO(data))
-                data = fd.read()
-            except IOError:
-                self.logger.debug('Cannot decode with Gzip, Trying to load JSON from raw response...')
-                pass
         try:
             return json.loads(data)
         except (TypeError, ValueError):         # stuff like 'diff' will be a string
@@ -116,13 +108,14 @@ class InstallationHandler(object):
             'token': self.token,
         }
 
-    def queue_request(self, method, url, data=None, auth=True):
+    def queue_request(self, method, url, data=None, auth=True, headers=False):
         self.sync_token()
         interval = self.wait_time()
         sleep(interval)
         self.remaining -= 1
         self.update_config()
-        return self._request(method=method, url=url, data=data, auth=auth)
+        return self._request(method=method, url=url, data=data,
+                             auth=auth, headers=headers)
 
     def add(self, payload, event):
         api = GithubAPIProvider(self.runner.name, payload, self.queue_request)

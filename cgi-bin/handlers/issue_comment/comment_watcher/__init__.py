@@ -33,10 +33,16 @@ def check_failure_log(api):
             stdio = api.get_page_content(log_url)
             failures = re.findall(failure_regex, stdio, re.DOTALL)
 
-            if failures:
+            if not failures:
+                continue
+
+            try:
                 failures = HTMLParser().unescape(failures[0])
-                comment = [' ' * 4 + line for line in failures.split('\n')]
-                comments.extend(comment)
+            except UnicodeDecodeError:
+                failures = HTMLParser().unescape(failures[0].decode('utf-8'))
+
+            comment = [' ' * 4 + line for line in failures.split('\n')]
+            comments.extend(comment)
 
     if comments:
         api.post_comment('\n'.join(comments))
