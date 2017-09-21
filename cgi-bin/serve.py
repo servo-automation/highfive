@@ -1,13 +1,13 @@
 from flask import Flask, abort, request
 from threading import Thread
 
-from helpers.methods import CONFIG, get_logger
+from helpers.methods import CONFIG, get_logger, init_logger
 from helpers.runner import Runner
 
-import json, logging, os
+import json, os
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    init_logger()
     logger = get_logger(__name__)
 
     runner = Runner(CONFIG)

@@ -2,15 +2,15 @@
 
 from __future__ import print_function
 
-from helpers.methods import CONFIG, get_logger
+from helpers.methods import CONFIG, get_logger, init_logger
 from helpers.runner import Runner
 
-import cgi, json, logging, os, sys
+import cgi, json, os, sys
 
 if __name__ == '__main__':
     print("Content-Type: text/plain\r\n")
     print('\r\n')
-    logging.basicConfig(level=logging.DEBUG)
+    init_logger()
     logger = get_logger(__name__)
 
     config = CONFIG

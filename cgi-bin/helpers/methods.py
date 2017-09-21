@@ -16,6 +16,11 @@ with open(_GLOBAL_CONFIG_PATH, 'r') as fd:
     if not os.path.exists(CONFIG['dump_path']):
         os.mkdir(CONFIG['dump_path'])
 
+def init_logger():
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s %(module)s - %(funcName)s: %(message)s',
+                        datefmt="%Y-%m-%d %H:%M:%S")
+
 def get_logger(name):
     '''
     `logger.getLogger()` creates a new instance for all calls. This makes sure that
