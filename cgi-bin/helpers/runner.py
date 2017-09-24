@@ -79,7 +79,8 @@ class InstallationHandler(object):
         return (self.reset_time - now) / float(self.remaining)          # (uniform) wait time per request
 
     # NOTE: Not supposed to be called by any handler.
-    def _request(self, method, url, data=None, auth=True, headers=False):
+    def _request(self, method, url, data=None, auth=True,
+                 headers_required=False):
         if auth:
             self.headers['Authorization'] = ('token %s' % self.token) if auth is True else auth
         else:
@@ -95,10 +96,11 @@ class InstallationHandler(object):
             raise Exception
 
         try:
-            return json.loads(data)
+            data = json.loads(data)
         except (TypeError, ValueError):         # stuff like 'diff' will be a string
             self.logger.debug('Cannot decode JSON, Passing the payload as string...')
-            return data
+
+        return (resp.headers, data) if headers_required else data
 
     def update_config(self):
         self.runner.config[self._id] = {
@@ -108,14 +110,15 @@ class InstallationHandler(object):
             'token': self.token,
         }
 
-    def queue_request(self, method, url, data=None, auth=True, headers=False):
+    def queue_request(self, method, url, data=None, auth=True,
+                      headers_required=False):
         self.sync_token()
         interval = self.wait_time()
         sleep(interval)
         self.remaining -= 1
         self.update_config()
-        return self._request(method=method, url=url, data=data,
-                             auth=auth, headers=headers)
+        return self._request(method=method, url=url, data=data, auth=auth,
+                             headers_required=headers_required)
 
     def add(self, payload, event):
         api = GithubAPIProvider(self.runner.name, payload, self.queue_request)

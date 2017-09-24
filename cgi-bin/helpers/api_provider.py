@@ -129,6 +129,9 @@ class APIProvider(object):
     def edit_comment(self, _id, comment):
         raise NotImplementedError
 
+    def get_contributors(self):
+        raise NotImplementedError
+
 
 class GithubAPIProvider(APIProvider):
     base_url = 'https://api.github.com/repos/%s/%s'
@@ -139,6 +142,7 @@ class GithubAPIProvider(APIProvider):
     labels_url = issue_url + '/labels'
     assignees_url = issue_url + '/assignees'
     diff_url = 'https://github.com/%s/%s/pull/%s.diff'
+    contributors_url = base_url + '/contributors?per_page=500'
 
     def __init__(self, name, payload, request_method):
         super(GithubAPIProvider, self).__init__(name, payload)
@@ -203,3 +207,25 @@ class GithubAPIProvider(APIProvider):
         url = self.branch_url % (owner, repo, branch)
         is_auth = owner == self.owner and repo == self.repo
         return self._request('GET', url, auth=is_auth)['commit']['sha']
+
+    # Recursively traverses through the paginated data to get contributors list.
+    # It's forbidden to call this more than once in a session, since it will open
+    # one of the gates to Tartarus, exposing our world to the Titans.
+    def get_contributors(self):
+        contributors = []
+
+        while True:
+            headers, data = self._request('GET', self.contributors_url,
+                                          headers_required=True)
+            contributors.extend(map(lambda v: v['login'], data))
+            match = re.search(r'<(.*)>; rel="next".*<(.*)>; rel="last"',
+                              headers['Link'])
+            if not match:
+                break
+
+            last_url = match.group(2)
+            if url == last_url:
+                break
+            url = match.group(1)
+
+        return contributors

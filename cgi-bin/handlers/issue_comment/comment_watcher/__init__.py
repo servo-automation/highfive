@@ -111,6 +111,7 @@ def payload_handler(api, config):
     body = str(api.payload['comment']['body'])
     match = re.search('github.com/(.*?)/(.*?)/(?:(blob|tree))/master', body)
     if match:
+        api.logger.debug('Replacing link to master branch...')
         owner, repo = match.group(1), match.group(2)
         comment_id = api.payload['comment']['id']
         head = api.get_branch_head(owner=owner, repo=repo)
