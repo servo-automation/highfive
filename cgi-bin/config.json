@@ -42,5 +42,8 @@
         "test/test": [
             "highfive"
         ]
-    }
+    },
+
+    "servo_imgur_client_id": null,
+    "servo_reftest_screenshot_endpoint": null
 }

@@ -1,8 +1,56 @@
 from HTMLParser import HTMLParser
 
-from helpers.methods import find_reviewers
+from helpers.methods import CONFIG, find_reviewers
 
-import json, re
+import json, re, requests
+
+IMGUR_UPLOAD_ENDPOINT = 'https://api.imgur.com/3/image'
+
+def check_log_for_css_failures(api, build_url):
+    url = CONFIG['servo_reftest_screenshot_endpoint']
+    url.rstrip('/')
+    url += '/?url=%s' % build_url   # FIXME: should probably url encode?
+    resp = requests.get(url)
+    if resp.status_code != 200:
+        api.logger.error('Error requesting %s' % url)
+        return
+
+    try:
+        data = json.loads(resp.text)
+    except (TypeError, ValueError):
+        api.logger.error('Cannot decode JSON data from %s' % url)
+        return
+
+    # Image data is the key because, there could be
+    # different tests with same result.
+    images = {}
+    for img in data:
+        images.setdefault(img['blend'], [])
+        images[img['blend']].append('**%s** (test) **%s** (ref)' % \
+                                    img['test']['url'], img['ref']['url'])
+
+    comment = 'Hi! I was able to extract the screenshots for these tests:'
+    headers = {
+        'Authorization': 'Client-ID %s' % CONFIG['servo_imgur_client_id']
+    }
+
+    link = None
+    for img in images:
+        resp = requests.post(IMGUR_UPLOAD_ENDPOINT, data={ 'image': img },
+                             headers=headers)
+        try:
+            data = json.loads(resp.text)
+        except (TypeError, ValueError):
+            api.logger.debug('Error parsing response from Imgur')
+            continue
+
+        link = data['data']['link']
+        tests = ', '.join(images[img])
+        comment += '\n\n - %s\n\n![](%s)' % (test, link)
+
+    if link is not None:
+        # We've uploaded at least one image (let's post comment)
+        api.post_comment(comment)
 
 
 def check_failure_log(api):
@@ -40,6 +88,9 @@ def check_failure_log(api):
                 failures = HTMLParser().unescape(failures[0])
             except UnicodeDecodeError:
                 failures = HTMLParser().unescape(failures[0].decode('utf-8'))
+
+            if 'css' in failures:
+                check_log_for_css_failures(api, url)
 
             comment = [' ' * 4 + line for line in failures.split('\n')]
             comments.extend(comment)
