@@ -10,11 +10,9 @@ _GLOBAL_CONFIG_PATH = os.environ.get('CONFIG',
                                      os.path.join(ROOT, 'config.json'))
 with open(_GLOBAL_CONFIG_PATH, 'r') as fd:
     CONFIG = json.load(fd)
+    COLLABORATORS = CONFIG['collaborators']
     if not os.path.exists(CONFIG['dump_path']):
         os.mkdir(CONFIG['dump_path'])
-
-with open(CONFIG['collaborators'], 'r') as fd:
-    COLLABORATORS = json.load(fd)
 
 def init_logger():
     logging.basicConfig(level=logging.DEBUG,

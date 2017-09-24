@@ -4,10 +4,43 @@
     "secret": null,
     "integration_id": null,
     "dump_path": "json_dumps",
-    "collaborators": "collaborators.json",
     "enabled_events": [
         "issue_comment",
         "issues",
         "pull_request"
-    ]
+    ],
+    "collaborators": {
+        "servo/servo": [
+            "asajeffrey",
+            "cbrewster",
+            "emilio",
+            "glennw",
+            "jdm",
+            "KiChjang",
+            "Manishearth",
+            "mbrubeck",
+            "metajack",
+            "nox",
+            "pcwalton",
+            "wafflespeanut"
+        ],
+        "servo/highfive": [
+            "jdm",
+            "wafflespeanut"
+        ],
+        "servo/ipc-channel": [
+            "emilio",
+            "jdm",
+            "pcwalton",
+            "antrik",
+            "metajack"
+        ],
+        "servo/saltfs": [
+            "aneeshusa"
+        ],
+
+        "test/test": [
+            "highfive"
+        ]
+    }
 }
