@@ -1,0 +1,8 @@
+{
+    "steps": [{
+        "logs": [
+            ["stdio", "tests/issue_comment/comment_watcher/json/builders/test_css_stdio"]
+        ],
+        "text": ["test", "failed"]
+    }]
+}

@@ -1,7 +1,7 @@
 from copy import deepcopy
-from methods import get_path_parent, get_logger
+from methods import CONFIG, get_path_parent, get_logger
 
-import contextlib, random, re, urllib2
+import random, re, requests
 
 
 class APIProvider(object):
@@ -132,6 +132,12 @@ class APIProvider(object):
     def get_contributors(self):
         raise NotImplementedError
 
+    def get_screenshots_for_build(self, url):
+        raise NotImplementedError
+
+    def post_image_to_imgur(self, base64_data):
+        raise NotImplementedError
+
 
 class GithubAPIProvider(APIProvider):
     base_url = 'https://api.github.com/repos/%s/%s'
@@ -143,6 +149,7 @@ class GithubAPIProvider(APIProvider):
     assignees_url = issue_url + '/assignees'
     diff_url = 'https://github.com/%s/%s/pull/%s.diff'
     contributors_url = base_url + '/contributors?per_page=500'
+    imgur_post_url = 'https://api.imgur.com/3/image'
 
     def __init__(self, name, payload, request_method):
         super(GithubAPIProvider, self).__init__(name, payload)
@@ -190,8 +197,8 @@ class GithubAPIProvider(APIProvider):
         self._request('POST', url, {'assignees': assignees})
 
     def get_page_content(self, url):
-        with contextlib.closing(urllib2.urlopen(url)) as fd:
-            return fd.read()
+        resp = requests.get(url)
+        return resp.text
 
     def close_issue(self):
         url = self.issue_url % (self.owner, self.repo, self.issue_number)
@@ -229,3 +236,38 @@ class GithubAPIProvider(APIProvider):
             url = match.group(1)
 
         return contributors
+
+    # Other helper methods unrelated to the Github API.
+    # (since they're unrelated, they can use `requests` module directly)
+
+    def get_screenshots_for_build(self, build_url):
+        url = CONFIG.get('servo_reftest_screenshot_endpoint')
+        url.rstrip('/')
+        url += '/?url=%s' % build_url   # FIXME: should probably url encode?
+        resp = requests.get(url)
+        if resp.status_code != 200:
+            self.logger.error('Error requesting %s' % url)
+            return
+
+        try:
+            return json.loads(resp.text)
+        except (TypeError, ValueError):
+            self.logger.debug('Cannot decode JSON data from %s' % url)
+
+    def post_image_to_imgur(self, base64_data):
+        if not CONFIG.get('imgur_client_id'):
+            self.logger.error('Imgur client ID has not been set!')
+            return
+
+        headers = {'Authorization': 'Client-ID %s' % CONFIG['imgur_client_id']}
+        resp = requests.post(self.imgur_post_url, data={'image': base64_data},
+                             headers=headers)
+        if resp.status_code != 200:
+            self.logger.error('Error posting image to Imgur')
+            return None
+
+        try:
+            data = json.loads(resp.text)
+            return data['data']['link']
+        except (TypeError, ValueError):
+            self.logger.debug('Error parsing response from Imgur')

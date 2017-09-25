@@ -1,52 +1,29 @@
 from HTMLParser import HTMLParser
 
-from helpers.methods import CONFIG, find_reviewers
+from helpers.methods import find_reviewers
 
-import json, re, requests
-
-IMGUR_UPLOAD_ENDPOINT = 'https://api.imgur.com/3/image'
+import json, re
 
 def check_log_for_css_failures(api, build_url):
-    url = CONFIG['servo_reftest_screenshot_endpoint']
-    url.rstrip('/')
-    url += '/?url=%s' % build_url   # FIXME: should probably url encode?
-    resp = requests.get(url)
-    if resp.status_code != 200:
-        api.logger.error('Error requesting %s' % url)
-        return
-
-    try:
-        data = json.loads(resp.text)
-    except (TypeError, ValueError):
-        api.logger.error('Cannot decode JSON data from %s' % url)
-        return
-
+    data = api.get_screenshots_for_build(build_url)
     # Image data is the key because, there could be
     # different tests with same result.
     images = {}
     for img in data:
         images.setdefault(img['blend'], [])
         images[img['blend']].append('**%s** (test) **%s** (ref)' % \
-                                    img['test']['url'], img['ref']['url'])
-
-    comment = 'Hi! I was able to extract the screenshots for these tests:'
-    headers = {
-        'Authorization': 'Client-ID %s' % CONFIG['servo_imgur_client_id']
-    }
+                                    (img['test']['url'], img['ref']['url']))
 
     link = None
+    comment = ('Hi! I was able to get the screenshots for some tests.'
+               " To show the difference, I've blended the two screenshots.")
     for img in images:
-        resp = requests.post(IMGUR_UPLOAD_ENDPOINT, data={ 'image': img },
-                             headers=headers)
-        try:
-            data = json.loads(resp.text)
-        except (TypeError, ValueError):
-            api.logger.debug('Error parsing response from Imgur')
+        link = api.post_image_to_imgur(img)
+        if not link:
             continue
 
-        link = data['data']['link']
         tests = ', '.join(images[img])
-        comment += '\n\n - %s\n\n![](%s)' % (test, link)
+        comment += '\n\n - %s\n\n![](%s)' % (tests, link)
 
     if link is not None:
         # We've uploaded at least one image (let's post comment)

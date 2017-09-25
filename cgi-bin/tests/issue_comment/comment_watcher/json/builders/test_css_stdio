@@ -1,0 +1,13 @@
+Ran 10198 tests finished in 735.0 seconds.
+  • 10192 ran as expected. 147 tests skipped.
+  • 3 tests failed unexpectedly
+  • 3 tests timed out unexpectedly
+
+Tests with unexpected results:
+
+  ▶ FAIL [expected TIMEOUT] /css-animations-1_dev/html/vh-interpolate-vh.htm
+  └   → /css-animations-1_dev/html/vh-interpolate-vh.htm f17b571b709c853a05ae9c0f417a1e422833e879
+/css-animations-1_dev/html/reference/all-green.htm 16698156583755674f3837b45ba940d68a1d3b1f
+Testing f17b571b709c853a05ae9c0f417a1e422833e879 == 16698156583755674f3837b45ba940d68a1d3b1f
+
+</span><span>

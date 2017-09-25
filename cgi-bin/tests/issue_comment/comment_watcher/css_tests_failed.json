@@ -1,0 +1,83 @@
+{
+  "expected": [{
+    "labels": [
+      "s-tests-failed"
+    ],
+    "comments": [
+      "Hi! I was able to get the screenshots for some tests. To show the difference, I've blended the two screenshots.\n\n - **test/url** (test) **ref/url** (ref)\n\n![](https://imgur.com/some-base64-data)",
+      "    \n      \u25b6 FAIL [expected TIMEOUT] /css-animations-1_dev/html/vh-interpolate-vh.htm\n      \u2514   \u2192 /css-animations-1_dev/html/vh-interpolate-vh.htm f17b571b709c853a05ae9c0f417a1e422833e879\n    /css-animations-1_dev/html/reference/all-green.htm 16698156583755674f3837b45ba940d68a1d3b1f\n    Testing f17b571b709c853a05ae9c0f417a1e422833e879 == 16698156583755674f3837b45ba940d68a1d3b1f\n    "
+    ]
+  }, {
+    "labels": [
+      "s-tests-failed"
+    ],
+    "comments": [
+      "    \n      \u25b6 FAIL [expected TIMEOUT] /css-animations-1_dev/html/vh-interpolate-vh.htm\n      \u2514   \u2192 /css-animations-1_dev/html/vh-interpolate-vh.htm f17b571b709c853a05ae9c0f417a1e422833e879\n    /css-animations-1_dev/html/reference/all-green.htm 16698156583755674f3837b45ba940d68a1d3b1f\n    Testing f17b571b709c853a05ae9c0f417a1e422833e879 == 16698156583755674f3837b45ba940d68a1d3b1f\n    "
+    ]
+  }, {
+    "labels": [
+      "s-tests-failed"
+    ],
+    "comments": [
+      "    \n      \u25b6 FAIL [expected TIMEOUT] /css-animations-1_dev/html/vh-interpolate-vh.htm\n      \u2514   \u2192 /css-animations-1_dev/html/vh-interpolate-vh.htm f17b571b709c853a05ae9c0f417a1e422833e879\n    /css-animations-1_dev/html/reference/all-green.htm 16698156583755674f3837b45ba940d68a1d3b1f\n    Testing f17b571b709c853a05ae9c0f417a1e422833e879 == 16698156583755674f3837b45ba940d68a1d3b1f\n    "
+    ]
+  }],
+  "initial": [{
+    "image_data": [{
+      "test": {
+        "url": "test/url",
+        "image": "test image data"
+      },
+      "ref": {
+        "url": "ref/url",
+        "image": "ref image data"
+      },
+      "blend": "some base64 data"
+    }],
+    "labels": [
+      "S-awaiting-merge"
+    ]
+  }, {
+    "image_data": {},
+    "labels": [
+      "S-awaiting-merge"
+    ]
+  }, {
+    "image_data": [{
+      "test": {
+        "url": "test/url",
+        "image": "test image data"
+      },
+      "ref": {
+        "url": "ref/url",
+        "image": "ref image data"
+      },
+      "blend": null
+    }],
+    "labels": [
+      "S-awaiting-merge"
+    ]
+  }],
+  "payload": {
+    "comment": {
+      "body": ":broken_heart: Test failed - [linux2](tests/issue_comment/comment_watcher/builders/test_builder_css_result.json)"
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "action": "created",
+    "issue": {
+      "number": 7075,
+      "state": "open",
+      "user": {
+        "login": "wafflespeanut"
+      }
+    },
+    "sender": {
+      "login": "bors-servo"
+    }
+  }
+}
