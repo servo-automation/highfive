@@ -33,7 +33,7 @@ def check_pulls(api, config, db, inst_id, self_name):
 
         config = api.get_matches_from_config(config)
         last_active = data.get('last_active')
-        if not last_active:
+        if not (config and last_active):
             continue
 
         last_active = datetime_parse(last_active)

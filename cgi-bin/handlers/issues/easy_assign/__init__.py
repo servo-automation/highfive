@@ -182,6 +182,9 @@ def check_easy_issues(api, config, db, inst_id, self_name):
             return
 
         config = api.get_matches_from_config(config)
+        if not config:
+            return
+
         # Note that the `api` variable beyond this point shouldn't be trusted for
         # anything more than the names of owner, repo, its methods and its logger.
         # All other variables are invalid.

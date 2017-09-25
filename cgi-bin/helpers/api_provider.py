@@ -51,7 +51,9 @@ class APIProvider(object):
     # Per-repo configuration
     def get_matches_from_config(self, config):
         if not (self.owner and self.repo):
-            assert not self.payload     # This happens only when we call sync handlers
+            # This happens only when we call sync handlers
+            # (We later override owner and repo and call this again)
+            assert not self.payload
             return config
 
         result = None
