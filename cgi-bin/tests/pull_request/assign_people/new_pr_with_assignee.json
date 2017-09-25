@@ -1,6 +1,7 @@
 {
   "initial": {
-    "assignee": ["SimonSapin"]
+    "assignee": ["SimonSapin"],
+    "contributors": []
   },
   "expected": {
     "assignee": ["SimonSapin"]

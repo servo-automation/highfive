@@ -86,6 +86,9 @@ class TestAPIProvider(APIProvider):
     def edit_comment(self, _id, comment):
         self.comments[str(_id)] = comment
 
+    def get_contributors(self):
+        return self.contributors
+
     def get_screenshots_for_build(self, build_url):
         return self.image_data
 

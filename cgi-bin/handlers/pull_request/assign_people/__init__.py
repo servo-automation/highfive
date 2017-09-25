@@ -20,8 +20,16 @@ def payload_handler(api, config):
         chosen_ones = [reviewers[int(api.issue_number) % len(reviewers)]]
 
     api.set_assignees(chosen_ones)
-    msgs = api.get_matches_from_config(config) or []
-    if msgs:
-        first = [chosen_ones[0]]
-        rest = map(lambda s: '@' + s, chosen_ones[1:])
-        api.post_comment(api.rand_choice(msgs).format(reviewer=join_names(first + rest)))
+    match = api.get_matches_from_config(config)
+    if not match:
+        return
+
+    first = [chosen_ones[0]]
+    rest = map(lambda s: '@' + s, chosen_ones[1:])
+    mention = join_names(first + rest)
+    api.post_comment(api.rand_choice(match['reviewer_msg']).format(reviewer=mention))
+
+    foss_folks = api.get_contributors()
+    if api.creator not in foss_folks:
+        msg = api.rand_choice(match['newcomer_welcome_msg']).format(reviewer=mention)
+        api.post_comment(msg)

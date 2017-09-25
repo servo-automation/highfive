@@ -12,6 +12,7 @@ import hashlib, hmac, itertools, json, os, time, requests
 
 WORKER_SLEEP_SECS = 1
 SYNC_HANDLER_SLEEP_SECS = 3600
+CONTRIBUTORS_UPDATE_INTERVAL_HOURS = 5
 
 # Implementation of digest comparison from Django
 # https://github.com/django/django/blob/0ed7d155635da9f79d4dd67e4889087d3673c6da/django/utils/crypto.py#L96-L105
@@ -120,8 +121,31 @@ class InstallationHandler(object):
         return self._request(method=method, url=url, data=data, auth=auth,
                              headers_required=headers_required)
 
-    def add(self, payload, event):
+    # This is where we create the GithubAPIProvider and patch it
+    # appropriately so that we cache the frequently used data.
+    def create_api_provider_for_payload(self, payload):
         api = GithubAPIProvider(self.runner.name, payload, self.queue_request)
+
+        # Sync the contributors for the given installation
+        data = self.runner.db.get_obj(inst_id, 'contributors')
+        interval = CONTRIBUTORS_UPDATE_INTERVAL_HOURS * 60 * 60
+        cur_time = int(time.time())
+        names = data.get('names', [])
+        last_updated = data.get('last_updated', cur_time - 2 * interval)
+
+        if cur_time > (last_updated + interval) or not names:
+            names = api.get_contributors()
+            data = {
+                'last_updated': cur_time,
+                'names': names,
+            }
+            self.runner.db.write_obj(data, inst_id, 'contributors')
+
+        api.get_contributors = lambda: names
+        return api
+
+    def add(self, payload, event):
+        api = self.create_api_provider_for_payload(payload)
         for _, handler in get_handlers(event):
             handler(api)
 
@@ -130,7 +154,7 @@ class SyncHandler(object):
     def __init__(self, inst_handler):
         self._id = inst_handler._id
         self.runner = inst_handler.runner   # FIXME: Too many indirections (refactor them someday)
-        self.request = inst_handler.queue_request
+        self.api_factory = inst_handler.create_api_provider_for_payload
         self.queue = Queue()
 
     def post(self, payload):
@@ -147,7 +171,7 @@ class SyncHandler(object):
                 # monkey-patch along the way). There's one more way to "monkey-unpatch"
                 # (by saving a snapshot of the class (its dict) and restoring it later)
                 # but that could lead to *dangerous* code.
-                api = GithubAPIProvider(self.runner.name, payload, self.request)
+                api = self.api_factory(payload)
                 handler(api, self.runner.db, self._id, os.path.basename(path))
 
 

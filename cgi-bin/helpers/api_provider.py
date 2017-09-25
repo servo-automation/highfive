@@ -219,6 +219,7 @@ class GithubAPIProvider(APIProvider):
     # It's forbidden to call this more than once in a session, since it will open
     # one of the gates to Tartarus, exposing our world to the Titans.
     def get_contributors(self):
+        self.logger.debug('Updating contributors list...')
         contributors = []
 
         while True:

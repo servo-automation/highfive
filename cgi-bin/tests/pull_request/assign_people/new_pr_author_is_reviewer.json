@@ -3,7 +3,9 @@
     "assignee": ["jdm"],
     "comments": ["@jdm Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks."]
   },
-  "initial": {},
+  "initial": {
+    "contributors": ["wafflespeanut"]
+  },
   "payload": {
     "number": 149,
     "pull_request": {

@@ -1,9 +1,14 @@
 {
   "expected": {
     "assignee": ["wafflespeanut"],
-    "comments": ["@wafflespeanut Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks."]
+    "comments": [
+      "@wafflespeanut Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks.",
+      "Thanks for the pull request, and welcome! The Servo team is excited to review your changes. You should hear from @wafflespeanut (or someone else) soon."
+    ]
   },
-  "initial": {},
+  "initial": {
+    "contributors": []
+  },
   "payload": {
     "number": 7087,
     "pull_request": {
