@@ -1,16 +1,19 @@
 {
   "initial": {
-    "head": "80488c4494911257e62c98388b36d94d74f9d330"
+    "head": {
+      "servo/servo": "80488c4494911257e62c98388b36d94d74f9d330",
+      "servo/webrender": "6cc2c6a4bd5ad0d3544b1568d02848efb29ca255"
+    }
   },
   "expected": {
     "comments": {
-      "999": "The code for tidy lives [here](https://github.com/servo/servo/tree/80488c4494911257e62c98388b36d94d74f9d330/python/tidy) (you should be looking at [this](https://github.com/servo/servo/blob/80488c4494911257e62c98388b36d94d74f9d330/python/tidy/servo_tidy/tidy.py#L1067-L1072))"
+      "999": "The code for tidy lives [here](https://github.com/servo/servo/tree/80488c4494911257e62c98388b36d94d74f9d330/python/tidy/servo_tidy). The config file for servo is [here](https://github.com/servo/servo/blob/80488c4494911257e62c98388b36d94d74f9d330/servo-tidy.toml) and for webrender, it's [here](https://github.com/servo/webrender/blob/6cc2c6a4bd5ad0d3544b1568d02848efb29ca255/servo-tidy.toml)"
     }
   },
   "payload": {
     "comment": {
       "id": 999,
-      "body": "The code for tidy lives [here](https://github.com/servo/servo/tree/master/python/tidy) (you should be looking at [this](https://github.com/servo/servo/blob/master/python/tidy/servo_tidy/tidy.py#L1067-L1072))"
+      "body": "The code for tidy lives [here](https://github.com/servo/servo/tree/master/python/tidy/servo_tidy). The config file for servo is [here](https://github.com/servo/servo/blob/master/servo-tidy.toml) and for webrender, it's [here](https://github.com/servo/webrender/blob/master/servo-tidy.toml)"
     },
     "repository": {
       "owner": {

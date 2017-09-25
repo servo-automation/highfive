@@ -136,14 +136,18 @@ def payload_handler(api, config):
     if api.payload.get('action') != 'created':
         return
 
-    body = str(api.payload['comment']['body'])
-    match = re.search('github.com/(.*?)/(.*?)/(?:(blob|tree))/master', body)
-    if match:
-        api.logger.debug('Replacing link to master branch...')
-        owner, repo = match.group(1), match.group(2)
+    # Ensure that links to repos never point to master branch
+    comment = str(api.payload['comment']['body'])
+    matches = re.findall('github.com/(.*?)/(.*?)/(?:(blob|tree))/master', comment)
+
+    for match in matches:
+        owner, repo = match[0], match[1]
         comment_id = api.payload['comment']['id']
         head = api.get_branch_head(owner=owner, repo=repo)
-        comment = re.sub(r'(?:(blob|tree))/master', r'\1/%s' % head, body)
+        comment = re.sub(r'(github.com/%s/%s/(?:(blob|tree)))/master' % (owner, repo),
+                         r'\1/%s' % head, comment)
+    if matches:
+        api.logger.debug('Replacing links to master branch...')
         api.edit_comment(comment_id, comment)
 
     other_handlers = api.get_matches_from_config(REPO_SPECIFIC_HANDLERS) or []

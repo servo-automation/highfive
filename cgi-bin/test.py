@@ -80,8 +80,8 @@ class TestAPIProvider(APIProvider):
     def close_issue(self):
         self.closed = True
 
-    def get_branch_head(self, owner=None, repo=None, branch=None):
-        return self.head
+    def get_branch_head(self, owner, repo, branch=None):
+        return self.head['%s/%s' % (owner, repo)]
 
     def edit_comment(self, _id, comment):
         self.comments[str(_id)] = comment
