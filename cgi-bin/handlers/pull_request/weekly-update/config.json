@@ -3,8 +3,9 @@
     "sync": true,
     "servo/": {
         "repo": "servo/blog.servo.org",
-        "next_pr_day_time": "Monday 09:00+00:00",
-        "branch": "twis",
-        "path": "_posts/{date}-twis-{count}.md"
+        "notify_day_time": "Monday 09:00+00:00",
+        "issue_title": "TWiS {date}",
+        "assignees": ["jdm"],
+        "labels": ["TWiS"]
     }
 }

@@ -119,6 +119,9 @@ class APIProvider(object):
     def get_page_content(self, path):
         raise NotImplementedError
 
+    def create_issue(self, title, body, labels, assignees):
+        raise NotImplementedError
+
     def close_issue(self):
         raise NotImplementedError
 
@@ -201,6 +204,15 @@ class GithubAPIProvider(APIProvider):
     def get_page_content(self, url):
         resp = requests.get(url)
         return resp.text
+
+    def create_issue(self, title, body, labels=[], assignees=[]):
+        url = self.base_url + '/issues'
+        return self._request('POST', url, {
+            "title": title,
+            "assignees": assignees,
+            "labels": labels,
+            "body": body
+        })
 
     def close_issue(self):
         url = self.issue_url % (self.owner, self.repo, self.issue_number)

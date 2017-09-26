@@ -144,3 +144,19 @@ def get_handlers(event_name, sync=False):
                                      ('', '', imp.PKG_DIRECTORY))
             yield (handler_dir,
                    lambda api, *args: module.payload_handler(api, handler_config, *args))
+
+
+class Modifier(object):
+    def __init__(self, obj, **kwargs):
+        self.obj = obj
+        self.old_attrs = dict((key, getattr(obj, key)) for key in kwargs)
+        self.new_attrs = kwargs
+
+    def __enter__(self):
+        for key, val in self.new_attrs.iteritems():
+            setattr(self.obj, key, val)
+        return self.obj
+
+    def __exit__(self, type, value, traceback):
+        for key, val in self.old_attrs.iteritems():
+            setattr(self.obj, key, val)

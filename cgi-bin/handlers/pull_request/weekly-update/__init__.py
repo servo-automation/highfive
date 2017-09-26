@@ -1,7 +1,20 @@
 from datetime import datetime, timedelta
 from dateutil.parser import parse as datetime_parse
 
+from helpers.methods import Modifier, join_names
+
 import calendar
+
+TEMPLATE = '''
+{assignees}: Here are the stats for this week.
+
+Link to pulls: https://github.com/pulls?utf8=%E2%9C%93&q=is%3Apr+is%3Amerged+closed%3A{start}..{end}+user%3A{owner}
+
+New contributors in {owner}/{repo}:
+
+{newcomers}
+
+'''
 
 def default():
     return {
@@ -31,7 +44,22 @@ def check_state(api, config, db, inst_id, name):
         return
 
     api.logger.debug('Preparing to post weekly update...')
-    # TODO: Prepare post, commit and open PR
+    assignees = join_names(map(lambda n: '@' + n, config['assignees']))
+    week_end = datetime_parse(data['post_date'])
+    week_start = str((week_start - timedelta(days=7)).date())
+    week_end = str(week_end.date())
+    newcomers = '\n'.join()
+
+    body = TEMPLATE.format(assignees=assignees, newcomers=newcomers,
+                           start=week_start, end=week_end,
+                           owner=data['owner'], repo=data['repo'])
+    title = config['issue_title'].format(date=week_end)
+
+    owner, repo = config['repo'].split('/')
+    with Modifier(api, owner=owner, repo=repo) as new_api:
+        new_api.create_issue(title=title, body=body,
+                             assignees=config.get('assignees', []),
+                             labels=config.get('labels', []))
 
     # Removing the data, so that next time a PR is opened, we'll start afresh
     api.logger.debug('Removing existing data...')
@@ -54,7 +82,7 @@ def check_payload(api, config, db, inst_id, name):
     if not data:
         data = default()
         data['started_from'] = data['last_updated'] = str(now)
-        day, time = config['next_pr_day_time'].split()
+        day, time = config['notify_day_time'].split()
         day = day[:3]
         weekday = list(calendar.day_abbr).index(day)
         days_ahead = weekday - now.weekday()
