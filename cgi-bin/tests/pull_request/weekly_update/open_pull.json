@@ -1,0 +1,77 @@
+{
+  "expected": [{
+    "db": {
+      "weekly_update": {
+        "owner": "servo",
+        "repo": "servo",
+        "newcomers": ["wafflespeanut"],
+        "pulls": ["1"],
+        "started_from": "don't care about time",
+        "post_date": "can't test time"
+      }
+    }
+  }, {
+    "db": {
+      "weekly_update": {
+        "owner": "servo",
+        "repo": "servo",
+        "newcomers": [],
+        "pulls": ["1"],
+        "started_from": "don't worry about time",
+        "post_date": "don't touch time!"
+      }
+    }
+  }],
+  "initial": [{
+    "contributors": [],
+    "db": {
+      "weekly_update": {
+        "owner": "servo",
+        "repo": "servo",
+        "newcomers": [],
+        "pulls": [],
+        "started_from": "don't care about time",
+        "post_date": "can't test time"
+      }
+    }
+  }, {
+    "contributors": ["wafflespeanut"],
+    "db": {
+      "weekly_update": {
+        "owner": "servo",
+        "repo": "servo",
+        "newcomers": [],
+        "pulls": [],
+        "started_from": "don't worry about time",
+        "post_date": "don't touch time!"
+      }
+    }
+  }],
+  "payload": {
+    "number": 1,
+    "pull_request": {
+      "merged": true,
+      "state": "closed",
+      "updated_at": "some time",
+      "base": {
+        "repo": {
+          "owner": {
+            "login": "servo"
+          },
+          "name": "servo"
+        }
+      },
+      "assignee": {
+        "login": "booya"
+      },
+      "url": null,
+      "user": {
+        "login": "wafflespeanut"
+      }
+    },
+    "action": "closed",
+    "sender": {
+      "login": "wafflespeanut"
+    }
+  }
+}

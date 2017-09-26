@@ -1,3 +1,4 @@
+from copy import deepcopy
 from datetime import datetime, timedelta
 from dateutil.parser import parse as datetime_parse
 
@@ -22,11 +23,10 @@ def default():
         "pulls": [],                # PR numbers
         "started_from": None,       # date from which we started counting
         "post_date": None,          # date on which the post should be committed
-        "last_updated": None,       # last updation timestamp
     }
 
 
-def check_state(api, config, db, inst_id, name):
+def check_state(api, config, db, inst_id, self_name):
     data = db.get_obj(inst_id, self_name)
     if data.get('owner') and data.get('repo'):
         api.owner, api.repo = data['owner'], data['repo']
@@ -48,7 +48,7 @@ def check_state(api, config, db, inst_id, name):
     week_end = datetime_parse(data['post_date'])
     week_start = str((week_start - timedelta(days=7)).date())
     week_end = str(week_end.date())
-    newcomers = '\n'.join()
+    newcomers = '\n'.join(map(lambda c: ' - @' + c, data['newcomers']))
 
     body = TEMPLATE.format(assignees=assignees, newcomers=newcomers,
                            start=week_start, end=week_end,
@@ -66,7 +66,7 @@ def check_state(api, config, db, inst_id, name):
     db.remove_obj(inst_id, self_name)
 
 
-def check_payload(api, config, db, inst_id, name):
+def check_payload(api, config, db, inst_id, self_name):
     payload = api.payload
     action = payload.get('action')
     if action is None:
@@ -81,7 +81,7 @@ def check_payload(api, config, db, inst_id, name):
 
     if not data:
         data = default()
-        data['started_from'] = data['last_updated'] = str(now)
+        data['started_from'] = str(now)
         day, time = config['notify_day_time'].split()
         day = day[:3]
         weekday = list(calendar.day_abbr).index(day)
@@ -104,7 +104,6 @@ def check_payload(api, config, db, inst_id, name):
         contributors = api.get_contributors()
         if api.creator not in contributors:
             data['newcomers'].append(api.creator)
-        data['last_updated'] = str(now)
 
     if data != old_data:
         db.write_obj(data, inst_id, self_name)
