@@ -1,0 +1,38 @@
+{
+  "initial": [{
+    "db": {
+      "weekly_update": {
+        "owner": "servo",
+        "repo": "servo",
+        "newcomers": ["wafflespeanut", "nox", "manishearth"],
+        "pulls": ["7600", "7639", "7703"],
+        "started_from": "1970-01-01T00:00:00Z",
+        "post_date": "1970-01-02T00:00:00Z"
+      }
+    }
+  }, {
+    "db": {
+      "weekly_update": {
+        "owner": "servo",
+        "repo": "servo",
+        "newcomers": ["wafflespeanut", "nox", "manishearth"],
+        "pulls": ["7600", "7639", "7703"],
+        "started_from": "1970-01-01T00:00:00Z",
+        "post_date": "2100-01-01T00:00:00Z"
+      }
+    }
+  }],
+  "expected": [{
+    "db": {},
+    "new_issue": {
+      "repo": "servo/blog.servo.org",
+      "title": "TWiS 1970-01-02",
+      "body": "\n@jdm: Here are the stats for this week.\n\nLink to pulls: https://github.com/pulls?utf8=%E2%9C%93&q=is%3Apr+is%3Amerged+closed%3A1969-12-26..1970-01-02+user%3Aservo\n\nNew contributors in servo/servo:\n\n - @wafflespeanut\n - @nox\n - @manishearth\n\n",
+      "labels": ["TWiS"],
+      "assignees": ["jdm"]
+    }
+  }, {
+    "new_issue": {}
+  }],
+  "payload": {}
+}

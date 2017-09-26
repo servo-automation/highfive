@@ -77,6 +77,15 @@ class TestAPIProvider(APIProvider):
         with open(os.path.join(ROOT, path)) as fd:
             return fd.read()
 
+    def create_issue(self, title, body, labels=[], assignees=[]):
+        self.new_issue = {
+            "repo": "%s/%s" % (self.owner, self.repo),
+            "title": title,
+            "body": body,
+            "assignees": assignees,
+            "labels": labels,
+        }
+
     def close_issue(self):
         self.closed = True
 

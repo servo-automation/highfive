@@ -46,7 +46,7 @@ def check_state(api, config, db, inst_id, self_name):
     api.logger.debug('Preparing to post weekly update...')
     assignees = join_names(map(lambda n: '@' + n, config['assignees']))
     week_end = datetime_parse(data['post_date'])
-    week_start = str((week_start - timedelta(days=7)).date())
+    week_start = str((week_end - timedelta(days=7)).date())
     week_end = str(week_end.date())
     newcomers = '\n'.join(map(lambda c: ' - @' + c, data['newcomers']))
 
