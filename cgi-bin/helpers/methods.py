@@ -9,15 +9,18 @@ LOGGERS = {}
 _GLOBAL_CONFIG_PATH = os.environ.get('CONFIG',
                                      os.path.join(ROOT, 'config.json'))
 with open(_GLOBAL_CONFIG_PATH, 'r') as fd:
-    CONFIG = json.load(fd)
+    raw_config = fd.read()
+    matches = re.findall(r'"ENV::([A-Z_0-9]*)"', raw_config)
+    for m in matches:   # Check and replace env variables (if any)
+        value = os.environ.get(m)
+        encoded = json.dumps(value)
+        print 'Replacing env variable %s with %s' % (m, encoded)
+        raw_config = raw_config.replace('"ENV::%s"' % m, encoded)
+
+    CONFIG = json.loads(raw_config)
     COLLABORATORS = CONFIG['collaborators']
     if not os.path.exists(CONFIG['dump_path']):
         os.mkdir(CONFIG['dump_path'])
-    for key, val in CONFIG.items():     # Check if there are any env variables
-        if val.startswith('ENV::'):
-            value = os.environ.get(val[5:])
-            print 'Replacing env variable %s with %s' % (val, value)
-            CONFIG[key] = val
 
 def init_logger():
     logging.basicConfig(level=logging.DEBUG,
