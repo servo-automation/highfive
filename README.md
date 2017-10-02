@@ -76,22 +76,19 @@ Github's payload JSONs are huge! They have a lot of useful information, but we w
  - Clone the repo.
  - Make appropriate changes to the `config.json` belonging to the individual handlers.
  - Run `docker build -t highfive` to build the image.<sup>[2]</sup>
- - Assuming we have the following directory structure,
+ - Assuming we have the following directory structure and the `config.json` from upstream,<sup>[3]</sup>
 
 ```
 $HOME
- |- highfive-config
-    |- config.json
-    |- highfive.pem
+ |- highfive.pem
  |- json_dumps
     |- ...
 ```
 
- - Make changes to the global `config.json` and have absolute paths for `pem_file` and `dump_path` (say, `"/config/highfive.pem"` and `"/dumps"`).
  - Spawn a container with the config and dump paths appropriately mounted like so...
 
 ```
-docker run -v ~/highfive-config:/config -v ~/json_dumps:/dumps -p 5000:5000 -d highfive
+docker run -v ~/highfive.pem:/highfive.pem:ro -v ~/json_dumps:/dumps -e PEM_KEY="/highfive.pem" -e SECRET="$SECRET" -e ID=$ID -e DUMP_PATH="/dumps" -e IMGUR_CLIENT_ID=$CLIENT_ID -e SCREENSHOTS_IP="http://$SHOTS_IP:$SHOTS_PORT" -p 8000:8000 -d highfive
 ```
 
  - Whenever you rebuild an image or change the config, simply restart the container.
@@ -101,4 +98,5 @@ docker run -v ~/highfive-config:/config -v ~/json_dumps:/dumps -p 5000:5000 -d h
 <sup>
 [1]: If you've removed an event from the global config file, then the entire group of handlers will be ignored. <br />
 [2]: Note that the handler-specific `config.json` live alongside the handlers themselves, and hence they cannot be changed after building the image.
+[3]: If you've modified the config, then you can specify the new location using the `CONFIG` env variable.
 </sup>

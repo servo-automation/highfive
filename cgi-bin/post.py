@@ -12,9 +12,11 @@ if __name__ == '__main__':
     print('\r\n')
     init_logger()
     logger = get_logger(__name__)
+    if not os.path.exists(CONFIG['dump_path']):
+        os.mkdir(CONFIG['dump_path'])
 
     config = CONFIG
-    auth_path = os.path.join(CONFIG['dump_path'], 'config_dump')
+    auth_path = os.path.join(CONFIG['dump_path'], 'config_dump.json')
     if os.path.exists(auth_path):
         with open(auth_path, 'r') as fd:
             config = json.load(fd)

@@ -9,7 +9,7 @@
         "issues",
         "pull_request"
     ],
-    "imgur_client_id": "ENV::IMGURE_CLIENT_ID",
+    "imgur_client_id": "ENV::IMGUR_CLIENT_ID",
     "collaborators": {
         "servo/servo": [
             "asajeffrey",

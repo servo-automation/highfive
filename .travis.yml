@@ -2,4 +2,4 @@ language: python
 python:
   - "2.7"
 script:
-  - DUMP_PATH=json_dumps python cgi-bin/test.py
+  - python cgi-bin/test.py

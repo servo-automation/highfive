@@ -19,8 +19,6 @@ with open(_GLOBAL_CONFIG_PATH, 'r') as fd:
 
     CONFIG = json.loads(raw_config)
     COLLABORATORS = CONFIG['collaborators']
-    if not os.path.exists(CONFIG['dump_path']):
-        os.mkdir(CONFIG['dump_path'])
 
 def init_logger():
     logging.basicConfig(level=logging.DEBUG,

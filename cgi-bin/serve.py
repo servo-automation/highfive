@@ -9,6 +9,8 @@ import json, os
 if __name__ == '__main__':
     init_logger()
     logger = get_logger(__name__)
+    if not os.path.exists(CONFIG['dump_path']):
+        os.mkdir(CONFIG['dump_path'])
 
     runner = Runner(CONFIG)
     sync_thread = Thread(target=runner.start_sync)
