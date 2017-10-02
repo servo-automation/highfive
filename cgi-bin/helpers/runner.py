@@ -180,7 +180,7 @@ class Runner(object):
         self.name = config['name']
         self.logger = get_logger(__name__)
         self.enabled_events = config.get('enabled_events', [])
-        self.integration_id = config['integration_id']
+        self.integration_id = int(config['integration_id'])
         self.secret = str(config.get('secret', ''))
         self.installations = {}
         self.sync_runners = {}

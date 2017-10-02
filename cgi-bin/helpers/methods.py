@@ -13,6 +13,11 @@ with open(_GLOBAL_CONFIG_PATH, 'r') as fd:
     COLLABORATORS = CONFIG['collaborators']
     if not os.path.exists(CONFIG['dump_path']):
         os.mkdir(CONFIG['dump_path'])
+    for key, val in CONFIG.items():     # Check if there are any env variables
+        if val.startswith('ENV::'):
+            value = os.environ.get(val[5:])
+            print 'Replacing env variable %s with %s' % (val, value)
+            CONFIG[key] = val
 
 def init_logger():
     logging.basicConfig(level=logging.DEBUG,

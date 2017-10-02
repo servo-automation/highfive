@@ -1,5 +1,7 @@
 ## Highfive
 
+[![Build Status](https://travis-ci.org/servo-automation/highfive.svg?branch=master)](https://travis-ci.org/servo-automation/highfive)
+
 Highfive is a Github integration (bot), meant to provide a welcoming environment for the newcomers to open source, and also help the contributors by commenting, labeling or notifying them in issues and pull requests when an anticipated event occurs. This is a rewrite of all the collaborative work done in the old [highfive](https://github.com/servo/highfive), with the limitations of Github API in mind.
 
 ### Running
@@ -18,7 +20,7 @@ The database for the sync handlers is usually a local JSON store, but if you hav
 
 All the handlers have per-repo configuration. There's a `config.json` local to every handler, which determines how it should respond to an event. The `"active"` key tells whether the handler should be considered while processing an event-related payload, and `"repos"` (may) contain the per-repo config. Repository names are usually of the form `"owner/repo"`, but since it allows regex patterns, you can have dangerous matches like `"owner/"` (which matches all the repos of an owner) and `".*"` (which matches any installation, i.e., every payload it gets). And, there's a `"sync"` key which tells whether it's a sync handler (disabling this will skip the runner from calling the handler).
 
-There's also a global [`config.json`](https://github.com/servo-automation/highfive/blob/master/cgi-bin/config.json) where we can enable/disable a group of handlers corresponding to an event.
+There's a global [`config.json`](https://github.com/servo-automation/highfive/blob/master/cgi-bin/config.json) which holds some stuff for highfive to function properly (like the integration ID, secret, PEM key location, etc.). We can also add/remove events in the file which enables/disables entire groups of handlers. Also, if the file contains values in the form `ENV::NAME`, then `$NAME` will be obtained from the environment. This is particularly useful if you don't wanna dump all the secret stuff in the config.
 
 ### Tests
 
@@ -74,7 +76,7 @@ Github's payload JSONs are huge! They have a lot of useful information, but we w
  - Clone the repo.
  - Make appropriate changes to the `config.json` belonging to the individual handlers.
  - Run `docker build -t highfive` to build the image.<sup>[2]</sup>
- - Assuming we the following directory structure,
+ - Assuming we have the following directory structure,
 
 ```
 $HOME

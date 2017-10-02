@@ -1,15 +1,15 @@
 {
     "name": "highfive",
-    "pem_file": "highfive.pem",
-    "secret": null,
-    "integration_id": null,
-    "dump_path": "json_dumps",
+    "pem_file": "ENV::PEM_KEY",
+    "secret": "ENV::SECRET",
+    "integration_id": "ENV::ID",
+    "dump_path": "ENV::DUMP_PATH",
     "enabled_events": [
         "issue_comment",
         "issues",
         "pull_request"
     ],
-    "imgur_client_id": null,
+    "imgur_client_id": "ENV::IMGURE_CLIENT_ID",
     "collaborators": {
         "servo/servo": [
             "asajeffrey",
@@ -45,5 +45,5 @@
         ]
     },
 
-    "servo_reftest_screenshot_endpoint": null
+    "servo_reftest_screenshot_endpoint": "ENV::SCREENSHOTS_IP"
 }
