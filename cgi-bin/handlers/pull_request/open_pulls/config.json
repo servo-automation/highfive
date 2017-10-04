@@ -1,7 +1,7 @@
 {
     "active": true,
     "sync": true,
-    "servo/servo": {
+    "servo/": {
         "grace_period_days": 4,
         "pr_close": [
             "Okay, I'm gonna close this based on inactivity. If you change your mind about working on this issue again, feel free to ping us and we'll reopen it for you. Thanks for taking a stab at this :smile:"

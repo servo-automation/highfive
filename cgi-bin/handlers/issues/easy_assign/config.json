@@ -1,7 +1,7 @@
 {
     "active": true,
     "sync": true,
-    "servo/servo": {
+    "servo/": {
         "grace_period_days": 4,
         "easy_label": "e-easy",
         "assign_label": "c-assigned",
