@@ -240,8 +240,11 @@ class GithubAPIProvider(APIProvider):
         while True:
             headers, data = self._request('GET', url, headers_required=True)
             contributors.extend(map(lambda v: v['login'], data))
-            match = re.search(r'<(.*)>; rel="next".*<(.*)>; rel="last"',
-                              headers['Link'])
+
+            match = None
+            if headers.get('Link'):
+                match = re.search(r'<(.*)>; rel="next".*<(.*)>; rel="last"',
+                                  headers['Link'])
             if not match:
                 break
 
