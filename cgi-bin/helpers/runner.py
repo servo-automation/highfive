@@ -127,7 +127,7 @@ class InstallationHandler(object):
         api = GithubAPIProvider(self.runner.name, payload, self.queue_request)
 
         # Sync the contributors for the given installation
-        data = self.runner.db.get_obj(inst_id, 'contributors')
+        data = self.runner.db.get_obj(self._id, 'contributors')
         interval = CONTRIBUTORS_UPDATE_INTERVAL_HOURS * 60 * 60
         cur_time = int(time.time())
         names = data.get('names', [])
@@ -139,7 +139,7 @@ class InstallationHandler(object):
                 'last_updated': cur_time,
                 'names': names,
             }
-            self.runner.db.write_obj(data, inst_id, 'contributors')
+            self.runner.db.write_obj(data, self._id, 'contributors')
 
         api.get_contributors = lambda: names
         return api
