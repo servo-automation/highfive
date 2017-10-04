@@ -235,10 +235,10 @@ class GithubAPIProvider(APIProvider):
     def get_contributors(self):
         self.logger.debug('Updating contributors list...')
         contributors = []
+        url = self.contributors_url % (self.owner, self.repo)
 
         while True:
-            headers, data = self._request('GET', self.contributors_url,
-                                          headers_required=True)
+            headers, data = self._request('GET', url, headers_required=True)
             contributors.extend(map(lambda v: v['login'], data))
             match = re.search(r'<(.*)>; rel="next".*<(.*)>; rel="last"',
                               headers['Link'])
