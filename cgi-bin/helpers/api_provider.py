@@ -51,10 +51,13 @@ class APIProvider(object):
     # Per-repo configuration
     def get_matches_from_config(self, config):
         if not (self.owner and self.repo):
-            # This happens only when we call sync handlers
-            # (We later override owner and repo and call this again)
-            assert not self.payload
-            return config
+            if self.payload:
+                self.logger.error("There's no owner/repo info in payload. Bleh?")
+                return None
+            else:
+                # This happens only when we call sync handlers
+                # (We later override owner and repo and call this again)
+                return config
 
         result = None
         string = '%s/%s' % (self.owner, self.repo)
