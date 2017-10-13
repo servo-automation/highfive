@@ -133,7 +133,7 @@ class InstallationHandler(object):
         names = data.get('names', [])
         last_updated = data.get('last_updated', cur_time - 2 * interval)
 
-        if cur_time > (last_updated + interval) or not names:
+        if api.owner and api.repo and (cur_time > (last_updated + interval) or not names):
             names = api.get_contributors()
             data = {
                 'last_updated': cur_time,
