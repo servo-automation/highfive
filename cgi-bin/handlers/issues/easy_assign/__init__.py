@@ -73,8 +73,8 @@ def check_easy_issues(api, config, db, inst_id, self_name):
                 data['issues'][api.issue_number] = default()
 
     elif action == 'created' and not api.is_pull and not api.is_from_self():
-        msg = payload['comment']['body']
-        match = re.search(r'@%s(?:\[bot\])?[: ]*assign @?(.*)' % api.name, str(msg.lower()))
+        msg = api.comment.lower()
+        match = re.search(r'@%s(?:\[bot\])?[: ]*assign @?(.*)' % api.name, msg)
         if match:
             name = match.group(1).split(' ')[0]
             if name == 'me':

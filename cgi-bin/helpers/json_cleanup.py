@@ -50,6 +50,9 @@ class NodeMarker(object):
     def lower(self):
         return str(self).lower()
 
+    def encode(self, encoding):
+        return self._node.encode(encoding)
+
     def split(self, *args):
         return str(self).split(*args)
 

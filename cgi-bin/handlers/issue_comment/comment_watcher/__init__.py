@@ -31,11 +31,10 @@ def check_log_for_css_failures(api, build_url):
 
 
 def check_failure_log(api):
-    comment = api.payload['comment']['body']
     # bors's comment would be something like,
     # ":broken_heart: Test failed - [linux2](http://build.servo.org/builders/linux2/builds/2627)"
     # ... from which we get the relevant build result url
-    url = re.findall(r'.*\((.*)\)', str(comment))
+    url = re.findall(r'.*\((.*)\)', api.comment)
     if not url:
         return
 
@@ -80,11 +79,9 @@ def assign_reviewer(api):
     if api.payload.get('action') != 'created':
         return
 
-    comment = api.payload['comment']['body']
-
     def get_approver():
         approval_regex = r'.*@bors-servo[: ]*r([\+=])([a-zA-Z0-9\-,\+]*)'
-        approval = re.search(approval_regex, str(comment))
+        approval = re.search(approval_regex, api.comment)
 
         if approval:
             if approval.group(1) == '=':    # "r=foo" or "r=foo,bar"
@@ -97,7 +94,7 @@ def assign_reviewer(api):
         api.set_assignees(reviewers.split(','))
         return
 
-    reviewers = find_reviewers(comment)
+    reviewers = find_reviewers(api.comment)
     if reviewers:
         api.set_assignees(reviewers)
 
@@ -106,20 +103,19 @@ def check_bors_msg(api):
     if api.sender != 'bors-servo' or api.payload.get('action') != 'created':
         return
 
-    comment = api.payload['comment']['body']
     api.logger.debug('Checking comment by bors...')
-    if 'has been approved by' in comment or 'Testing commit' in comment:
+    if 'has been approved by' in api.comment or 'Testing commit' in api.comment:
         remove_labels = ['S-awaiting-review', 'S-needs-rebase',
                          'S-tests-failed', 'S-needs-code-changes',
                          'S-needs-squash', 'S-awaiting-answer']
         api.update_labels(add=['S-awaiting-merge'], remove=remove_labels)
 
-    elif 'Test failed' in comment:
+    elif 'Test failed' in api.comment:
         api.update_labels(add=['S-tests-failed'], remove=['S-awaiting-merge'])
         # Get the homu build stats url, extract the failed tests and post them!
         check_failure_log(api)
 
-    elif 'Please resolve the merge conflicts' in comment:
+    elif 'Please resolve the merge conflicts' in api.comment:
         api.update_labels(add=['S-needs-rebase'], remove=['S-awaiting-merge'])
 
 
@@ -137,7 +133,7 @@ def payload_handler(api, config):
         return
 
     # Ensure that links to repos never point to master branch
-    comment = str(api.payload['comment']['body'])
+    comment = api.comment
     matches = re.findall('github.com/(.*?)/(.*?)/(?:(blob|tree))/master', comment)
 
     for match in matches:

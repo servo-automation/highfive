@@ -119,10 +119,9 @@ def manage_pulls(api, config, db, inst_id, self_name):
     if is_pr_in_list:
         if action == 'created':
             data['last_active'] = api.last_updated
-            comment = payload['comment']['body']
             data['status'] = None
             data['comments'].append({
-                'body': comment,
+                'body': api.comment,
                 'when': api.last_updated,
                 'who': api.sender
             })

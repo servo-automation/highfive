@@ -15,6 +15,7 @@ class APIProvider(object):
         node = self.get_matching_path(['owner', 'login'])
         self.owner = node['owner']['login'].lower() if node.get('owner') else None
         self.repo = node['name'].lower() if node.get('name') else None
+        self.comment = payload['comment']['body'].encode('utf-8') if payload.get('comment') else None
 
         node = self.get_matching_path(['assignee'])
         self.assignee = node['assignee']['login'].lower() if node.get('assignee') else None
