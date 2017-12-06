@@ -8,7 +8,7 @@ from api_provider import GithubAPIProvider
 from database import JsonStore, PostgreSql
 from methods import AVAILABLE_EVENTS, get_handlers, get_logger
 
-import hashlib, hmac, itertools, json, os, time, requests
+import hashlib, hmac, itertools, json, os, re, requests, time
 
 WORKER_SLEEP_SECS = 1
 SYNC_HANDLER_SLEEP_SECS = 3600
@@ -94,7 +94,7 @@ class InstallationHandler(object):
 
         if code < 200 or code >= 300:
             self.logger.error('Got a %s response: %r', code, data)
-            raise Exception
+            raise Exception('Invalid response')
 
         try:
             data = json.loads(data)
@@ -132,6 +132,11 @@ class InstallationHandler(object):
         cur_time = int(time.time())
         names = data.get('names', [])
         last_updated = data.get('last_updated', cur_time - 2 * interval)
+
+        # Check if we should handle this payload
+        if not any(re.search(pat, '%s/%s' % (api.owner, api.repo)) for pat in CONFIG['allowed_repos']):
+            self.logger.info('Rejected payload from %s/%s' % (api.owner, api.repo))
+            raise Exception('Unregistered repository')
 
         if api.owner and api.repo and (cur_time > (last_updated + interval) or not names):
             names = api.get_contributors()
@@ -248,7 +253,10 @@ class Runner(object):
             else:
                 self.logger.info('Received payload for for installation %s'
                                  ' (event: %s, action: %s)', inst_id, event, payload.get('action'))
-                self.installations[inst_id].add(payload, event)
+                try:
+                    self.installations[inst_id].add(payload, event)
+                except Exception:       # Could be unregistered repo or unsuccessful request
+                    pass
         else:   # no matching events
             self.logger.info("(event: %s, action: %s) doesn't match any enabled events (installation %s)."
                              " Skipping payload-dependent handlers...", event, payload.get('action'), inst_id)
@@ -273,4 +281,7 @@ class Runner(object):
                 self.poke_data()
 
             sleep(WORKER_SLEEP_SECS)
-            self.clear_queue()
+            try:
+                self.clear_queue()
+            except Exception:       # Could be unregistered repo or unsuccessful request
+                pass

@@ -1,7 +1,7 @@
 from methods import ROOT, get_logger
 from urlparse import urlparse
 
-import json, os, psycopg2
+import json, os, psycopg2, shutil
 
 DB_JSON_LEN = 10000
 DB_KEY_LEN = 100
@@ -46,6 +46,9 @@ class JsonStore(Database):
         if os.path.isfile(dump_path):
             self.logger.debug('Removing file %r', dump_path)
             os.remove(dump_path)
+        elif os.path.isdir(dump_path):
+            self.logger.debug('Recursively removing directory %r', dump_path)
+            shutil.rmtree(dump_path)
 
     def write_obj(self, data, inst_id, key):
         parent = os.path.join(self.dump_path, str(inst_id))

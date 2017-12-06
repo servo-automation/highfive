@@ -44,6 +44,10 @@
             "highfive"
         ]
     },
+    "allowed_repos": [
+        "servo/.*",
+        "servo-automation/.*"
+    ],
 
     "servo_reftest_screenshot_endpoint": "ENV::SCREENSHOTS_IP"
 }
