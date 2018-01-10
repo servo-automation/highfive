@@ -2,7 +2,9 @@ import json
 import requests
 
 class Response(object):
-    def __init__(self, code, headers, data):
+    ''' The response object that should be returned by all "requesting" functions.'''
+
+    def __init__(self, data, code=200, headers={}):
         self.code = code
         self.headers = headers
         self.data = data
@@ -25,7 +27,7 @@ def request_with_requests(method, url, data=None, headers={}):
         pass
 
     return Response(
+        data=data,
         code=resp.status_code,
-        headers=resp.headers,
-        data=data
+        headers=resp.headers
     )

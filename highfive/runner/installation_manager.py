@@ -1,4 +1,5 @@
 from config import get_logger
+from datetime import datetime
 from dateutil.parser import parse as datetime_parse
 from jose import jwt
 from request import request_with_requests
@@ -30,6 +31,8 @@ class InstallationManager(object):
         self.integration_id = integration_id
         self.installation_id = installation_id
         self.installation_url = self.installation_url % installation_id
+
+        # Objects for mocking in tests
         self.json_request = json_request
 
         # Stuff required for sync'ing token
@@ -58,11 +61,11 @@ class InstallationManager(object):
             'iss': self.integration_id,
         }
 
-        auth = 'Bearer %s' % jwt.encode(auth_payload, self.key, 'RS256')
+        auth = 'Bearer %s' % jwt.encode(auth_payload, self.pem_key, 'RS256')
         resp = self._request('POST', self.installation_url, auth=auth)
-        self.token = resp['token']      # installation token (expires in 1 hour)
-        self.logger.debug('Token expires on %s', resp['expires_at'])
-        self.next_token_sync = datetime_parse(resp['expires_at'])
+        self.token = resp.data['token']     # installation token (expires in 1 hour)
+        self.logger.debug('Token expires on %s', resp.data['expires_at'])
+        self.next_token_sync = datetime_parse(resp.data['expires_at'])
 
     def wait_time(self):
         '''
@@ -103,7 +106,7 @@ class InstallationManager(object):
             self.logger.error('Got a %s response: %r', resp.code, resp.data)
             raise Exception('Invalid response')
 
-        return data
+        return resp
 
     def request(self, method, url, data=None, auth=True):
         '''

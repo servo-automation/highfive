@@ -6,5 +6,6 @@ if __name__ == '__main__':
                                ('', '', imp.PKG_DIRECTORY))
 
     from config_tests import ConfigurationTests
+    from installation_manager_tests import InstallationManagerTests
 
     unittest.main()
