@@ -111,6 +111,9 @@ class InstallationManager(object):
             self.logger.error('Got a %s response: %r', resp.code, resp.data)
             raise Exception('Invalid response')
 
+        if auth:
+            self.headers.pop('Authorization')
+
         return resp
 
     def request(self, method, url, data=None, auth=True):

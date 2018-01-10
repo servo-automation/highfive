@@ -24,6 +24,12 @@ U9VQQSQzY1oZMVX8i1m5WUTLPz2yLJIBQVdXqhMCQBGoiuSoSjafUhV7i1cEGpb88h5NBYZzWXGZ
 
 
 class InstallationManagerTests(TestCase):
+    def check_default_headers(self, headers):
+        self.assertEqual(headers['Content-Type'], 'application/json')
+        self.assertEqual(headers['Accept'],
+                         'application/vnd.github.machine-man-preview+json')
+        self.assertEqual(headers['Accept-Encoding'], 'gzip, deflate')
+
     def test_manager_init(self):
         manager = InstallationManager(key=SAMPLE_KEY,
                                       integration_id=666,
@@ -44,25 +50,21 @@ class InstallationManagerTests(TestCase):
         '''
 
         class FnScope(object):      # workaround to access outer scope vars
-            suite = self
             expiry = datetime.now() + timedelta(seconds=3600)
             requested = 0
 
         scope = FnScope()
 
-        def test_request(method, url, data=None, headers={}):
-            scope.suite.assertEqual(headers['Content-Type'], 'application/json')
-            scope.suite.assertEqual(headers['Accept'],
-                                    'application/vnd.github.machine-man-preview+json')
-            scope.suite.assertEqual(headers['Accept-Encoding'],
-                                    'gzip, deflate')
-            scope.suite.assertEqual(method, 'POST')
+        def test_request(method, url, data, headers):
+            self.check_default_headers(headers)
+            self.assertEqual(method, 'POST')
+            self.assertEqual(url, 'https://api.github.com/installations/255/access_tokens')
             scope.requested += 1
             auth = headers['Authorization']
-            scope.suite.assertEqual(auth[:7], 'Bearer ')
+            self.assertEqual(auth[:7], 'Bearer ')
             payload = jwt.decode(auth[7:], SAMPLE_KEY)  # decode the `Bearer` token
-            scope.suite.assertEqual(payload['iss'], 666)
-            scope.suite.assertEqual(payload['iat'] + 600, payload['exp'])
+            self.assertEqual(payload['iss'], 666)
+            self.assertEqual(payload['iat'] + 600, payload['exp'])
             return Response(data={
                 'token': 'booya',
                 # time-zone aware timestamp shouldn't raise exception
@@ -83,6 +85,7 @@ class InstallationManagerTests(TestCase):
         # This doesn't initiate syncing, because our token hasn't expired yet.
         self.assertEqual(scope.requested, 1)
 
+
     def test_wait_time(self):
         '''
         Wait time returns the waiting period (in seconds) for making a request.
@@ -91,18 +94,15 @@ class InstallationManagerTests(TestCase):
         '''
 
         class FnScope(object):
-            suite = self
             reset = int(time.time()) + 3600
 
         scope = FnScope()
 
-        def test_request(method, url, data=None, headers={}):
-            scope.suite.assertEqual(headers['Content-Type'], 'application/json')
-            scope.suite.assertEqual(headers['Accept'],
-                                    'application/vnd.github.machine-man-preview+json')
-            scope.suite.assertEqual(headers['Accept-Encoding'],
-                                    'gzip, deflate')
-            scope.suite.assertEqual(method, 'GET')
+        def test_request(method, url, data, headers):
+            self.check_default_headers(headers)
+            self.assertEqual(headers['Authorization'], 'token booya')
+            self.assertEqual(method, 'GET')
+            self.assertEqual(url, 'https://api.github.com/rate_limit')
             return Response(data={      # Actual data from Github
                 "rate": {
                     "limit": 5000,
@@ -121,6 +121,7 @@ class InstallationManagerTests(TestCase):
         wait_secs = manager.wait_time()
         self.assertTrue(wait_secs > 0.7 and wait_secs <= 0.75)  # 3600 / 5000 = 0.72
         self.assertEqual(manager.remaining, 4999)
+        self.assertEqual(manager.reset_time, scope.reset)
 
         # assume that the bot hasn't made any requests for half an hour
         manager.reset_time -= 1800
@@ -130,7 +131,73 @@ class InstallationManagerTests(TestCase):
 
 
     def test_raw_request(self):
-        pass
+        '''
+        Raw requests are authenticated by default, but they could also be
+        unauthenticated.
+        '''
+
+        def test_request_default(method, url, data, headers):
+            self.check_default_headers(headers)
+            self.assertTrue(data is None)
+            self.assertEqual(headers['Authorization'], 'token booya')
+            self.assertEqual(method, 'SOME-METHOD')
+            self.assertEqual(url, 'https://some.url')
+            return Response(data={})
+
+        def test_request_with_data(method, url, data, headers):
+            self.check_default_headers(headers)
+            self.assertEqual(data, {'foo': 'bar'})
+            return Response(data={})
+
+        def test_custom_auth(method, url, data, headers):
+            self.check_default_headers(headers)
+            self.assertEqual(headers['Authorization'], 'Some token')
+            return Response(data={})
+
+        def test_request_noauth(method, url, data, headers):
+            self.check_default_headers(headers)
+            self.assertEqual(headers.get('Authorization'), None)
+            return Response(data={})
+
+        def test_4xx_response(method, url, data, headers):
+            return Response(data={}, code=400)
+
+        manager = InstallationManager(key=SAMPLE_KEY,
+                                      integration_id=666,
+                                      installation_id=255,
+                                      json_request=test_4xx_response)
+        # assume that we've obtained the token through `sync_token`
+        manager.token = 'booya'
+        try:
+            manager._request('SOME-METHOD', 'https://some.url')
+            self.assertTrue(False)      # just to make this fail
+        except Exception as err:
+            self.assertEqual(str(err), 'Invalid response')
+
+        test_cases = [
+            (test_request_default, {}),
+            (test_request_with_data, {'data': {'foo': 'bar'}}),
+            (test_custom_auth, {'auth': 'Some token'}),
+            (test_request_noauth, {'auth': False}),
+        ]
+
+        for function, kwargs in test_cases:
+            manager.json_request = function
+            manager._request('SOME-METHOD', 'https://some.url', **kwargs)
+
 
     def test_actual_request(self):
-        pass
+        manager = InstallationManager(key=SAMPLE_KEY,
+                                      integration_id=666,
+                                      installation_id=255)
+        steps = []  # This is to ensure that the functions are called in the right order
+        resp = Response(data={})
+
+        manager.remaining = 10
+        manager.sync_token = lambda: steps.append(0) or ()
+        manager.wait_time = lambda: steps.append(1) or 0.001
+        manager._request = lambda method, url, data, auth: steps.append(2) or resp
+
+        self.assertEqual(manager.request('METHOD', 'URL'), resp)
+        self.assertEqual(manager.remaining, 9)
+        self.assertEqual(steps, [0, 1, 2])
