@@ -1,0 +1,120 @@
+from config import get_logger
+from dateutil.parser import parse as datetime_parse
+from jose import jwt
+from request import request_with_requests
+from time import sleep
+
+import time
+
+class InstallationManager(object):
+    '''
+    Manager that takes care of an installation. It's responsible for keeping
+    the tokens in sync with Github API servers. It also exposes a `request` function
+    that automatically blocks requests (once the API rate limit is reached), waits
+    until the next window and continues the request.
+    '''
+
+    logger = get_logger(__name__)
+    base_url = 'https://api.github.com'
+    installation_url = base_url + '/installations/%s/access_tokens'
+    rate_limit_url = base_url + '/rate_limit'
+    headers = {
+        'Content-Type': 'application/json',
+        # integration-specific header
+        'Accept': 'application/vnd.github.machine-man-preview+json',
+        'Accept-Encoding': 'gzip, deflate'
+    }
+
+    def __init__(self, key, integration_id, installation_id,
+                 json_request=request_with_requests):
+        self.integration_id = integration_id
+        self.installation_id = installation_id
+        self.installation_url = self.installation_url % installation_id
+        self.json_request = json_request
+
+        # Stuff required for sync'ing token
+        self.pem_key = key
+        self.remaining = 0
+        self.reset_time = int(time.time()) - 60
+        self.next_token_sync = datetime.now()
+        self.token = None
+
+    def sync_token(self):
+        '''
+        Prove your ownership over the integration to Github and request a token.
+        This token is used for API requests in the future. It has a lifetime,
+        and should be sync'ed again later.
+        '''
+        now = datetime.now(self.next_token_sync.tzinfo)     # timezone-aware version
+        if now < self.next_token_sync:
+            return
+
+        self.logger.debug('Getting auth token with JWT from PEM key...')
+        # https://developer.github.com/apps/building-github-apps/authentication-options-for-github-apps/
+        since_epoch = int(time.time())
+        auth_payload = {
+            'iat': since_epoch,
+            'exp': since_epoch + 600,       # 10 mins expiration for JWT
+            'iss': self.integration_id,
+        }
+
+        auth = 'Bearer %s' % jwt.encode(auth_payload, self.key, 'RS256')
+        resp = self._request('POST', self.installation_url, auth=auth)
+        self.token = resp['token']      # installation token (expires in 1 hour)
+        self.logger.debug('Token expires on %s', resp['expires_at'])
+        self.next_token_sync = datetime_parse(resp['expires_at'])
+
+    def wait_time(self):
+        '''
+        Returns the wait time (in seconds) for the next request - this is based on the
+        number of requests that can be raised in a given window.
+        '''
+
+        now = int(time.time())
+        if now >= self.reset_time:
+            data = self._request('GET', self.rate_limit_url)
+            self.reset_time = data['rate']['reset']
+            self.remaining = data['rate']['remaining']
+            self.logger.debug('Current time: %s, Remaining requests: %s, Reset time: %s',
+                              now, self.remaining, self.reset_time)
+
+        return (self.reset_time - now) / float(self.remaining)  # (uniform) wait time per request
+
+    def _request(self, method, url, data=None, auth=True):
+        '''
+        Raw method used throughout the library. It's 'raw' because it doesn't
+        care about the rate limits. It simply requests the server and gets you the
+        response. Hence, this shouldn't be called by any of the handlers - which are
+        concerned by the rate limits.
+
+        By default, all requests are authenticated with the installation token. This can
+        be overridden with a different `Authorization` header value, or can be disabled
+        entirely (`auth=False`).
+        '''
+
+        if auth:
+            self.headers['Authorization'] = ('token %s' % self.token) if auth is True else auth
+        else:
+            self.logger.debug('Making unauthenticated request...')
+
+        self.logger.info('%s: %s (data: %s)', method, url, data)
+        resp = self.json_request(method, url, data=data, headers=self.headers)
+        if resp.code < 200 or resp.code >= 300:
+            self.logger.error('Got a %s response: %r', resp.code, resp.data)
+            raise Exception('Invalid response')
+
+        return data
+
+    def request(self, method, url, data=None, auth=True):
+        '''
+        Request method used in all the API calls for an installation. This ensures
+        that we always have a valid token for making a request (and hence, we won't
+        fail in auth), and distributes requests uniformly through a window (and hence,
+        we won't gated by rate limits).
+        '''
+        self.sync_token()
+        interval = self.wait_time()
+        sleep(interval)
+        resp = self._request(method=method, url=url, data=data, auth=auth)
+        self.remaining -= 1
+        return resp
