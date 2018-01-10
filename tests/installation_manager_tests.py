@@ -43,7 +43,7 @@ class InstallationManagerTests(TestCase):
         information that's later set on the manager.
         '''
 
-        class FnScope(object):
+        class FnScope(object):      # workaround to access outer scope vars
             suite = self
             expiry = datetime.now() + timedelta(seconds=3600)
             requested = 0
@@ -51,6 +51,12 @@ class InstallationManagerTests(TestCase):
         scope = FnScope()
 
         def test_request(method, url, data=None, headers={}):
+            scope.suite.assertEqual(headers['Content-Type'], 'application/json')
+            scope.suite.assertEqual(headers['Accept'],
+                                    'application/vnd.github.machine-man-preview+json')
+            scope.suite.assertEqual(headers['Accept-Encoding'],
+                                    'gzip, deflate')
+            scope.suite.assertEqual(method, 'POST')
             scope.requested += 1
             auth = headers['Authorization']
             scope.suite.assertEqual(auth[:7], 'Bearer ')
@@ -78,7 +84,50 @@ class InstallationManagerTests(TestCase):
         self.assertEqual(scope.requested, 1)
 
     def test_wait_time(self):
-        pass
+        '''
+        Wait time returns the waiting period (in seconds) for making a request.
+        For this to work, it should get the remaining requests (that can be made
+        in the window) from the API.
+        '''
+
+        class FnScope(object):
+            suite = self
+            reset = int(time.time()) + 3600
+
+        scope = FnScope()
+
+        def test_request(method, url, data=None, headers={}):
+            scope.suite.assertEqual(headers['Content-Type'], 'application/json')
+            scope.suite.assertEqual(headers['Accept'],
+                                    'application/vnd.github.machine-man-preview+json')
+            scope.suite.assertEqual(headers['Accept-Encoding'],
+                                    'gzip, deflate')
+            scope.suite.assertEqual(method, 'GET')
+            return Response(data={      # Actual data from Github
+                "rate": {
+                    "limit": 5000,
+                    "remaining": 4999,
+                    "reset": scope.reset
+                }
+            })
+
+        manager = InstallationManager(key=SAMPLE_KEY,
+                                      integration_id=666,
+                                      installation_id=255,
+                                      json_request=test_request)
+        # assume that we've obtained the token through `sync_token`
+        manager.token = 'booya'
+        self.assertTrue(manager.reset_time < time.time())
+        wait_secs = manager.wait_time()
+        self.assertTrue(wait_secs > 0.7 and wait_secs <= 0.75)  # 3600 / 5000 = 0.72
+        self.assertEqual(manager.remaining, 4999)
+
+        # assume that the bot hasn't made any requests for half an hour
+        manager.reset_time -= 1800
+        wait_secs = manager.wait_time()
+        # wait time is now reduced by half
+        self.assertTrue(wait_secs > 0.35 and wait_secs <= 0.38)
+
 
     def test_raw_request(self):
         pass

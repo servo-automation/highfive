@@ -71,13 +71,18 @@ class InstallationManager(object):
         '''
         Returns the wait time (in seconds) for the next request - this is based on the
         number of requests that can be raised in a given window.
+
+        For example, if the request limit is 60/hour, then the waiting time for
+        each request is 60 seconds. If the bot hasn't made any requests over the
+        first half of an hour, then the wait time will now become 30 seconds.
+        Hence, it's uniform.
         '''
 
         now = int(time.time())
         if now >= self.reset_time:
-            data = self._request('GET', self.rate_limit_url)
-            self.reset_time = data['rate']['reset']
-            self.remaining = data['rate']['remaining']
+            resp = self._request('GET', self.rate_limit_url)
+            self.reset_time = resp.data['rate']['reset']
+            self.remaining = resp.data['rate']['remaining']
             self.logger.debug('Current time: %s, Remaining requests: %s, Reset time: %s',
                               now, self.remaining, self.reset_time)
 
