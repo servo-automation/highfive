@@ -1,10 +1,10 @@
-from config import get_logger
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
 from jose import jwt
 from request import request_with_requests
 from time import sleep
 
+import config
 import time
 
 class InstallationManager(object):
@@ -15,7 +15,7 @@ class InstallationManager(object):
     until the next window and continues the request.
     '''
 
-    logger = get_logger(__name__)
+    logger = config.get_logger(__name__)
     base_url = 'https://api.github.com'
     installation_url = base_url + '/installations/%s/access_tokens'
     rate_limit_url = base_url + '/rate_limit'

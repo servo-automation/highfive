@@ -19,10 +19,22 @@ def get_logger(name):
         return logger
 
 
-def init_logger():
-    logging.basicConfig(level=logging.DEBUG,
+def init_logger(level=logging.DEBUG):
+    '''
+    Initializes the logger (in debug mode by default). This should be called
+    when actually running highfive - otherwise, no logging!
+    '''
+
+    logging.basicConfig(level=level,
                         format='%(asctime)s %(levelname)s %(module)s - %(funcName)s: %(message)s',
                         datefmt="%Y-%m-%d %H:%M:%S")
+
+
+def read_file(path):
+    '''Yes, I know - it simply reads a file!'''
+
+    with open(path, 'r') as fd:
+        return fd.read()
 
 
 class Configuration(object):
@@ -38,15 +50,14 @@ class Configuration(object):
     appropriately.
     '''
     def __init__(self):
-        self.config = None
+        self.config = {}
         self.logger = get_logger(__name__)
 
     def load_from_file(self, config_path):
         '''Load configuration from the given path'''
 
-        with open(config_path, 'r') as fd:
-            contents = fd.read()
-            return self.load_from_string(contents)
+        contents = read_file(config_path)
+        return self.load_from_string(contents)
 
     def load_from_string(self, raw_config):
         '''Load configuration from the given raw string.'''
@@ -62,4 +73,5 @@ class Configuration(object):
 
     def __getitem__(self, key):
         '''Get the value corresponding to the key from the underlying config dict.'''
+
         return self.config.get(key)

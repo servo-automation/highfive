@@ -1,5 +1,4 @@
-from highfive.runner.installation_manager import InstallationManager
-from highfive.runner.request import Response
+from highfive.runner import InstallationManager, Response
 
 from datetime import datetime, timedelta
 from jose import jwt
