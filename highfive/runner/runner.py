@@ -24,6 +24,7 @@ class Runner(object):
     '''
     def __init__(self, config):
         self.logger = get_logger(__name__)
+        self.app_name = config['name']
         self.secret = config['secret']
         self.installations = {}
         self.config = config

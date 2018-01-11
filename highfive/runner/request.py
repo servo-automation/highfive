@@ -9,6 +9,11 @@ class Response(object):
         self.headers = headers
         self.data = data
 
+    def is_json(self):
+        '''If this were a list/dict, then it indicates successful parsing of JSON'''
+
+        return isinstance(self.data, dict) or isinstance(self.data, list)
+
 
 def request_with_requests(method, url, data=None, headers={}):
     '''
