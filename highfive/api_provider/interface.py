@@ -1,5 +1,5 @@
-from runner.config import get_logger
-from runner.request import request_with_requests
+from ..runner.config import get_logger
+from ..runner.request import request_with_requests
 
 import random
 
@@ -50,7 +50,7 @@ class APIProvider(object):
         upload base64-encoded image data (anonymously) to Imgur and returns the permalink.
         '''
 
-        if self.config.get('imgur_client_id') is None:
+        if self.config['imgur_client_id'] is None:
             self.logger.error('Imgur client ID has not been set!')
             return
 

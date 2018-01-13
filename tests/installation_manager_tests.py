@@ -186,10 +186,14 @@ class InstallationManagerTests(TestCase):
 
 
     def test_actual_request(self):
+        '''
+        This checks that the functions in the actual `request` are called
+        in the right order.
+        '''
         manager = InstallationManager(key=SAMPLE_KEY,
                                       integration_id=666,
                                       installation_id=255)
-        steps = []  # This is to ensure that the functions are called in the right order
+        steps = []
         resp = Response(data={})
 
         manager.remaining = 10

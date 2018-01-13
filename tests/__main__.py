@@ -10,5 +10,6 @@ if __name__ == '__main__':
     from config_tests import ConfigurationTests
     from installation_manager_tests import InstallationManagerTests
     from runner_tests import RunnerTests
+    from api_provider_tests import APIProviderTests
 
     unittest.main()
