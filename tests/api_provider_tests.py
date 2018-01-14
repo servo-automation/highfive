@@ -1,5 +1,5 @@
 from highfive.runner import Configuration, Response
-from highfive.api_provider import APIProvider
+from highfive.api_provider.interface import APIProvider, DEFAULTS
 
 from unittest import TestCase
 
@@ -19,12 +19,9 @@ class APIProviderTests(TestCase):
         self.assertEqual(api.name, 'test_app')
         self.assertEqual(api.payload, {})
         self.assertEqual(api.config, config)
-        self.assertTrue(api.is_pull is None)
-        self.assertTrue(api.pull_url is None)
-        self.assertTrue(api.is_open is None)
-        self.assertTrue(api.creator is None)
-        self.assertTrue(api.last_updated is None)
-        self.assertTrue(api.number is None)
+
+        for attr in DEFAULTS:
+            self.assertTrue(getattr(api, attr) is None)
 
     def test_api_issue_payload(self):
         '''

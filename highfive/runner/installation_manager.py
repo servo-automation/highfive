@@ -1,3 +1,4 @@
+from Queue import Queue
 from config import get_logger
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
@@ -41,6 +42,7 @@ class InstallationManager(object):
         self.reset_time = int(time.time()) - 60
         self.next_token_sync = datetime.now()
         self.token = None
+        self.queue = Queue()
 
     def sync_token(self):
         '''

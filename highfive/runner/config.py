@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import os.path as path
 import re
 
 LOGGERS = {}
@@ -87,14 +88,18 @@ class Configuration(object):
 
         self.pem_key = read_file(self.pem_key)
         # If we're not using a database, then we're storing JSON files.
-        if config_dict.get('database_url') is None and not os.path.isdir(self.dump_path):
+        if config_dict.get('database_url') is None and not path.isdir(self.dump_path):
             os.makedirs(self.dump_path)
 
-        _ = self.name, self.pem_key, self.secret, self.integration_id
+        _ = self.name, self.pem_key, self.secret, int(self.integration_id)
+
+        handler_path = path.join(path.dirname(path.dirname(__file__)), 'event_handlers')
+        all_events = filter(lambda p: path.isdir(path.join(handler_path, p)),
+                            os.listdir(handler_path))
 
         defaults = [
             ('imgur_client_id', None),
-            ('enabled_events', []),
+            ('enabled_events', all_events),
             ('allowed_repos', []),
             ('collaborators', {}),
         ]

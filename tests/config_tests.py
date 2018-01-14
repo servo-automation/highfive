@@ -30,7 +30,8 @@ class ConfigurationTests(TestCase):
 
         # Check uninitialized defaults
         self.assertEqual(config.imgur_client_id, None)
-        self.assertEqual(config.enabled_events, [])
+        self.assertEqual(config.enabled_events,
+                         ['issue_comment', 'issues', 'pull_request'])
         self.assertEqual(config.allowed_repos, [])
         self.assertEqual(config.collaborators, {})
 

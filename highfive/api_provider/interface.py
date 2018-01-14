@@ -3,6 +3,9 @@ from ..runner.request import request_with_requests
 
 import random
 
+DEFAULTS = ['is_pull', 'pull_url', 'is_open', 'creator', 'last_updated', 'number',
+            'sender', 'owner', 'repo', 'current_label', 'assignee', 'comment']
+
 class APIProvider(object):
     '''
     The interface used by `GithubAPIProvider` object to take actions based on
@@ -23,24 +26,29 @@ class APIProvider(object):
         self.payload = payload
         self.logger = get_logger(__name__)
 
-        self.is_pull = None
-        self.pull_url = None
-        self.is_open = None
-        self.creator = None
-        self.last_updated = None
-        self.number = None
+        for attr in DEFAULTS:
+            setattr(self, attr, None)
+
+        if payload.get('repository'):
+            self.owner = payload['repository']['owner']['login']
+            self.repo = payload['repository']['name']
+        else:
+            self.logger.error('Error getting repository information from payload.')
+
+        if payload.get('sender'):
+            self.sender = payload['sender']['login'].lower()
 
         if payload.get('pull_request'):
             self.is_pull = True
             self.pull_url = payload['pull_request']['url']
-            self.creator = payload['pull_request']['user']['login']
+            self.creator = payload['pull_request']['user']['login'].lower()
             self.is_open = payload['pull_request']['state'] == 'open'
             self.last_updated = payload['pull_request'].get('updated_at')
             self.number = payload['pull_request']['number']
         elif payload.get('issue'):
             self.is_pull = False
-            self.creator = payload['issue']['user']['login']
-            self.is_open = payload['issue']['state'] == 'open'
+            self.creator = payload['issue']['user']['login'].lower()
+            self.is_open = payload['issue']['state'].lower() == 'open'
             self.last_updated = payload['issue'].get('updated_at')
             self.number = payload['issue']['number']
 
