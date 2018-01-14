@@ -64,14 +64,43 @@ class Configuration(object):
 
         matches = re.findall(r'"ENV::([A-Z_0-9]*)"', raw_config)
         for m in matches:   # Check and replace env variables (if any)
-            value = os.environ.get(m)
+            if not os.environ.get(m):
+                raise KeyError("%r not found in environment" % m)
+
+            value = os.environ[m]
             encoded = json.dumps(value)
             self.logger.debug('Replacing env variable %s with %s' % (m, encoded))
             raw_config = raw_config.replace('"ENV::%s"' % m, encoded)
 
-        self.config = json.loads(raw_config)
+        config = json.loads(raw_config)
+        try:
+            self.initalize_defaults(config)
+        except AttributeError as err:
+            key = err.args[0].split("'")[-2]
+            raise KeyError("Missing %r in configuration" % key)
 
-    def __getitem__(self, key):
-        '''Get the value corresponding to the key from the underlying config dict.'''
+    def initalize_defaults(self, config_dict):
+        '''Checks the mandatory keys in config and initializes defaults (if required)'''
 
-        return self.config.get(key)
+        for key, value in config_dict.iteritems():
+            setattr(self, key, value)
+
+        self.pem_key = read_file(self.pem_key)
+        # If we're not using a database, then we're storing JSON files.
+        if config_dict.get('database_url') is None and not os.path.isdir(self.dump_path):
+            os.makedirs(self.dump_path)
+
+        _ = self.name, self.pem_key, self.secret, self.integration_id
+
+        defaults = [
+            ('imgur_client_id', None),
+            ('enabled_events', []),
+            ('allowed_repos', []),
+            ('collaborators', {}),
+        ]
+
+        for attr, value in defaults:
+            try:
+                getattr(self, attr)
+            except AttributeError:
+                setattr(self, attr, value)

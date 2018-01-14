@@ -24,11 +24,11 @@ class Runner(object):
     '''
     def __init__(self, config):
         self.logger = get_logger(__name__)
-        self.app_name = config['name']
-        self.secret = config['secret']
+        self.app_name = config.name
+        self.secret = config.secret
         self.installations = {}
         self.config = config
-        self.integration_id = int(config['integration_id'])
+        self.integration_id = int(config.integration_id)
 
     def verify_payload(self, x_hub_signature, raw_payload):
         '''

@@ -18,7 +18,7 @@ class APIProvider(object):
     imgur_post_url = 'https://api.imgur.com/3/image'
 
     def __init__(self, config, payload):
-        self.name = config['name']
+        self.name = config.name
         self.config = config
         self.payload = payload
         self.logger = get_logger(__name__)
@@ -50,11 +50,11 @@ class APIProvider(object):
         upload base64-encoded image data (anonymously) to Imgur and returns the permalink.
         '''
 
-        if self.config['imgur_client_id'] is None:
+        if self.config.imgur_client_id is None:
             self.logger.error('Imgur client ID has not been set!')
             return
 
-        headers = {'Authorization': 'Client-ID %s' % self.config['imgur_client_id']}
+        headers = {'Authorization': 'Client-ID %s' % self.config.imgur_client_id}
 
         resp = json_request('POST', self.imgur_post_url,
                             data={'image': base64_data},

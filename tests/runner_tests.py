@@ -6,8 +6,9 @@ import json
 
 def create_runner():
     config = Configuration()
-    config.config['secret'] = 'foobar'
-    config.config['integration_id'] = '999'
+    config.name = 'test_app'
+    config.secret = 'foobar'
+    config.integration_id = '999'
     runner = Runner(config)
     return runner
 

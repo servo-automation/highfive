@@ -3,12 +3,18 @@ from highfive.api_provider import APIProvider
 
 from unittest import TestCase
 
+def create_config():
+    config = Configuration()
+    config.name = 'test_app'
+    config.imgur_client_id = None
+    return config
+
 class APIProviderTests(TestCase):
     def test_api_init(self):
         '''The default interface will only initialize the app name and payload.'''
 
         config = Configuration()
-        config.config['name'] = 'test_app'
+        config.name = 'test_app'
         api = APIProvider(config=config, payload={})
         self.assertEqual(api.name, 'test_app')
         self.assertEqual(api.payload, {})
@@ -37,7 +43,7 @@ class APIProviderTests(TestCase):
             }
         }
 
-        api = APIProvider(config=Configuration(), payload=payload)
+        api = APIProvider(config=create_config(), payload=payload)
         self.assertEqual(api.payload, payload)
         self.assertFalse(api.is_pull)
         self.assertTrue(api.is_open)
@@ -64,7 +70,7 @@ class APIProviderTests(TestCase):
             }
         }
 
-        api = APIProvider(config=Configuration(), payload=payload)
+        api = APIProvider(config=create_config(), payload=payload)
         self.assertEqual(api.payload, payload)
         self.assertTrue(api.is_open)
         self.assertTrue(api.is_pull)
@@ -76,12 +82,12 @@ class APIProviderTests(TestCase):
     def test_api_imgur_upload(self):
         '''Test Imgur API upload'''
 
-        config = Configuration()
+        config = create_config()
         api = APIProvider(config=config, payload={})
         resp = api.post_image_to_imgur('some data')
         self.assertTrue(resp is None)       # No client ID - returns None
 
-        config.config['imgur_client_id'] = 'foobar'
+        config.imgur_client_id = 'foobar'
 
         def test_valid_request(method, url, data, headers):
             self.assertEqual(headers['Authorization'], 'Client-ID foobar')
