@@ -131,3 +131,10 @@ class InstallationManager(object):
         resp = self._request(method=method, url=url, data=data, auth=auth)
         self.remaining -= 1
         return resp
+
+    def clear_queue(self):
+        '''Clear this manager's payload queue.'''
+
+        while not self.queue.empty():
+            payload = self.queue.get()
+            # TODO: pass to event handlers

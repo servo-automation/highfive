@@ -1,11 +1,15 @@
+from ..api_provider import GithubAPIProvider
 from config import get_logger
 from installation_manager import InstallationManager
-from ..api_provider import GithubAPIProvider
+from time import sleep
 
 import hashlib
 import hmac
 import json
 import re
+import time
+
+WORKER_SLEEP_SECS = 1
 
 # Implementation of digest comparison from Django
 # https://github.com/django/django/blob/0ed7d155635da9f79d4dd67e4889087d3673c6da/django/utils/crypto.py#L96-L105
@@ -81,7 +85,7 @@ class Runner(object):
     def handle_payload(self, x_github_event, payload):
         '''
         Check (and filter) the incoming payloads, initialize managers (if required),
-        and hook them with the API provider.
+        hook them with the API provider, and finally push them into the managers' queue.
         '''
 
         inst_id = payload['installation']['id']
@@ -115,3 +119,25 @@ class Runner(object):
         if self.config.name in api.sender:
             self.logger.info('Skipping payload sent by self')
             return HandlerError.PayloadFromSelf
+
+        manager.queue.put(api)      # Queue the wrapped payload into the manager
+
+    def _start_watching(self):
+        '''
+        Refresh the managers' queue every second. This is ran by the daemon thread.
+        The actual heavy-lifting is done by the daemon since the payloads are actually
+        passed to the handlers only by this point.
+        '''
+
+        while True:
+            for manager in self.installations.itervalues():
+                manager.clear_queue()
+            sleep(WORKER_SLEEP_SECS)
+
+    def start_daemon(self):
+        '''Launch the watcher in a daemon thread.'''
+
+        self.logger.info('Spawning a new thread for synchronization...')
+        thread = Thread(target=self._start_watching)
+        thread.daemon = True    # daemon because it should live only as long as the main thread
+        thread.start()

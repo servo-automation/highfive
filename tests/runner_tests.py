@@ -75,6 +75,7 @@ class RunnerTests(TestCase):
         payload['sender'] = {'login': 'foo'}
         r = runner.handle_payload('issues', payload)
         self.assertTrue(r is None)      # successful handling
+        self.assertFalse(runner.installations[0].queue.empty())     # payload pushed to queue
 
         # Payload from bot shouldn't affect the installation
         payload['sender'] = {'login': 'test_app'}

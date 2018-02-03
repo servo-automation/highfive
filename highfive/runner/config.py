@@ -91,6 +91,7 @@ class Configuration(object):
         if config_dict.get('database_url') is None and not path.isdir(self.dump_path):
             os.makedirs(self.dump_path)
 
+        # poke the necessary properties
         _ = self.name, self.pem_key, self.secret, int(self.integration_id)
 
         handler_path = path.join(path.dirname(path.dirname(__file__)), 'event_handlers')
