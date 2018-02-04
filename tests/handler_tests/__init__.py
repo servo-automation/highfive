@@ -49,7 +49,7 @@ class TestAPIProvider(APIProvider):
 def run():
     tests, failed, dirty = 0, 0, 0
     name, args = sys.argv[0], sys.argv[1:]
-    overwrite = True if 'write' in args else False
+    overwrite = os.getenv('CLEAN') is not None
     warn = not overwrite
     config = Configuration()
     config_overridable.read_file = lambda p: 'booya'
@@ -76,6 +76,7 @@ def run():
 
             for test in os.listdir(test_payloads_dir):
                 test_path = os.path.join(test_payloads_dir, test)
+                test_path_display = path.join(*test_path.split(os.sep)[-3:])
                 # Test is a "JSON" "file"
                 if not (path.isfile(test_path) and test_path.endswith('.json')):
                     continue
@@ -97,12 +98,12 @@ def run():
                         api.evaluate()
                     except AssertionError as err:
                         print '\nError while testing %r with payload %r:\n%s' % \
-                              (os.sep.join(local_path), test_path.split(os.sep)[-1], err)
+                              (path.join(*local_path), test_path_display, err)
                         failed += 1
 
                 cleaned = wrapper.clean(warn=warn)
                 if warn and wrapper.unused:
-                    print 'The file %s has %d unused nodes!' % (test_path, wrapper.unused)
+                    print '%s has %d unused node(s)' % (test_path_display, wrapper.unused)
                     dirty += 1
                 elif wrapper.unused and overwrite:
                     test_data['payload'] = cleaned['payload']
@@ -111,11 +112,11 @@ def run():
                         trimmed = map(lambda line: line.rstrip() + '\n', contents.splitlines())
                         fd.writelines(trimmed)
 
-                    print 'Rewrote %s' % test_path
+                    print 'Rewrote', test_path_display
 
     print '\nRan %d test(s): %d error(s), %d file(s) dirty' % (tests, failed, dirty)
 
     if failed or dirty:
         if dirty:
-            print 'Run `python %s write` to cleanup the dirty files' % name
+            print 'Run `CLEAN=1 python %s` to cleanup the dirty file(s)' % name
         sys.exit(1)
