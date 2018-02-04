@@ -32,7 +32,7 @@ def init_logger(level=logging.DEBUG):
 
 
 def read_file(path):
-    '''Yes, I know - it simply reads a file!'''
+    '''Yes, I know - it simply reads a file! The testsuite overrides this.'''
 
     with open(path, 'r') as fd:
         return fd.read()
@@ -75,12 +75,12 @@ class Configuration(object):
 
         config = json.loads(raw_config)
         try:
-            self.initalize_defaults(config)
+            self.initialize_defaults(config)
         except AttributeError as err:
             key = err.args[0].split("'")[-2]
             raise KeyError("Missing %r in configuration" % key)
 
-    def initalize_defaults(self, config_dict):
+    def initialize_defaults(self, config_dict):
         '''Checks the mandatory keys in config and initializes defaults (if required)'''
 
         for key, value in config_dict.iteritems():

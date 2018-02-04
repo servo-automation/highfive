@@ -52,6 +52,9 @@ class APIProvider(object):
             self.last_updated = payload['issue'].get('updated_at')
             self.number = payload['issue']['number']
 
+        if payload.get('comment'):
+            self.comment = payload['comment']['body'].encode('utf-8')
+
     def post_image_to_imgur(self, base64_data, json_request=request_with_requests):
         '''
         If the client ID is present in configuration, then this method can be used to
@@ -76,3 +79,9 @@ class APIProvider(object):
             return
 
         return resp.data['data']['link']
+
+    def get_branch_head(self, branch):
+        raise NotImplementedError
+
+    def edit_comment(self, _id, comment):
+        raise NotImplementedError

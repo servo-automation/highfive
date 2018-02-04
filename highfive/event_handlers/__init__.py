@@ -29,4 +29,4 @@ def get_handlers(event):
         module = imp.load_module('highfive.event_handlers.%s.%s' % (event, handler_name),
                                  None, handler_dir,
                                  ('', '', imp.PKG_DIRECTORY))
-        yield (handler_dir, module.handler)
+        yield (handler_dir, lambda api: module.handler(api, handler_config))

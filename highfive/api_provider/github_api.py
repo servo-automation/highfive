@@ -14,3 +14,18 @@ class GithubAPIProvider(APIProvider):
     def __init__(self, config, payload, api_json_request):
         super(GithubAPIProvider, self).__init__(config, payload)
         self._request = api_json_request
+
+    def get_branch_head(self, owner=None, repo=None, branch='master'):
+        '''Get the latest revision of the given branch in a repo.'''
+
+        owner = self.owner if owner is None else owner
+        repo = self.repo if repo is None else repo
+        url = self.branch_url % (owner, repo, branch)
+        requires_auth = owner == self.owner and repo == self.repo
+        return self._request('GET', url, auth=requires_auth)['commit']['sha']
+
+    def edit_comment(self, id_, comment):
+        '''Update the body of the comment associated with an ID.'''
+
+        url = self.comments_patch_url % (self.owner, self.repo, id_)
+        self._request('PATCH', url, {'body': comment})

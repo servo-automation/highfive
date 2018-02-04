@@ -11,5 +11,7 @@ if __name__ == '__main__':
     from installation_manager_tests import InstallationManagerTests
     from runner_tests import RunnerTests
     from api_provider_tests import APIProviderTests
+    import handler_tests
 
-    unittest.main()
+    unittest.main(exit=False)
+    handler_tests.run()

@@ -1,31 +1,17 @@
+# Separator used for pretty printing dirty file paths.
 NODE_SEP = ' -> '
 
 
-def visit_nodes(node):          # simple recursive tree traversal
-    if hasattr(node, 'mark'):
-        return node     # it's already a NodeMarker
-    if hasattr(node, '__iter__'):
-        iterator = xrange(len(node)) if isinstance(node, list) else node
-        for thing in iterator:
-            node[thing] = visit_nodes(node[thing])
-    return NodeMarker(node)
-
-
-# We need the roots of each node, so that we can trace our way back to the
-# root from a specific node (marking nodes along the way).
-# Since `visit_nodes` makes a pre-order traversal, it assigns `NodeMarker`
-# to each node from inside-out, which makes it difficult to assign roots
-# So, we do another traversal to store the references of the root nodes
-def assign_roots(marker_node, root=None):
-    node = marker_node._node
-    if hasattr(node, '__iter__'):
-        iterator = xrange(len(node)) if isinstance(node, list) else node
-        for thing in iterator:
-            assign_roots(node[thing], marker_node)
-    marker_node._root = root
-
-
 class NodeMarker(object):
+    '''
+    This wrapper object marks a node when it gets indexed i.e., when `__getitem__`
+    is called on a node.
+
+    Since this wraps itself over *all* nodes in a dict, the methods of the actual values in the
+    nodes would be inaccessible. So, if we wanna make use of some method, then we implement
+    it in this object.
+    '''
+
     def __init__(self, node, root=None):
         self._root = root
         self._node = node        # actual value
@@ -34,6 +20,7 @@ class NodeMarker(object):
     def mark(self):
         self._is_used = True
         root = self._root
+        # Mark all the way up to root (if it's not been done already).
         while root and not root._is_used:
             root._is_used = True
             root = root._root
@@ -56,18 +43,21 @@ class NodeMarker(object):
     def split(self, *args):
         return str(self).split(*args)
 
-    # If you access the element in the usual way, then "bam!"
+    # If you access the element in the usual way, then "bam!" - it will be marked as used!
     def __getitem__(self, key):
-        self._node[key].mark()      # it will be marked as used!
+        self._node[key].mark()
         return self._node[key]
 
     def __setitem__(self, key, val):
         self._node[key] = visit_nodes(val)
 
+    def __hash__(self):
+        return self._node.__hash__()
+
     def __iter__(self):
         return iter(self._node)
 
-    def __nonzero__(self):      # It's __bool__ for Python 3
+    def __nonzero__(self):          # It's `__bool__` in Python 3
         return bool(self._node)
 
     def __eq__(self, other):
@@ -83,7 +73,7 @@ class NodeMarker(object):
         return self._node % self.get_object(other)
 
     def __contains__(self, other):
-        # since string is also a sequence in python, we shouldn't iterate
+        # Since string is also a sequence in python, we shouldn't iterate
         # over it and index with the individual characters
         if isinstance(self._node, str) or isinstance(self._node, unicode):
             return other in self._node
@@ -105,12 +95,54 @@ class NodeMarker(object):
 
 
 class JsonCleaner(object):
+    '''
+    Object to keep track of used nodes in JSON. This wraps around the actual JSON object, and this
+    should be passed around instead of the JSON object itself. Once this object has been utilized,
+    call `clean` to remove the unused nodes from the JSON.
+    '''
+
     def __init__(self, json_obj):
         self.unused = 0
-        self.json = visit_nodes(json_obj)
-        assign_roots(self.json)
+        self.json = self._visit_nodes(json_obj)
+        self._assign_roots(self.json)
+
+
+    def _visit_nodes(self, node):
+        '''This recursively visits each node in a tree and converts them to a `NodeMarker` object'''
+
+        if hasattr(node, 'mark'):
+            return node     # it's already a NodeMarker
+        if hasattr(node, '__iter__'):
+            iterator = xrange(len(node)) if isinstance(node, list) else node
+            for thing in iterator:
+                node[thing] = self._visit_nodes(node[thing])
+        return NodeMarker(node)
+
+
+    def _assign_roots(self, marker_node, root=None):
+        '''
+        We need the roots of each node, so that we can trace our way back to the root
+        from a specific node (marking nodes along the way). Since `_visit_nodes` makes
+        a pre-order traversal, it assigns `NodeMarker` to each node from inside-out,
+        which makes it difficult to assign roots. So, we do another traversal to store
+        the references of the root nodes.
+        '''
+
+        node = marker_node._node
+        if hasattr(node, '__iter__'):
+            iterator = xrange(len(node)) if isinstance(node, list) else node
+            for thing in iterator:
+                self._assign_roots(node[thing], marker_node)
+        marker_node._root = root
+
 
     def clean(self, warn=True):
+        '''
+        Recursively traverses the tree and removes the unused nodes. This should be the only
+        function to be called publicly. If `warn` flag is enabled, then this prints the unused
+        nodes as they're removed.
+        '''
+
         return self._filter_nodes(self.json, warn)
 
     def _filter_nodes(self, marker_node, warn, path=''):
