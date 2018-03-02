@@ -1,3 +1,7 @@
+from ..runner.config import get_logger
+
+import re
+
 class EventHandler(object):
     '''
     Interface object for handlers. Every Github payload is associated with an action. This interface
@@ -27,6 +31,7 @@ class EventHandler(object):
     def __init__(self, api, config):
         self.api = api
         self.config = config
+        self.logger = get_logger(__name__)
 
     # Methods corresponding to the actions
 
@@ -59,6 +64,15 @@ class EventHandler(object):
 
     def handle_payload(self):
         '''Call the method corresponding to the payload's action.'''
+
+        if not self.config.get('active'):       # pre-check whether the handler is active
+            return
+
+        # Check if the handler can only be used in specific patterns of repos.
+        allowed_repos = self.config.get('allowed_repos', [])
+        this_repo = '%s/%s' % (self.api.owner, self.api.repo)
+        if allowed_repos and not any(re.search(pat, this_repo) for pat in allowed_repos):
+            return
 
         method = self.actions.get(self.api.payload['action'])
         if method is not None:

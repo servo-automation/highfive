@@ -11,7 +11,8 @@ if __name__ == '__main__':
     from installation_manager_tests import InstallationManagerTests
     from runner_tests import RunnerTests
     from api_provider_tests import APIProviderTests
+    from event_handler_tests import EventHandlerTests
     import handler_tests
 
-    unittest.main(exit=False)
+    unittest.main(exit=False)       # TODO: This doesn't exit when failure occurs. Use the builder.
     handler_tests.run()

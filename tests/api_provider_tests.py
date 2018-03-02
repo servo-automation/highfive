@@ -3,11 +3,13 @@ from highfive.api_provider.interface import APIProvider, DEFAULTS
 
 from unittest import TestCase
 
+
 def create_config():
     config = Configuration()
     config.name = 'test_app'
     config.imgur_client_id = None
     return config
+
 
 class APIProviderTests(TestCase):
     def test_api_init(self):

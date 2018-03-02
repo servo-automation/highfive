@@ -5,6 +5,7 @@ from unittest import TestCase
 
 import json
 
+
 def create_runner():
     config = Configuration()
     config.name = 'test_app'
@@ -15,6 +16,7 @@ def create_runner():
     config.enabled_events = ['issues']
     runner = Runner(config)
     return runner
+
 
 class RunnerTests(TestCase):
     def test_runner_init(self):

@@ -5,6 +5,7 @@ from unittest import TestCase
 import json
 import os
 
+
 class ConfigurationTests(TestCase):
     def test_config_load(self):
         '''Test loading configuration from JSON'''

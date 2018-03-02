@@ -1,4 +1,4 @@
-from ....event_handlers import EventHandler
+from ... import EventHandler
 
 import re
 
@@ -17,7 +17,7 @@ class GithubPermalinkFinder(EventHandler):
                              r'\1/%s' % head, comment)
 
         if matches:
-            self.api.logger.debug('Replacing links to master branch for comment ID: %s...', comment_id)
+            self.logger.debug('Replacing links to master branch for comment ID: %s...', comment_id)
             self.api.edit_comment(comment_id, comment)
 
 

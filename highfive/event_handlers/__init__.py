@@ -5,7 +5,15 @@ import json
 import os
 import os.path as path
 
+# FIXME: This loads the modules every time we receive a payload. Cache it maybe?
 def get_handlers(event):
+    '''
+    Get the handlers corresponding to an event.
+
+    This function loads the (enabled) handlers, their configuration files, and yields their paths
+    along with the handler classes. The caller should pass the `APIProvider` interface to the
+    yielded lambda function to actually initialize the handlers.
+    '''
     root = path.dirname(path.dirname(__file__))
     event_dir = path.join(root, 'event_handlers', event)
     if not path.isdir(event_dir):
@@ -22,9 +30,6 @@ def get_handlers(event):
 
         with open(config_path, 'r') as fd:
             handler_config = json.load(fd)
-
-        if not handler_config.get('active'):    # per-handler switch
-            continue
 
         module = imp.load_module('highfive.event_handlers.%s.%s' % (event, handler_name),
                                  None, handler_dir,
