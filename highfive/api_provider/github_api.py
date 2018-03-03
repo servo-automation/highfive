@@ -59,8 +59,16 @@ class GithubAPIProvider(APIProvider):
     def post_comment(self, comment):
         '''Post a comment to the associated issue/PR.'''
 
-        url = self.comments_post_url % (self.owner, self.repo, self.issue_number)
+        url = self.comments_post_url % (self.owner, self.repo, self.number)
         self._request('POST', url, {'body': comment})
+
+    def get_diff(self):
+        if self.diff:
+            return self.diff
+
+        url = self.diff_url % (self.owner, self.repo, self.number)
+        self.diff = self._request('GET', url)
+        return self.diff
 
     # Private methods
 

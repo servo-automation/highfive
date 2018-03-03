@@ -3,7 +3,7 @@ from ..runner.request import request_with_requests
 
 import random
 
-DEFAULTS = ['is_pull', 'pull_url', 'is_open', 'creator', 'last_updated', 'number',
+DEFAULTS = ['is_pull', 'pull_url', 'is_open', 'creator', 'last_updated', 'number', 'diff',
             'sender', 'owner', 'repo', 'current_label', 'assignee', 'comment', 'labels']
 
 class APIProvider(object):
@@ -128,7 +128,7 @@ class APIProvider(object):
     def post_comment(self, comment):
         raise NotImplementedError
 
-    def get_page_content(self, url):
+    def get_diff(self):
         raise NotImplementedError
 
     # Default methods depending on the overriddable methods.
@@ -146,3 +146,24 @@ class APIProvider(object):
         current_labels.update(map(to_lower, add))
         current_labels.difference_update(map(to_lower, remove))
         self.replace_labels(list(current_labels))
+
+    def get_added_lines(self):
+        '''Generator over the added lines in the commit diff.'''
+
+        diff = self.get_diff()
+        for line in diff.splitlines():
+            if line.startswith('+') and not line.startswith('+++'):
+                yield line
+
+    def get_changed_files(self):
+        '''Generator over the changed files in commit diff.'''
+
+        diff = self.get_diff()
+        for line in diff.splitlines():
+            # Get paths from a line like 'diff --git a/path/to/file b/path/to/file'
+            if line.startswith('diff --git '):
+                file_paths = filter(lambda p: p.startswith('a/') or p.startswith('b/'),
+                                    line.split())
+                file_paths = set(map(lambda p: p[2:], file_paths))
+                for path in file_paths:
+                    yield path      # yields only one item atmost!

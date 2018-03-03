@@ -1,5 +1,7 @@
 from ..runner.config import get_logger
 
+from copy import deepcopy
+
 import re
 
 class EventHandler(object):
@@ -48,6 +50,42 @@ class EventHandler(object):
         Both these comments return ['foo', 'bar']
         '''
         return re.findall('r\? @?([A-Za-z0-9]+)', str(comment), re.DOTALL)
+
+    def get_matched_subconfig(self):
+        '''
+        While all handlers can filter payloads based on "allowed_repos", some handlers
+        support per-repo configuration. This gets the sub-config (from the actual handler config)
+        for a handler based on its repo in the payload.
+        '''
+
+        if not (self.api.owner and self.api.repo):
+            self.logger.error("There's no owner/repo info in payload. Bleh?")
+            return None
+
+        result = None
+        string = '%s/%s' % (self.api.owner, self.api.repo)
+        for pattern in self.config:
+            if re.search(pattern.lower(), string):
+                if not result:
+                    result = deepcopy(self.config[pattern])
+                elif isinstance(result, list):
+                    result.extend(self.config[pattern])
+                elif isinstance(result, dict):
+                    result.update(self.config[pattern])
+
+        return result
+
+    def join_names(self, names):
+        ''' Join multiple words in human-readable form'''
+
+        if len(names) == 1:
+            return names.pop()
+        elif len(names) == 2:
+            return '{} and {}'.format(*names)
+        elif len(names) > 2:
+            last = names.pop()
+            return '%s and %s' % (', '.join(names), last)
+        return ''
 
     # Methods corresponding to the actions
 

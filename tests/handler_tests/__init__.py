@@ -52,6 +52,9 @@ class TestAPIProvider(APIProvider):
     def post_comment(self, comment):
         self.comments.append(comment.decode('utf-8'))
 
+    def get_diff(self):
+        return self.diff
+
     def get_page_content(self, path):
         with open(path) as fd:
             return fd.read()

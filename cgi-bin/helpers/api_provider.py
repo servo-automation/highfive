@@ -49,31 +49,6 @@ class APIProvider(object):
     def get_matching_path(self, matches):       # making the helper available for handlers
         return get_path_parent(self.payload, matches)
 
-    # Per-repo configuration
-    def get_matches_from_config(self, config):
-        if not (self.owner and self.repo):
-            if self.payload:
-                self.logger.error("There's no owner/repo info in payload. Bleh?")
-                return None
-            else:
-                # This happens only when we call sync handlers
-                # (We later override owner and repo and call this again)
-                return config
-
-        result = None
-        string = '%s/%s' % (self.owner, self.repo)
-        for pattern in config:
-            pat_lower = pattern.lower()
-            if re.search(pat_lower, string):
-                if not result:
-                    result = deepcopy(config[pattern])
-                elif isinstance(result, list):
-                    result.extend(config[pattern])
-                elif isinstance(result, dict):
-                    result.update(config[pattern])
-
-        return result
-
     def rand_choice(self, values):
         return random.choice(values)
 
@@ -96,23 +71,6 @@ class APIProvider(object):
 
     def get_diff(self):
         raise NotImplementedError
-
-    def get_added_lines(self):
-        diff = self.get_diff()
-        for line in diff.splitlines():
-            if line.startswith('+') and not line.startswith('+++'):
-                yield line
-
-    def get_changed_files(self):
-        diff = self.get_diff()
-        for line in diff.splitlines():
-            # Get paths from a line like 'diff --git a/path/to/file b/path/to/file'
-            if line.startswith('diff --git '):
-                file_paths = filter(lambda p: p.startswith('a/') or p.startswith('b/'),
-                                    line.split())
-                file_paths = set(map(lambda p: p[2:], file_paths))
-                for path in file_paths:
-                    yield path      # yields only one item atmost!
 
     def post_comment(self, comment):
         raise NotImplementedError
@@ -167,14 +125,6 @@ class GithubAPIProvider(APIProvider):
 
     def get_pull(self):
         return self._request('GET', self.pull_url)
-
-    def get_diff(self):
-        if self.diff:
-            return self.diff
-
-        url = self.diff_url % (self.owner, self.repo, self.issue_number)
-        self.diff = self._request('GET', url)
-        return self.diff
 
     def set_assignees(self, assignees):
         url = self.assignees_url % (self.owner, self.repo, self.issue_number)
