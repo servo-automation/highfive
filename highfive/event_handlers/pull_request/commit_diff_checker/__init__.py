@@ -52,8 +52,7 @@ class CommitDiffChecker(EventHandler):
 
         if self.messages:
             lines = '\n'.join(map(lambda line: ' * %s' % line, self.messages))
-            comment = ':warning: **Warning!** :warning:\n\n%s' % lines
-            self.api.post_comment(comment)
+            self.api.post_warning(lines)
 
 
 handler = CommitDiffChecker

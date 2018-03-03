@@ -1,0 +1,7 @@
+{
+  "active": true,
+  "allowed_repos": [
+    "servo/servo"
+  ],
+  "message": "This pull request adds file(s) to `{offending_dirs}` without the `.ini` extension. Please consider removing the file(s)!"
+}

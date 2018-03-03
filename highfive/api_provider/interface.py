@@ -167,3 +167,9 @@ class APIProvider(object):
                 file_paths = set(map(lambda p: p[2:], file_paths))
                 for path in file_paths:
                     yield path      # yields only one item atmost!
+
+    def post_warning(self, comment):
+        '''Post a warning comment.'''
+
+        comment = ':warning: **Warning!** :warning:\n\n%s' % comment
+        self.post_comment(comment)

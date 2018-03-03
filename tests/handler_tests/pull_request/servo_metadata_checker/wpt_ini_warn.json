@@ -4,10 +4,10 @@
       "comments": []
     },
     {
-      "comments": [":warning: **Warning!** :warning:\n\n * This pull request adds file(s) to `tests/wpt/mozilla/meta` without the `.ini` extension. Please consider removing the file(s)!"]
+      "comments": [":warning: **Warning!** :warning:\n\nThis pull request adds file(s) to `tests/wpt/mozilla/meta` without the `.ini` extension. Please consider removing the file(s)!"]
     },
     {
-      "comments": [":warning: **Warning!** :warning:\n\n * This pull request adds file(s) to `tests/wpt/metadata` without the `.ini` extension. Please consider removing the file(s)!"]
+      "comments": [":warning: **Warning!** :warning:\n\nThis pull request adds file(s) to `tests/wpt/metadata` without the `.ini` extension. Please consider removing the file(s)!"]
     },
     {
       "comments": []
@@ -46,22 +46,20 @@
     }
   ],
   "payload": {
-    "number": 7076,
-    "pull_request": {
-      "state": "open",
-      "url": null,
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "servo"
-          },
-          "name": "servo"
-        }
-      },
-      "user": {
-        "login": "someone"
-      }
-    },
-    "action": "opened"
-  }
+     "pull_request": {
+       "number": 7076,
+       "state": "open",
+       "url": null,
+       "user": {
+         "login": "someone"
+       }
+     },
+     "repository": {
+       "owner": {
+         "login": "servo"
+       },
+       "name": "servo"
+     },
+     "action": "opened"
+   }
 }
