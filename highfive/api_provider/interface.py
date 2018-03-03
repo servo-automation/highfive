@@ -60,6 +60,29 @@ class APIProvider(object):
             issue = self.payload.get('issue', {})
             self.is_pull = issue.get("pull_request") is not None
 
+    # Methods unrelated to the API (overridden only in test suite).
+
+    def get_page_content(self, url):
+        '''Get the contents from a given URL.'''
+
+        resp = request_with_requests('GET', url)
+        return resp.data
+
+    def get_screenshots_for_build(self, build_url):
+        url = self.config.get('servo_reftest_screenshot_endpoint', '')
+        url.rstrip('/')
+        url += '/?url=%s' % build_url   # FIXME: should probably url encode?
+        resp = request_with_requests('GET', url)
+        if resp.code != 200:
+            self.logger.error('Error requesting %s' % url)
+            return
+
+        if not resp.is_json():
+            self.logger.debug('Cannot decode JSON data from %s' % url)
+            return
+
+        return resp.data
+
     def post_image_to_imgur(self, base64_data, json_request=request_with_requests):
         '''
         If the client ID is present in configuration, then this method can be used to

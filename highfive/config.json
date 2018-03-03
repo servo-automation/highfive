@@ -36,9 +36,6 @@
             "antrik",
             "metajack"
         ],
-        "servo/saltfs": [
-            "aneeshusa"
-        ],
 
         "test/test": [
             "highfive"

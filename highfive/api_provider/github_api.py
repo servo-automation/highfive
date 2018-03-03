@@ -62,12 +62,6 @@ class GithubAPIProvider(APIProvider):
         url = self.comments_post_url % (self.owner, self.repo, self.issue_number)
         self._request('POST', url, {'body': comment})
 
-    def get_page_content(self, url):
-        '''Get the contents from a given URL.'''
-
-        resp = request_with_requests('GET', url)
-        return resp.data
-
     # Private methods
 
     def _handle_labels(self, method, labels=None):

@@ -165,27 +165,6 @@ class GithubAPIProvider(APIProvider):
         self._request = request_method
         self.logger = get_logger(__name__)
 
-    # self-helpers
-
-    def _handle_labels(self, method, labels=[]):
-        url = self.labels_url % (self.owner, self.repo, self.issue_number)
-        data = self._request(method, url, labels)
-        labels = map(lambda obj: obj['name'].lower(), data)
-        return labels
-
-    # handler helpers
-
-    def get_labels(self):       # FIXME: This always makes a request if the labels are empty
-        if self.labels:
-            return self.labels
-
-        self.labels = self._handle_labels('GET')
-        return self.labels
-
-    # passing an empty list clears all the existing labels
-    def replace_labels(self, labels=[]):
-        self.labels = self._handle_labels('PUT', labels)
-
     def get_pull(self):
         return self._request('GET', self.pull_url)
 
@@ -197,17 +176,9 @@ class GithubAPIProvider(APIProvider):
         self.diff = self._request('GET', url)
         return self.diff
 
-    def post_comment(self, comment):
-        url = self.comments_post_url % (self.owner, self.repo, self.issue_number)
-        self._request('POST', url, {'body': comment})
-
     def set_assignees(self, assignees):
         url = self.assignees_url % (self.owner, self.repo, self.issue_number)
         self._request('POST', url, {'assignees': assignees})
-
-    def get_page_content(self, url):
-        resp = requests.get(url)
-        return resp.text
 
     def create_issue(self, title, body, labels=[], assignees=[]):
         url = self.base_url + '/issues'
@@ -221,17 +192,6 @@ class GithubAPIProvider(APIProvider):
     def close_issue(self):
         url = self.issue_url % (self.owner, self.repo, self.issue_number)
         self._request('PATCH', url, {'state': 'closed'})
-
-    def edit_comment(self, _id, comment):
-        url = self.comments_patch_url % (self.owner, self.repo, _id)
-        self._request('PATCH', url, {'body': comment})
-
-    def get_branch_head(self, owner=None, repo=None, branch='master'):
-        owner = self.owner if owner is None else owner
-        repo = self.repo if repo is None else repo
-        url = self.branch_url % (owner, repo, branch)
-        is_auth = owner == self.owner and repo == self.repo
-        return self._request('GET', url, auth=is_auth)['commit']['sha']
 
     # Recursively traverses through the paginated data to get contributors list.
     # It's forbidden to call this more than once in a session, since it will open
@@ -258,38 +218,3 @@ class GithubAPIProvider(APIProvider):
             url = match.group(1)
 
         return contributors
-
-    # Other helper methods unrelated to the Github API.
-    # (since they're unrelated, they can use `requests` module directly)
-
-    def get_screenshots_for_build(self, build_url):
-        url = CONFIG.get('servo_reftest_screenshot_endpoint')
-        url.rstrip('/')
-        url += '/?url=%s' % build_url   # FIXME: should probably url encode?
-        resp = requests.get(url)
-        if resp.status_code != 200:
-            self.logger.error('Error requesting %s' % url)
-            return
-
-        try:
-            return json.loads(resp.text)
-        except (TypeError, ValueError):
-            self.logger.debug('Cannot decode JSON data from %s' % url)
-
-    def post_image_to_imgur(self, base64_data):
-        if not CONFIG.get('imgur_client_id'):
-            self.logger.error('Imgur client ID has not been set!')
-            return
-
-        headers = {'Authorization': 'Client-ID %s' % CONFIG['imgur_client_id']}
-        resp = requests.post(self.imgur_post_url, data={'image': base64_data},
-                             headers=headers)
-        if resp.status_code != 200:
-            self.logger.error('Error posting image to Imgur')
-            return None
-
-        try:
-            data = json.loads(resp.text)
-            return data['data']['link']
-        except (TypeError, ValueError):
-            self.logger.debug('Error parsing response from Imgur')
