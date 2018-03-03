@@ -49,6 +49,21 @@ class TestAPIProvider(APIProvider):
     def replace_labels(self, labels=[]):
         self.labels = labels
 
+    def post_comment(self, comment):
+        self.comments.append(comment.decode('utf-8'))
+
+    def get_page_content(self, path):
+        with open(path) as fd:
+            return fd.read()
+
+    def get_screenshots_for_build(self, build_url):
+        return self.image_data
+
+    def post_image_to_imgur(self, base64_data):
+        # Passing empty data imitates failure to upload to Imgur
+        if base64_data:
+            return 'https://imgur.com/' + '-'.join(base64_data.lower().split())
+
     def evaluate(self):
         for key, expected_val in self.expected.iteritems():
             value = getattr(self, key)

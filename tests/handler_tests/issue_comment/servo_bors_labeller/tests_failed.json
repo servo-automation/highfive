@@ -2,8 +2,7 @@
   "expected": {
     "labels": [
       "s-tests-failed"
-    ],
-    "comments": ["      \u25b6 OK [expected CRASH] /something/foo/something.html\n    \n      \u25b6 Unexpected subtest result in /something/blah/something.html\n      \u2502 FAIL [expected PASS] totally-something-else\n      \u2502\n      \u2502 reporting...\n      \u2514 I won't report anymore...\n    "]
+    ]
   },
   "initial": {
     "labels": [
@@ -12,7 +11,7 @@
   },
   "payload": {
     "comment": {
-      "body": ":broken_heart: Test failed - [linux2](tests/issue_comment/comment_watcher/builders/test_builder_result.json)"
+      "body": ":broken_heart: Test failed - [linux2](tests/handler_tests/issue_comment/servo_log_checker/builders/test_builder_result.json)"
     },
     "repository": {
       "owner": {
@@ -23,6 +22,7 @@
     "action": "created",
     "issue": {
       "number": 7075,
+      "labels": [],
       "state": "open",
       "user": {
         "login": "wafflespeanut"

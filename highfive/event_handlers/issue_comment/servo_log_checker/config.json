@@ -1,0 +1,10 @@
+{
+  "active": true,
+  "allowed_repos": [
+    "servo/servo"
+  ],
+  "bors_name": "bors-servo",
+  "failure_comment_patterns": [
+    "Test failed"
+  ]
+}

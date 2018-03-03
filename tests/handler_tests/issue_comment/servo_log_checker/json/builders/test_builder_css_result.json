@@ -1,0 +1,8 @@
+{
+    "steps": [{
+        "logs": [
+            ["stdio", "tests/handler_tests/issue_comment/servo_log_checker/json/builders/test_css_stdio"]
+        ],
+        "text": ["test", "failed"]
+    }]
+}

@@ -79,7 +79,7 @@
   }],
   "payload": {
     "comment": {
-      "body": ":broken_heart: Test failed - [linux2](tests/issue_comment/comment_watcher/builders/test_builder_css_result.json)"
+      "body": ":broken_heart: Test failed - [linux2](tests/handler_tests/issue_comment/servo_log_checker/builders/test_builder_css_result.json)"
     },
     "repository": {
       "owner": {
@@ -90,6 +90,7 @@
     "action": "created",
     "issue": {
       "number": 7075,
+      "labels": [],
       "state": "open",
       "user": {
         "login": "wafflespeanut"

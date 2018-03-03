@@ -55,6 +55,10 @@ class APIProvider(object):
 
         if payload.get('comment'):
             self.comment = payload['comment']['body'].encode('utf-8')
+            # Github API always shows comments as "issue comments" - there's no PR comments.
+            # We have to find manually.
+            issue = self.payload.get('issue', {})
+            self.is_pull = issue.get("pull_request") is not None
 
     def post_image_to_imgur(self, base64_data, json_request=request_with_requests):
         '''
@@ -96,6 +100,12 @@ class APIProvider(object):
         raise NotImplementedError
 
     def replace_labels(self, labels=[]):
+        raise NotImplementedError
+
+    def post_comment(self, comment):
+        raise NotImplementedError
+
+    def get_page_content(self, url):
         raise NotImplementedError
 
     # Default methods depending on the overriddable methods.
