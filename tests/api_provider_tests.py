@@ -33,6 +33,7 @@ class APIProviderTests(TestCase):
 
         payload = {
             'issue': {
+                'labels': [],
                 'user': {
                     'login': 'foobar'
                 },

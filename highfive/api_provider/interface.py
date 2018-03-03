@@ -4,7 +4,7 @@ from ..runner.request import request_with_requests
 import random
 
 DEFAULTS = ['is_pull', 'pull_url', 'is_open', 'creator', 'last_updated', 'number',
-            'sender', 'owner', 'repo', 'current_label', 'assignee', 'comment']
+            'sender', 'owner', 'repo', 'current_label', 'assignee', 'comment', 'labels']
 
 class APIProvider(object):
     '''
@@ -51,6 +51,7 @@ class APIProvider(object):
             self.is_open = payload['issue']['state'].lower() == 'open'
             self.last_updated = payload['issue'].get('updated_at')
             self.number = payload['issue']['number']
+            self.labels = payload['issue']['labels']
 
         if payload.get('comment'):
             self.comment = payload['comment']['body'].encode('utf-8')
@@ -80,6 +81,8 @@ class APIProvider(object):
 
         return resp.data['data']['link']
 
+    # Overridable methods.
+
     def get_branch_head(self, branch):
         raise NotImplementedError
 
@@ -88,3 +91,25 @@ class APIProvider(object):
 
     def set_assignees(self, assignees):
         raise NotImplementedError
+
+    def get_labels(self):
+        raise NotImplementedError
+
+    def replace_labels(self, labels=[]):
+        raise NotImplementedError
+
+    # Default methods depending on the overriddable methods.
+
+    def update_labels(self, add=[], remove=[]):
+        '''
+        This fetches the labels corresponding to the given payload, adds/subtracts
+        labels based on the method call, and finally replaces all the labels in the issue/PR.
+        Since this calls `get_labels` every time this method is called, it's up to the implementor
+        to ensure that proper caching is done in that method.
+        '''
+
+        to_lower = lambda label: label.lower()      # str.lower doesn't work for unicode
+        current_labels = set(map(to_lower, self.get_labels()))
+        current_labels.update(map(to_lower, add))
+        current_labels.difference_update(map(to_lower, remove))
+        self.replace_labels(list(current_labels))

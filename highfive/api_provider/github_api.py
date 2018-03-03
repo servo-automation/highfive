@@ -35,3 +35,31 @@ class GithubAPIProvider(APIProvider):
 
         url = self.assignees_url % (self.owner, self.repo, self.number)
         self._request('POST', url, {'assignees': assignees})
+
+    def get_labels(self):
+        '''
+        Fetches the labels for the issue/PR from which this payload was generated.
+        This makes an API request only when the payload doesn't have any label information.
+        Presently, the labels live only as long as the payload.
+        '''
+        if self.labels is not None:
+            return self.labels
+
+        self.labels = self._handle_labels('GET')
+        return self.labels
+
+    def replace_labels(self, labels=[]):
+        '''
+        Method to replace the labels in remote with the given list of labels.
+        Clears all labels by default (i.e., empty list).
+        '''
+
+        self.labels = self._handle_labels('PUT', labels)
+
+    # Private methods
+
+    def _handle_labels(self, method, labels=None):
+        url = self.labels_url % (self.owner, self.repo, self.number)
+        data = self._request(method=method, url=url, data=labels)
+        labels = map(lambda obj: obj['name'].lower(), data)
+        return labels

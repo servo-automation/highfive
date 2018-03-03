@@ -43,6 +43,12 @@ class TestAPIProvider(APIProvider):
     def set_assignees(self, assignees=[]):
         self.assignees = assignees
 
+    def get_labels(self):
+        return self.labels
+
+    def replace_labels(self, labels=[]):
+        self.labels = labels
+
     def evaluate(self):
         for key, expected_val in self.expected.iteritems():
             value = getattr(self, key)

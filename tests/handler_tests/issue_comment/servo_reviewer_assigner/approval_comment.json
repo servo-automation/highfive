@@ -16,6 +16,7 @@
     "action": "created",
     "issue": {
       "number": 7075,
+      "labels": [],
       "state": "open",
       "user": {
         "login": "jdm"

@@ -36,6 +36,7 @@
     "action": "created",
     "issue": {
       "number": 7105,
+      "labels": [],
       "state": "open",
       "user": {
         "login": "jdm"

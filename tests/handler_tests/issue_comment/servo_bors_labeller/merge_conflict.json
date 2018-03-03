@@ -1,21 +1,17 @@
 {
   "initial": {
     "labels": [
-      "S-needs-code-changes",
-      "S-needs-rebase",
-      "S-tests-failed",
-      "S-needs-squash",
-      "S-awaiting-review"
+      "S-awaiting-merge"
     ]
   },
   "expected": {
     "labels": [
-      "s-awaiting-merge"
+      "s-needs-rebase"
     ]
   },
   "payload": {
     "comment": {
-      "body": ":pushpin: Commit 90d7d11 has been approved by `larsbergstrom+dzbarsky`\n\n<!-- @bors-servo r=larsbergstrom+dzbarsky 90d7d11a23e650e03c0283f49b54e9f748c66fee -->"
+      "body": ":umbrella: The latest upstream changes (presumably #6741) made this pull request unmergeable. Please resolve the merge conflicts."
     },
     "repository": {
       "owner": {
@@ -26,6 +22,7 @@
     "action": "created",
     "issue": {
       "number": 7075,
+      "labels": [],
       "state": "open",
       "user": {
         "login": "jdm"

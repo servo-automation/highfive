@@ -1,0 +1,48 @@
+{
+  "active": true,
+  "allowed_repos": [
+    "servo/servo"
+  ],
+  "bors_name": "bors-servo",
+  "actions": {
+    "on_merge_wait": {
+      "comment_patterns": [
+        "Testing commit",
+        "has been approved by"
+      ],
+      "labels_to_add": [
+        "S-awaiting-merge"
+      ],
+      "labels_to_remove": [
+        "S-awaiting-review",
+        "S-needs-rebase",
+        "S-tests-failed",
+        "S-needs-code-changes",
+        "S-needs-squash",
+        "S-awaiting-answer"
+      ]
+    },
+    "on_tests_failed": {
+      "comment_patterns": [
+        "Test failed"
+      ],
+      "labels_to_add": [
+        "S-tests-failed"
+      ],
+      "labels_to_remove": [
+        "S-awaiting-merge"
+      ]
+    },
+    "on_merge_conflict": {
+      "comment_patterns": [
+        "Please resolve the merge conflicts"
+      ],
+      "labels_to_add": [
+        "S-needs-rebase"
+      ],
+      "labels_to_remove": [
+        "S-awaiting-merge"
+      ]
+    }
+  }
+}
