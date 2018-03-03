@@ -40,6 +40,9 @@ class TestAPIProvider(APIProvider):
     def edit_comment(self, id_, comment):
         self.comments[str(id_)] = comment
 
+    def set_assignees(self, assignees=[]):
+        self.assignees = assignees
+
     def evaluate(self):
         for key, expected_val in self.expected.iteritems():
             value = getattr(self, key)

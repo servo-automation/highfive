@@ -1,0 +1,7 @@
+{
+  "active": true,
+  "allowed_repos": [
+    "servo/.*"
+  ],
+  "comment_prefix": "@bors-servo[: ]*"
+}

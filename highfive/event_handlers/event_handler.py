@@ -33,6 +33,22 @@ class EventHandler(object):
         self.config = config
         self.logger = get_logger(__name__)
 
+    # Helper methods used throughout handlers
+
+    def find_reviewers(self, comment):
+        '''
+        If the user had specified the reviewer(s), then return the name(s),
+        otherwise return None. It matches all the usernames following a
+        review request.
+
+        For example,
+        "r? @foo r? @bar and cc @foobar"
+        "r? @foo I've done blah blah r? @bar for baz"
+
+        Both these comments return ['foo', 'bar']
+        '''
+        return re.findall('r\? @?([A-Za-z0-9]+)', str(comment), re.DOTALL)
+
     # Methods corresponding to the actions
 
     def on_issue_assign(self):

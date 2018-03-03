@@ -29,3 +29,9 @@ class GithubAPIProvider(APIProvider):
 
         url = self.comments_patch_url % (self.owner, self.repo, id_)
         self._request('PATCH', url, {'body': comment})
+
+    def set_assignees(self, assignees=[]):
+        '''Set the given list of assignees to the associated issue/PR'''
+
+        url = self.assignees_url % (self.owner, self.repo, self.number)
+        self._request('POST', url, {'assignees': assignees})

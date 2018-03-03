@@ -1,11 +1,11 @@
 {
   "initial": {},
   "expected": {
-    "assignee": ["nox", "wafflespeanut"]
+    "assignees": ["jdm"]
   },
   "payload": {
     "comment": {
-      "body": "@bors-servo: r=nox,wafflespeanut"
+      "body": "@bors-servo: r+"
     },
     "repository": {
       "owner": {

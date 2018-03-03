@@ -85,3 +85,6 @@ class APIProvider(object):
 
     def edit_comment(self, _id, comment):
         raise NotImplementedError
+
+    def set_assignees(self, assignees):
+        raise NotImplementedError
