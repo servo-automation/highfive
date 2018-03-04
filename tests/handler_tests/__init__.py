@@ -103,8 +103,10 @@ def run():
         'database_url': 'foo',      # just to ignore dumping
     })
 
+    event_handlers.load_handlers_using(config)
+
     for event in config.enabled_events:
-        for handler_path, handler in event_handlers.get_handlers(event):
+        for handler_path, handler in event_handlers.get_handlers_for(event, cached=True):
             local_path = handler_path.split(os.sep)[2:]
             test_payloads_dir = path.join(tests_root, *local_path)
 

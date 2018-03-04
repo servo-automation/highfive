@@ -4,19 +4,19 @@ import os
 import os.path as path
 import re
 
-LOGGERS = {}
+__LOGGERS = {}
 
 def get_logger(name):
     '''
     `logger.getLogger()` creates a new instance for all calls. This makes sure that
     we always get the logger unique to a name.
     '''
-    global LOGGERS
-    if LOGGERS.get(name):
-        return LOGGERS[name]
+    global __LOGGERS
+    if __LOGGERS.get(name):
+        return __LOGGERS[name]
     else:
         logger = logging.getLogger(name)
-        LOGGERS[name] = logger
+        __LOGGERS[name] = logger
         return logger
 
 

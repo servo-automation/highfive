@@ -15,4 +15,5 @@ if __name__ == '__main__':
     import handler_tests
 
     unittest.main(exit=False)       # TODO: This doesn't exit when failure occurs. Use the builder.
+    print
     handler_tests.run()
