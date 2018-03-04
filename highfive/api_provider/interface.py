@@ -131,6 +131,9 @@ class APIProvider(object):
     def get_diff(self):
         raise NotImplementedError
 
+    def get_pull(self):
+        raise NotImplementedError
+
     # Default methods depending on the overriddable methods.
 
     def update_labels(self, add=[], remove=[]):

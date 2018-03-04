@@ -1,9 +1,7 @@
 {
   "initial": {
     "labels": [
-      "S-needs-code-changes",
-      "S-tests-failed",
-      "S-awaiting-merge"
+      "S-needs-rebase"
     ]
   },
   "expected": {
@@ -12,22 +10,20 @@
     ]
   },
   "payload": {
-    "number": 7062,
     "pull_request": {
+      "number": 7062,
       "state": "open",
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "servo"
-          },
-          "name": "servo"
-        }
-      },
       "mergeable": true,
       "url": null,
       "user": {
         "login": "someone"
       }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
     },
     "action": "synchronize"
   }

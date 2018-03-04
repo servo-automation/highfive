@@ -6,23 +6,21 @@
     "labels": ["a-foo", "s-needs-deploy"]
   },
   "payload": {
-    "number": 1,
     "pull_request": {
+      "number": 1,
       "state": "open",
       "merged": true,
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "servo"
-          },
-          "name": "saltfs"
-        }
-      },
       "url": null,
       "user": {
         "login": "someone"
       }
     },
+    "repository": {
+        "owner": {
+          "login": "servo"
+        },
+        "name": "saltfs"
+      },
     "action": "closed"
   }
 }

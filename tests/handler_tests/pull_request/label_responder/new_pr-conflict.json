@@ -7,22 +7,20 @@
     ]
   },
   "payload": {
-    "number": 7076,
     "pull_request": {
+      "number": 7076,
       "state": "open",
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "servo"
-          },
-          "name": "servo"
-        }
-      },
       "mergeable": false,
       "url": null,
       "user": {
         "login": "someone"
       }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
     },
     "action": "opened"
   }

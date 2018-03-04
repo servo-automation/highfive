@@ -66,6 +66,9 @@ class TestAPIProvider(APIProvider):
     def get_diff(self):
         return self.diff
 
+    def get_pull(self):
+        return self.pull_request
+
     def set_assignees(self, assignees):
         # Github API offers setting multiple assignees. In an issue's payload,
         # we can find both "assignee" and "assignees". The latter is an array,

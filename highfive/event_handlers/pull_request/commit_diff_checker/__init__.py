@@ -37,7 +37,6 @@ class CommitDiffChecker(EventHandler):
         if not (self.api.is_pull):
             return
 
-        self.messages = set()
         config = self.get_matched_subconfig() or {}
 
         matches = config.get('content', {})
@@ -53,6 +52,9 @@ class CommitDiffChecker(EventHandler):
         if self.messages:
             lines = '\n'.join(map(lambda line: ' * %s' % line, self.messages))
             self.api.post_warning(lines)
+
+    def reset(self):
+        self.messages = set()
 
 
 handler = CommitDiffChecker

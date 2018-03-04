@@ -70,6 +70,9 @@ class GithubAPIProvider(APIProvider):
         self.diff = self._request('GET', url)
         return self.diff
 
+    def get_pull(self):
+        return self._request('GET', self.pull_url)
+
     # Private methods
 
     def _handle_labels(self, method, labels=None):

@@ -123,9 +123,6 @@ class GithubAPIProvider(APIProvider):
         self._request = request_method
         self.logger = get_logger(__name__)
 
-    def get_pull(self):
-        return self._request('GET', self.pull_url)
-
     def set_assignees(self, assignees):
         url = self.assignees_url % (self.owner, self.repo, self.issue_number)
         self._request('POST', url, {'assignees': assignees})

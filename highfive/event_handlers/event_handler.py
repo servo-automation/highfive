@@ -116,6 +116,10 @@ class EventHandler(object):
     def on_issue_label_remove(self):
         pass
 
+    def reset(self):
+        '''Overridable method to reset the internal properties (if any)'''
+        pass
+
     def handle_payload(self):
         '''Call the method corresponding to the payload's action.'''
 
@@ -130,4 +134,5 @@ class EventHandler(object):
 
         method = self.actions.get(self.api.payload['action'])
         if method is not None:
+            self.reset()
             getattr(self, method)()
