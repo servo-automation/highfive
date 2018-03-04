@@ -1,8 +1,6 @@
 from ... import EventHandler
 from time import sleep
 
-import re
-
 class LabelResponder(EventHandler):
     '''Adds/removes labels whenever a PR is opened/updated/merged/conflicted.'''
 

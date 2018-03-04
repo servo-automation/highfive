@@ -38,6 +38,9 @@ class APIProvider(object):
         if payload.get('sender'):
             self.sender = payload['sender']['login'].lower()
 
+        if payload.get('label'):
+            self.current_label = payload['label']['name'].lower()
+
         if payload.get('pull_request'):
             self.is_pull = True
             self.pull_url = payload['pull_request']['url']
@@ -51,7 +54,7 @@ class APIProvider(object):
             self.is_open = payload['issue']['state'].lower() == 'open'
             self.last_updated = payload['issue'].get('updated_at')
             self.number = payload['issue']['number']
-            self.labels = payload['issue']['labels']
+            self.labels = map(lambda obj: obj['name'].lower(), payload['issue']['labels'])
 
         if payload.get('comment'):
             self.comment = payload['comment']['body'].encode('utf-8')

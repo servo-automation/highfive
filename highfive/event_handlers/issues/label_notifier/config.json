@@ -1,0 +1,14 @@
+{
+  "active": true,
+  "servo/servo": {
+    "aneeshusa": ["A-infrastructure"],
+    "fitzgen": ["A-devtools", "A-profiling"],
+    "wafflespeanut": ["A-mach", "L-python"]
+  },
+  "servo/highfive": {
+    "jdm": ["enhancement"]
+  },
+  "servo-automation/": {
+    "wafflespeanut": []
+  }
+}

@@ -19,6 +19,11 @@
     "action": "labeled",
     "issue": {
       "state": "open",
+      "labels": [
+        {
+          "name": "enhancement"
+        }
+      ],
       "number": 84,
       "user": {
         "login": "nox"

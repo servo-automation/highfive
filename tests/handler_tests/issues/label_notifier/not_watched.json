@@ -19,6 +19,11 @@
     "action": "labeled",
     "issue": {
       "state": "open",
+      "labels": [
+        {
+          "name": "not-watched-label"
+        }
+      ],
       "number": 999,
       "user": {
         "login": "jdm"
