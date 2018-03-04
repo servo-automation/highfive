@@ -1,25 +1,25 @@
 {
   "expected": [
     {
-      "comments": ["Heads up! This PR modifies the following files:\n * @test_user: watched/dir/file.rs"]
-    },
-    {
-      "comments": ["Heads up! This PR modifies the following files:\n * @test_user: watched/dir/file.rs"]
+      "comments": []
     },
     {
       "comments": []
     },
     {
-      "comments": ["Heads up! This PR modifies the following files:\n * @test_user: not-watched/dir/watched-file.rs"]
+      "comments": []
     },
     {
       "comments": []
     },
     {
-      "comments": ["Heads up! This PR modifies the following files:\n * @test_user: watched/dir/file.rs"]
+      "comments": []
     },
     {
-      "comments": ["Heads up! This PR modifies the following files:\n * @test_user: watched/dir/file.rs"]
+      "comments": []
+    },
+    {
+      "comments": []
     }
   ],
   "initial": [
@@ -46,21 +46,19 @@
     }
   ],
   "payload": {
-    "number": 7076,
     "pull_request": {
+      "number": 7076,
       "state": "open",
       "url": null,
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "test"
-          },
-          "name": "test"
-        }
-      },
       "user": {
-        "login": "not_a_watcher"
+        "login": "test_user"
       }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "highfive-test"
     },
     "action": "opened"
   }

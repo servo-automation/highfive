@@ -1,0 +1,60 @@
+{
+  "active": true,
+  "message_header": "Heads up! This PR modifies the following files:",
+  "servo/servo": {
+    "aneeshusa": [ "etc/ci/" ],
+    "asajeffrey": [
+      "components/constellation",
+      "components/webdriver_server"
+    ],
+    "bholley": [ "components/style" ],
+    "emilio": [
+      "components/script/dom/webgl",
+      "components/canvas/webgl",
+      "ports/geckolib",
+      "components/style",
+      "components/layout"
+    ],
+    "fitzgen": [
+      "components/devtools",
+      "components/devtools_traits",
+      "components/debugger",
+      "components/profile",
+      "components/profile_traits",
+      "components/script",
+      "components/script_traits"
+    ],
+    "jgraham": [
+      "components/webdriver_server",
+      "tests/wpt/",
+      "-tests/wpt/css-tests",
+      "-tests/wpt/metadata",
+      "-tests/wpt/metadata-css",
+      "-tests/wpt/mozilla",
+      "-tests/wpt/web-platform-tests"
+    ],
+    "KiChjang": [
+      "components/net",
+      "components/net_traits",
+      "components/script",
+      "components/script_traits"
+    ],
+    "wafflespeanut": [ "python/" ]
+  },
+  "servo/highfive": {
+    "jdm": []
+  },
+  "servo-automation/": {
+    "wafflespeanut": []
+  },
+
+  "test/test": {
+    "test_user": [
+      "watched/dir/",
+      "not-watched/dir/watched-file.rs",
+      "blacklisted/dir/watched-file.rs",
+      "-blacklisted/dir/",
+      "-watched/dir/blacklisted-file.rs"
+    ]
+  }
+}
