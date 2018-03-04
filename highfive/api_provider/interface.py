@@ -3,7 +3,7 @@ from ..runner.request import request_with_requests
 
 import random
 
-DEFAULTS = ['pull_url', 'is_open', 'creator', 'last_updated', 'number', 'diff',
+DEFAULTS = ['pull_url', 'is_open', 'is_pull', 'creator', 'last_updated', 'number', 'diff',
             'sender', 'owner', 'repo', 'current_label', 'assignee', 'comment']
 
 class APIProvider(object):
@@ -41,33 +41,42 @@ class APIProvider(object):
         if payload.get('label'):
             self.current_label = payload['label']['name'].lower()
 
-        issue = payload.get('issue')
-        pull = payload.get('pull_request')
-        self.is_pull = pull is not None
-
-        if pull:
-            if pull.get('assignee'):
-                self.assignee = pull['assignee']['login'].lower()
-
-            self.pull_url = pull['url']
-            self.creator = pull['user']['login'].lower()
-            self.is_open = pull['state'] == 'open'
-            self.last_updated = pull.get('updated_at')
-            self.number = pull['number']
-
-        elif issue:
-            self.creator = issue['user']['login'].lower()
-            self.is_open = issue['state'].lower() == 'open'
-            self.last_updated = issue.get('updated_at')
-            self.number = issue['number']
-            self.labels = map(lambda obj: obj['name'].lower(), issue['labels'])
+        if payload.get('pull_request'):
+            self._init_pull_attributes()
+        elif payload.get('issue'):
+            self._init_issue_attributes()
 
         if payload.get('comment'):
-            self.comment = payload['comment']['body'].encode('utf-8')
-            # Github API always shows comments as "issue comments" - there's no PR comments.
-            # We have to find manually.
-            issue = self.payload.get('issue', {})
-            self.is_pull = issue.get("pull_request") is not None
+            self._init_comment_attributes()
+
+
+    def _init_issue_attributes(self):
+        issue = self.payload['issue']
+        self.creator = issue['user']['login'].lower()
+        self.is_open = issue['state'].lower() == 'open'
+        self.last_updated = issue.get('updated_at')
+        self.number = issue['number']
+        self.labels = map(lambda obj: obj['name'].lower(), issue['labels'])
+
+    def _init_pull_attributes(self):
+        self.is_pull = True
+        pull = self.payload['pull_request']
+
+        if pull.get('assignee'):
+            self.assignee = pull['assignee']['login'].lower()
+
+        self.pull_url = pull['url']
+        self.creator = pull['user']['login'].lower()
+        self.is_open = pull['state'] == 'open'
+        self.last_updated = pull.get('updated_at')
+        self.number = pull['number']
+
+    def _init_comment_attributes(self):
+        self.comment = self.payload['comment']['body'].encode('utf-8')
+        # Github API always shows comments as "issue comments" - there's no PR comments.
+        # We have to find manually.
+        issue = self.payload.get('issue', {})
+        self.is_pull = issue.get("pull_request") is not None
 
     # Methods unrelated to the API (overridden only in test suite).
 

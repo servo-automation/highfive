@@ -5,7 +5,6 @@ import json
 import os
 import os.path as path
 
-# FIXME: This loads the modules every time we receive a payload. Cache it maybe?
 def get_handlers(event):
     '''
     Get the handlers corresponding to an event.

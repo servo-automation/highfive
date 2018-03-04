@@ -33,14 +33,17 @@ class APIProviderTests(TestCase):
 
         payload = {
             'issue': {
-                'labels': [],
                 'user': {
-                    'login': 'foobar'
+                    'login': 'Foobar'
                 },
                 'state': 'open',
+                'labels': [
+                    { 'name': 'Foo' },
+                    { 'name': 'Bar' }
+                ],
                 'number': 200,
                 'updated_at': '1970-01-01T00:00:00Z'
-            }
+            },
         }
 
         api = APIProvider(config=create_config(), payload=payload)
@@ -51,6 +54,7 @@ class APIProviderTests(TestCase):
         self.assertEqual(api.last_updated, payload['issue']['updated_at'])
         self.assertEqual(api.number, 200)
         self.assertTrue(api.pull_url is None)
+        self.assertEqual(api.labels, ['foo', 'bar'])
 
     def test_api_pr_payload(self):
         '''
@@ -61,7 +65,10 @@ class APIProviderTests(TestCase):
         payload = {
             'pull_request': {
                 'user': {
-                    'login': 'foobar'
+                    'login': 'Foobar'
+                },
+                'assignee': {
+                    'login': 'Baz'
                 },
                 'state': 'open',
                 'number': 50,
@@ -75,9 +82,48 @@ class APIProviderTests(TestCase):
         self.assertTrue(api.is_open)
         self.assertTrue(api.is_pull)
         self.assertEqual(api.creator, 'foobar')
+        self.assertEqual(api.assignee, 'baz')
         self.assertEqual(api.last_updated, payload['pull_request']['updated_at'])
         self.assertEqual(api.number, 50)
         self.assertEqual(api.pull_url, 'some url')
+
+    def test_api_other_events(self):
+        '''Test for payload belonging to other events such as comment, label, etc.'''
+
+        payload = {         # This is a hypothetical payload just for tests
+            'sender': {
+                'login': 'Someone'
+            },
+            'label': {
+                'name': 'Label'
+            },
+            'repository': {
+                'owner': {
+                    'login': 'foo'
+                },
+                'name': 'bar'
+            },
+            'comment': {
+                'body': 'Hello, world!',
+            },
+            'issue': {
+                'pull_request': {},
+                'labels': [],
+                'user': {
+                    'login': 'Foobar'
+                },
+                'state': 'open',
+                'number': 200,
+            }
+        }
+
+        api = APIProvider(config=create_config(), payload=payload)
+        self.assertTrue(api.is_pull)
+        self.assertEqual(api.sender, 'someone')
+        self.assertEqual(api.comment, 'Hello, world!')
+        self.assertEqual(api.current_label, 'label')
+        self.assertEqual(api.owner, 'foo')
+        self.assertEqual(api.repo, 'bar')
 
     def test_api_imgur_upload(self):
         '''Test Imgur API upload'''
