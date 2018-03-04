@@ -123,10 +123,6 @@ class GithubAPIProvider(APIProvider):
         self._request = request_method
         self.logger = get_logger(__name__)
 
-    def set_assignees(self, assignees):
-        url = self.assignees_url % (self.owner, self.repo, self.issue_number)
-        self._request('POST', url, {'assignees': assignees})
-
     def create_issue(self, title, body, labels=[], assignees=[]):
         url = self.base_url + '/issues'
         return self._request('POST', url, {
@@ -139,29 +135,3 @@ class GithubAPIProvider(APIProvider):
     def close_issue(self):
         url = self.issue_url % (self.owner, self.repo, self.issue_number)
         self._request('PATCH', url, {'state': 'closed'})
-
-    # Recursively traverses through the paginated data to get contributors list.
-    # It's forbidden to call this more than once in a session, since it will open
-    # one of the gates to Tartarus, exposing our world to the Titans.
-    def get_contributors(self):
-        self.logger.debug('Updating contributors list...')
-        contributors = []
-        url = self.contributors_url % (self.owner, self.repo)
-
-        while True:
-            headers, data = self._request('GET', url, headers_required=True)
-            contributors.extend(map(lambda v: v['login'], data))
-
-            match = None
-            if headers.get('Link'):
-                match = re.search(r'<(.*)>; rel="next".*<(.*)>; rel="last"',
-                                  headers['Link'])
-            if not match:
-                break
-
-            last_url = match.group(2)
-            if url == last_url:
-                break
-            url = match.group(1)
-
-        return contributors

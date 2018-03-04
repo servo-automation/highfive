@@ -1,29 +1,26 @@
 {
   "expected": {
-    "assignee": ["jdm"],
+    "assignees": ["jdm"],
     "comments": ["@jdm Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks."]
   },
   "initial": {
     "contributors": ["Manishearth"]
   },
   "payload": {
-    "number": 7076,
     "pull_request": {
+      "number": 7076,
       "state": "open",
-      "assignee": null,
       "url": null,
       "body": "r? jdm",
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "servo"
-          },
-          "name": "servo"
-        }
-      },
       "user": {
         "login": "Manishearth"
       }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
     },
     "action": "opened"
   }

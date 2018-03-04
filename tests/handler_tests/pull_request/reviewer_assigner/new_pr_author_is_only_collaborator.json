@@ -4,26 +4,23 @@
     "assignee": null
   },
   "payload": {
-    "number": 7087,
     "pull_request": {
+      "number": 7087,
       "state": "open",
-      "assignee": null,
       "url": null,
       "body": "Who's gonna review this?",
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "test"
-          },
-          "name": "test"
-        }
-      },
       "user": {
         "login": "highfive"
       }
     },
     "sender": {
       "login": "highfive"
+    },
+    "repository": {
+      "owner": {
+        "login": "test"
+      },
+      "name": "test"
     },
     "action": "opened"
   }

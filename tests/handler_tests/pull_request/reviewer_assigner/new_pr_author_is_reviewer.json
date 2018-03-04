@@ -1,29 +1,26 @@
 {
   "expected": {
-    "assignee": ["jdm"],
+    "assignees": ["jdm"],
     "comments": ["@jdm Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks."]
   },
   "initial": {
     "contributors": ["wafflespeanut"]
   },
   "payload": {
-    "number": 149,
     "pull_request": {
+      "number": 149,
       "state": "open",
-      "assignee": null,
       "body": "blah blah blah",
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "servo"
-          },
-          "name": "highfive"
-        }
-      },
       "url": null,
       "user": {
         "login": "wafflespeanut"
       }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "highfive"
     },
     "action": "opened",
     "sender": {

@@ -1,4 +1,5 @@
 from ... import EventHandler
+
 from time import sleep
 
 class LabelResponder(EventHandler):

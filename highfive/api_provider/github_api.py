@@ -63,6 +63,8 @@ class GithubAPIProvider(APIProvider):
         self._request('POST', url, {'body': comment})
 
     def get_diff(self):
+        '''Get the diff for this pull request.'''
+
         if self.diff:
             return self.diff
 
@@ -71,7 +73,38 @@ class GithubAPIProvider(APIProvider):
         return self.diff
 
     def get_pull(self):
+        '''Fetch the latest info for the pull request associated with this payload.'''
+
         return self._request('GET', self.pull_url)
+
+    def get_contributors(self):
+        '''
+        Recursively traverses through the paginated data to get contributors list.
+        Call this only to update your local cache! It's forbidden to call this more than
+        required, since it will open one of the gates to Tartarus, exposing our world to
+        the Titans.
+        '''
+
+        self.logger.debug('Updating contributors list...')
+        contributors = []
+        url = self.contributors_url % (self.owner, self.repo)
+
+        while True:
+            headers, data = self._request('GET', url, headers_required=True)
+            contributors.extend(map(lambda v: v['login'].lower(), data))
+
+            match = None
+            if headers.get('Link'):
+                match = re.search(r'<(.*)>; rel="next".*<(.*)>; rel="last"', headers['Link'])
+            if not match:
+                break
+
+            last_url = match.group(2)
+            if url == last_url:
+                break
+            url = match.group(1)
+
+        return contributors
 
     # Private methods
 

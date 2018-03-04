@@ -3,8 +3,8 @@ from ..runner.request import request_with_requests
 
 import random
 
-DEFAULTS = ['is_pull', 'pull_url', 'is_open', 'creator', 'last_updated', 'number', 'diff',
-            'sender', 'owner', 'repo', 'current_label', 'assignee', 'comment', 'labels']
+DEFAULTS = ['pull_url', 'is_open', 'creator', 'last_updated', 'number', 'diff',
+            'sender', 'owner', 'repo', 'current_label', 'assignee', 'comment']
 
 class APIProvider(object):
     '''
@@ -41,20 +41,26 @@ class APIProvider(object):
         if payload.get('label'):
             self.current_label = payload['label']['name'].lower()
 
-        if payload.get('pull_request'):
-            self.is_pull = True
-            self.pull_url = payload['pull_request']['url']
-            self.creator = payload['pull_request']['user']['login'].lower()
-            self.is_open = payload['pull_request']['state'] == 'open'
-            self.last_updated = payload['pull_request'].get('updated_at')
-            self.number = payload['pull_request']['number']
-        elif payload.get('issue'):
-            self.is_pull = False
-            self.creator = payload['issue']['user']['login'].lower()
-            self.is_open = payload['issue']['state'].lower() == 'open'
-            self.last_updated = payload['issue'].get('updated_at')
-            self.number = payload['issue']['number']
-            self.labels = map(lambda obj: obj['name'].lower(), payload['issue']['labels'])
+        issue = payload.get('issue')
+        pull = payload.get('pull_request')
+        self.is_pull = pull is not None
+
+        if pull:
+            if pull.get('assignee'):
+                self.assignee = pull['assignee']['login'].lower()
+
+            self.pull_url = pull['url']
+            self.creator = pull['user']['login'].lower()
+            self.is_open = pull['state'] == 'open'
+            self.last_updated = pull.get('updated_at')
+            self.number = pull['number']
+
+        elif issue:
+            self.creator = issue['user']['login'].lower()
+            self.is_open = issue['state'].lower() == 'open'
+            self.last_updated = issue.get('updated_at')
+            self.number = issue['number']
+            self.labels = map(lambda obj: obj['name'].lower(), issue['labels'])
 
         if payload.get('comment'):
             self.comment = payload['comment']['body'].encode('utf-8')
@@ -113,6 +119,14 @@ class APIProvider(object):
 
     # Overridable methods.
 
+    def rand_choice(self, values):
+        '''
+        Choose a pseudo-random value from the given list of values. We use this
+        so that we can override it during testing.
+        '''
+
+        return random.choice(values)
+
     def get_branch_head(self, branch):
         raise NotImplementedError
 
@@ -135,6 +149,9 @@ class APIProvider(object):
         raise NotImplementedError
 
     def get_pull(self):
+        raise NotImplementedError
+
+    def get_contributors(self):
         raise NotImplementedError
 
     # Default methods depending on the overriddable methods.

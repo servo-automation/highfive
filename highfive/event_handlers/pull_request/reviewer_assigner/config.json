@@ -1,0 +1,12 @@
+{
+  "active": true,
+  "servo/": {
+    "reviewer_msg": [
+      "@{reviewer} Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks.",
+      "Hey @{reviewer}, I've assigned this to you. Please review it (or `r? @someone` and I'll assign it to them). Thanks."
+    ],
+    "newcomer_welcome_msg": [
+      "Thanks for the pull request, and welcome! The Servo team is excited to review your changes. You should hear from @{reviewer} (or someone else) soon."
+    ]
+  }
+}

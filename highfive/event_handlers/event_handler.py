@@ -2,6 +2,7 @@ from ..runner.config import get_logger
 
 from copy import deepcopy
 
+import random
 import re
 
 class EventHandler(object):
@@ -58,20 +59,25 @@ class EventHandler(object):
         for a handler based on its repo in the payload.
         '''
 
+        return self.get_matches_from_config(self.config)
+
+    def get_matches_from_config(self, config):
+        '''Filter the given per-repo configuration based on the payload's owner and repo.'''
+
         if not (self.api.owner and self.api.repo):
             self.logger.error("There's no owner/repo info in payload. Bleh?")
             return None
 
         result = None
         string = '%s/%s' % (self.api.owner, self.api.repo)
-        for pattern in self.config:
+        for pattern in config:
             if re.search(pattern.lower(), string):
                 if not result:
-                    result = deepcopy(self.config[pattern])
+                    result = deepcopy(config[pattern])
                 elif isinstance(result, list):
-                    result.extend(self.config[pattern])
+                    result.extend(config[pattern])
                 elif isinstance(result, dict):
-                    result.update(self.config[pattern])
+                    result.update(config[pattern])
 
         return result
 

@@ -55,9 +55,15 @@ class TestAPIProvider(APIProvider):
     def get_diff(self):
         return self.diff
 
+    def get_contributors(self):
+        return map(lambda name: name.lower(), self.contributors)
+
     def get_page_content(self, path):
         with open(path) as fd:
             return fd.read()
+
+    def rand_choice(self, values):
+        return values[0]    # so that the results are consistent
 
     def get_screenshots_for_build(self, build_url):
         return self.image_data
@@ -81,15 +87,21 @@ def run():
     warn = not overwrite
     config = Configuration()
     config_overridable.read_file = lambda p: 'booya'
+
+    tests_root = path.dirname(path.abspath(__file__))
+    repo_root = path.dirname(path.dirname(tests_root))
+    config_file = path.join(repo_root, 'highfive', 'config.json')
+    with open(config_file, 'r') as fd:
+        default_config = json.load(fd)
+
     config.initialize_defaults({
         'name': 'test-app',
         'pem_key': None,
         'secret': 'baz',
         'integration_id': 0,
+        'collaborators': default_config['collaborators'],
         'database_url': 'foo',      # just to ignore dumping
     })
-
-    tests_root = path.dirname(path.abspath(__file__))
 
     for event in config.enabled_events:
         for handler_path, handler in event_handlers.get_handlers(event):

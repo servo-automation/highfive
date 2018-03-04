@@ -1,6 +1,6 @@
 {
   "expected": {
-    "assignee": ["wafflespeanut"],
+    "assignees": ["wafflespeanut"],
     "comments": [
       "@wafflespeanut Please review this pull request (or `r? @someone` and I'll assign it to them). Thanks.",
       "Thanks for the pull request, and welcome! The Servo team is excited to review your changes. You should hear from @wafflespeanut (or someone else) soon."
@@ -10,26 +10,23 @@
     "contributors": []
   },
   "payload": {
-    "number": 7087,
     "pull_request": {
+      "number": 7087,
       "state": "open",
       "url": null,
-      "assignee": null,
       "body": "Not sure who I should assign this to!",
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "servo"
-          },
-          "name": "highfive"
-        }
-      },
       "user": {
         "login": "frewsxcv"
       }
     },
     "sender": {
       "login": "frewsxcv"
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "highfive"
     },
     "action": "opened"
   }
