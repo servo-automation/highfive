@@ -110,3 +110,9 @@ class Configuration(object):
                 getattr(self, attr)
             except AttributeError:
                 setattr(self, attr, value)
+
+    def __getitem__(self, key):
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            return None

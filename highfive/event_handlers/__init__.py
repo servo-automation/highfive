@@ -73,7 +73,7 @@ def load_handlers_using(config):
 
     for event in config.enabled_events:
         __HANDLERS[event] = []
-        # NOTE: Don't ever set `wrap_config=True`! All hell breaks loose!
+        # NOTE: Don't ever set `wrap_config=True` here! All hell breaks loose!
         # (You can try running the tests after setting it)
         for components in get_handlers_for(event, wrap_config=False):
             __HANDLERS[event].append(components)

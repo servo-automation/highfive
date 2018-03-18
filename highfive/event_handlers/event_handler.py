@@ -29,6 +29,9 @@ class EventHandler(object):
         'created'     : 'on_new_comment',
         'labeled'     : 'on_issue_label_add',
         'unlabeled'   : 'on_issue_label_remove',
+
+        # Internally used actions
+        '__tick'      : 'on_next_tick',
     }
 
     def __init__(self, api, config):
@@ -120,6 +123,13 @@ class EventHandler(object):
         pass
 
     def on_issue_label_remove(self):
+        pass
+
+    def on_next_tick(self):
+        '''
+        Since the handlers aren't aware of date/time, this event is for those handlers that depend
+        on "time" - it's externally called by the daemon thread every now and then in a loop.
+        '''
         pass
 
     def reset(self):
