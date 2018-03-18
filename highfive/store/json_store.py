@@ -12,9 +12,9 @@ class JsonStore(IntegrationStore):
     in that directory. This is chosen if `dump_path` key is specified in the config.
     '''
 
-    def __init__(self, config):
-        super(JsonStore, self).__init__(config)
-        self.dump_path = config.dump_path
+    def __init__(self, dump_path):
+        super(JsonStore, self).__init__()
+        self.dump_path = dump_path
 
     def get_installations(self):
         for dirname in os.listdir(self.dump_path):

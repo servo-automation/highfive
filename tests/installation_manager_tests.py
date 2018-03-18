@@ -32,7 +32,8 @@ class InstallationManagerTests(TestCase):
     def test_manager_init(self):
         manager = InstallationManager(key=SAMPLE_KEY,
                                       integration_id=666,
-                                      installation_id=255)
+                                      installation_id=255,
+                                      store=None)
         self.assertEqual(manager.token, None)
         # This triggers the manager to get the rate limit for the given window.
         self.assertTrue(manager.reset_time < time.time())
@@ -74,6 +75,7 @@ class InstallationManagerTests(TestCase):
         manager = InstallationManager(key=SAMPLE_KEY,
                                       integration_id=666,
                                       installation_id=255,
+                                      store=None,
                                       json_request=test_request)
         manager.sync_token()
         self.assertEqual(scope.requested, 1)
@@ -113,6 +115,7 @@ class InstallationManagerTests(TestCase):
         manager = InstallationManager(key=SAMPLE_KEY,
                                       integration_id=666,
                                       installation_id=255,
+                                      store=None,
                                       json_request=test_request)
         # assume that we've obtained the token through `sync_token`
         manager.token = 'booya'
@@ -164,6 +167,7 @@ class InstallationManagerTests(TestCase):
         manager = InstallationManager(key=SAMPLE_KEY,
                                       integration_id=666,
                                       installation_id=255,
+                                      store=None,
                                       json_request=test_4xx_response)
         # assume that we've obtained the token through `sync_token`
         manager.token = 'booya'
@@ -192,7 +196,8 @@ class InstallationManagerTests(TestCase):
         '''
         manager = InstallationManager(key=SAMPLE_KEY,
                                       integration_id=666,
-                                      installation_id=255)
+                                      installation_id=255,
+                                      store=None)
         steps = []
         resp = Response(data={})
 

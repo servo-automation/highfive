@@ -72,6 +72,8 @@ class RunnerTests(TestCase):
         r = runner.handle_payload('status', payload)
         self.assertTrue(r is HandlerError.DisabledEvent)
         self.assertEqual(len(runner.installations), 1)
+        self.assertTrue(runner.installations[0].store._inst_id is 0)
+        self.assertTrue(runner.installations[0].store.store is None)
         runner.installations.clear()
 
         payload['sender'] = {'login': 'foo'}

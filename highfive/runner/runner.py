@@ -1,4 +1,6 @@
+from .. import store
 from ..api_provider import GithubAPIProvider
+from ..store import InstallationStore
 from config import get_logger
 from installation_manager import InstallationManager
 from time import sleep
@@ -42,6 +44,7 @@ class Runner(object):
         self.logger = get_logger(__name__)
         self.installations = {}
         self.config = config
+        self.store = store.from_config(config)
 
     def verify_payload(self, x_hub_signature, raw_payload):
         '''
@@ -97,7 +100,9 @@ class Runner(object):
 
         # If the installation doesn't exist, create a new manager for it.
         if self.installations.get(inst_id) is None:
-            manager = InstallationManager(self.config.pem_key, self.config.integration_id, inst_id)
+            store = InstallationStore(self.store, inst_id)
+            manager = InstallationManager(self.config.pem_key, self.config.integration_id,
+                                          inst_id, store)
             self.installations[inst_id] = manager
 
         # Create an API provider for the payload

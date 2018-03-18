@@ -17,9 +17,9 @@ class PostgreSqlStore(IntegrationStore):
     `database_url` key is specified in the config.
     '''
 
-    def __init__(self, config):
-        super(PostgreSqlStore, self).__init__(config)
-        url = urlparse(config.database_url)
+    def __init__(self, database_url):
+        super(PostgreSqlStore, self).__init__()
+        url = urlparse(database_url)
         self.kwargs = dict(
             database=url.path[1:],
             user=url.username,

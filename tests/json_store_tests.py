@@ -1,4 +1,3 @@
-from highfive.runner import Configuration
 from highfive.store import JsonStore
 
 from unittest import TestCase
@@ -12,26 +11,24 @@ class JsonStoreTests(TestCase):
     def test_get_existing_installations(self):
         '''Test getting existing installations from store.'''
 
-        config = Configuration()
-        config.dump_path = path.dirname(__file__)
-        store = JsonStore(config)
+        dump_path = path.dirname(__file__)
+        store = JsonStore(dump_path)
         inst_id = 5127
         self.assertEqual(list(store.get_installations()), [])
-        os.mkdir(path.join(config.dump_path, str(inst_id)))
+        os.mkdir(path.join(dump_path, str(inst_id)))
         self.assertEqual(list(store.get_installations()), [inst_id])
-        os.rmdir(path.join(config.dump_path, str(inst_id)))
+        os.rmdir(path.join(dump_path, str(inst_id)))
 
     def test_writing_getting_and_removing_objects(self):
         '''Test writing an object to file, getting it back and removing it entirely from the store.'''
 
-        config = Configuration()
-        config.dump_path = path.dirname(__file__)
-        store = JsonStore(config)
+        dump_path = path.dirname(__file__)
+        store = JsonStore(dump_path)
         inst_id = 5003
         data = {'key': 'value'}
-        # This will (should!) automatically create a dir for installtion and put foobar inside it
+        # NOTE: This will (should!) create a dir for installtion and put foobar inside it.
         store.write_object(inst_id, 'foobar', data)
-        obj_path = path.join(config.dump_path, str(inst_id), 'foobar')
+        obj_path = path.join(dump_path, str(inst_id), 'foobar')
 
         storeData = store.get_object(inst_id, 'foobar')
         self.assertEqual(data, storeData)
@@ -39,5 +36,5 @@ class JsonStoreTests(TestCase):
             self.assertEqual(json.load(fd), data)
 
         store.remove_object(inst_id, 'foobar')
-        # This will work only if the previous line succeeds
-        os.rmdir(path.join(config.dump_path, str(inst_id)))
+        # NOTE: This will work only if the previous line succeeds.
+        os.rmdir(path.join(dump_path, str(inst_id)))

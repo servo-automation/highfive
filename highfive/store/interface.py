@@ -3,13 +3,12 @@ from ..runner.config import get_logger
 class IntegrationStore(object):
     '''
     All handlers live/breathe on JSON data. This is an interface for the store globally used by all
-    installations. The implementor is only used by the runner and is exposed to the handlers
-    only through InstallationStore.
+    installations. The implementors are only used by the runner, which exposes the store to the
+    handlers only through the InstallationStore wrapper.
     '''
 
-    def __init__(self, config):
+    def __init__(self):
         self.logger = get_logger(__name__)
-        self.config = config
 
     def get_installations(self):
         '''
@@ -38,18 +37,18 @@ class IntegrationStore(object):
         raise NotImplementedError
 
 
-class InstallationStore(IntegrationStore):
+class InstallationStore(object):
     '''Wrapper for IntegrationStore, to keep installation IDs out of handlers' reach.'''
 
-    def __init__(self, inst_id, config):
-        self.logger = get_logger(__name__)
+    def __init__(self, store, inst_id):
+        self.store = store
         self._inst_id = inst_id
 
     def get_object(self, key):
-        return super(InstallationStore, self).get_object(self._inst_id, key)
+        return self.store.get_object(self._inst_id, key)
 
     def remove_object(self, key):
-        return super(InstallationStore, self).remove_object(self._inst_id, key)
+        return self.store.remove_object(self._inst_id, key)
 
-    def write_object(self, key, value):
-        return super(InstallationStore, self).write_object(self._inst_id, key)
+    def write_object(self, key, data):
+        return self.store.write_object(self._inst_id, key, data)

@@ -27,11 +27,12 @@ class InstallationManager(object):
         'Accept-Encoding': 'gzip, deflate'
     }
 
-    def __init__(self, key, integration_id, installation_id,
+    def __init__(self, key, integration_id, installation_id, store,
                  json_request=request_with_requests):
         self.integration_id = integration_id
         self.installation_id = installation_id
         self.installation_url = self.installation_url % installation_id
+        self.store = store
 
         # Objects for mocking in tests
         self.json_request = json_request
