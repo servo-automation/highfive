@@ -8,23 +8,23 @@ DEFAULTS = ['pull_url', 'is_open', 'is_pull', 'creator', 'last_updated', 'number
 
 class APIProvider(object):
     '''
-    The interface used by `GithubAPIProvider` object to take actions based on
-    the incoming payload. API provider objects are tied to payloads.
+    The interface used by `GithubAPIProvider` object to take actions based on the incoming
+    payload. API provider objects are tied to payloads.
 
-    Once the runner receives a payload, an API provider object is created and
-    sent to all handlers (through the installation and synchronization managers).
-    This object is supposed to provide encapsulation for commonly used payload
-    attributes and methods, so that the handlers don't have to worry about
-    extracting them every time.
+    Once the runner receives a payload, an API provider object is created and sent to all
+    handlers (through the installation manager). This object is supposed to provide encapsulation
+    for commonly used payload attributes and methods, so that the handlers don't have to worry
+    about extracting them every time.
     '''
 
     imgur_post_url = 'https://api.imgur.com/3/image'
 
-    def __init__(self, config, payload):
+    def __init__(self, config, payload, store=None):
         self.name = config.name
         self.config = config
         self.payload = payload
         self.logger = get_logger(__name__)
+        self.store = store
 
         for attr in DEFAULTS:
             setattr(self, attr, None)
@@ -49,6 +49,7 @@ class APIProvider(object):
         if payload.get('comment'):
             self._init_comment_attributes()
 
+    # Methods for initialization
 
     def _init_issue_attributes(self):
         issue = self.payload['issue']

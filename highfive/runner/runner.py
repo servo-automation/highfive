@@ -1,5 +1,4 @@
 from .. import store
-from ..api_provider import GithubAPIProvider
 from ..store import InstallationStore
 from config import get_logger
 from installation_manager import InstallationManager
@@ -98,16 +97,15 @@ class Runner(object):
         if 'installation_repositories' in x_github_event:
             return HandlerError.NewInstallation
 
+        manager = self.installations.get(inst_id)
         # If the installation doesn't exist, create a new manager for it.
-        if self.installations.get(inst_id) is None:
+        if manager is None:
             store = InstallationStore(self.store, inst_id)
-            manager = InstallationManager(self.config.pem_key, self.config.integration_id,
-                                          inst_id, store)
+            manager = InstallationManager(self.config, inst_id, store)
             self.installations[inst_id] = manager
 
         # Create an API provider for the payload
-        manager = self.installations[inst_id]
-        api = GithubAPIProvider(self.config, payload, api_json_request=manager.request)
+        api = manager.create_api_provider_for_payload(payload)
 
         # Only accept payloads from registered repositories.
         if not any(re.search(pat, '%s/%s' % (api.owner, api.repo)) for pat in self.config.allowed_repos):

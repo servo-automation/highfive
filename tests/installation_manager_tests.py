@@ -1,3 +1,4 @@
+from highfive.runner.config import Configuration
 from highfive.runner import InstallationManager, Response
 
 from datetime import datetime, timedelta
@@ -22,6 +23,13 @@ U9VQQSQzY1oZMVX8i1m5WUTLPz2yLJIBQVdXqhMCQBGoiuSoSjafUhV7i1cEGpb88h5NBYZzWXGZ
 -----END RSA PRIVATE KEY-----'''
 
 
+def create_config():
+    config = Configuration()
+    config.pem_key = SAMPLE_KEY
+    config.integration_id = 666
+    return config
+
+
 class InstallationManagerTests(TestCase):
     def check_default_headers(self, headers):
         self.assertEqual(headers['Content-Type'], 'application/json')
@@ -30,8 +38,7 @@ class InstallationManagerTests(TestCase):
         self.assertEqual(headers['Accept-Encoding'], 'gzip, deflate')
 
     def test_manager_init(self):
-        manager = InstallationManager(key=SAMPLE_KEY,
-                                      integration_id=666,
+        manager = InstallationManager(config=create_config(),
                                       installation_id=255,
                                       store=None)
         self.assertEqual(manager.token, None)
@@ -72,8 +79,7 @@ class InstallationManagerTests(TestCase):
                 'expires_at': '%sZ' % scope.expiry
             })
 
-        manager = InstallationManager(key=SAMPLE_KEY,
-                                      integration_id=666,
+        manager = InstallationManager(config=create_config(),
                                       installation_id=255,
                                       store=None,
                                       json_request=test_request)
@@ -112,8 +118,7 @@ class InstallationManagerTests(TestCase):
                 }
             })
 
-        manager = InstallationManager(key=SAMPLE_KEY,
-                                      integration_id=666,
+        manager = InstallationManager(config=create_config(),
                                       installation_id=255,
                                       store=None,
                                       json_request=test_request)
@@ -164,8 +169,7 @@ class InstallationManagerTests(TestCase):
         def test_4xx_response(method, url, data, headers):
             return Response(data={}, code=400)
 
-        manager = InstallationManager(key=SAMPLE_KEY,
-                                      integration_id=666,
+        manager = InstallationManager(config=create_config(),
                                       installation_id=255,
                                       store=None,
                                       json_request=test_4xx_response)
@@ -194,8 +198,7 @@ class InstallationManagerTests(TestCase):
         This checks that the functions in the actual `request` are called
         in the right order.
         '''
-        manager = InstallationManager(key=SAMPLE_KEY,
-                                      integration_id=666,
+        manager = InstallationManager(config=create_config(),
                                       installation_id=255,
                                       store=None)
         steps = []

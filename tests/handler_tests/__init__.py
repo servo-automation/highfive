@@ -1,6 +1,7 @@
 from highfive.api_provider.interface import APIProvider
 from highfive.runner import config as config_overridable
 from highfive.runner.config import Configuration
+from highfive.store import IntegrationStore
 from highfive import event_handlers
 from json_cleaner import JsonCleaner
 
@@ -8,6 +9,20 @@ import json
 import os
 import os.path as path
 import sys
+
+
+class TestStore(IntegrationStore):
+    def __init__(self, dict_obj):
+        self.stuff = dict_obj
+
+    def get_object(self, _id, key):
+        return self.stuff.get(key, {})
+
+    def remove_object(self, _id, key):
+        self.stuff.pop(key)
+
+    def write_object(self, _id, key, data):
+        self.stuff[key] = data
 
 
 class TestAPIProvider(APIProvider):
@@ -20,7 +35,7 @@ class TestAPIProvider(APIProvider):
     # that we're using the same names for both initial/expected values (in JSON)
     # and the class variables
     def __init__(self, config, payload, initial, expected):
-        super(TestAPIProvider, self).__init__(config, payload)
+        super(TestAPIProvider, self).__init__(config, payload, store={})
         self.expected = expected
 
         for key, val in expected.iteritems():
@@ -33,6 +48,8 @@ class TestAPIProvider(APIProvider):
 
         for key, val in initial.items():    # set/override the values
             setattr(self, key, val)
+
+        self.store = TestStore(self.store)
 
     def get_branch_head(self, owner, repo, branch=None):
         return self.head['%s/%s' % (owner, repo)]

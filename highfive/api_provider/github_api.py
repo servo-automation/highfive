@@ -11,8 +11,8 @@ class GithubAPIProvider(APIProvider):
     diff_url = 'https://github.com/%s/%s/pull/%s.diff'
     contributors_url = base_url + '/contributors?per_page=500'
 
-    def __init__(self, config, payload, api_json_request):
-        super(GithubAPIProvider, self).__init__(config, payload)
+    def __init__(self, config, payload, store, api_json_request):
+        super(GithubAPIProvider, self).__init__(config, payload, store)
         self._request = api_json_request
 
     def get_branch_head(self, owner=None, repo=None, branch='master'):

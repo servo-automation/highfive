@@ -1,3 +1,4 @@
+from ..api_provider import GithubAPIProvider
 from Queue import Queue
 from config import get_logger
 from datetime import datetime
@@ -27,9 +28,8 @@ class InstallationManager(object):
         'Accept-Encoding': 'gzip, deflate'
     }
 
-    def __init__(self, key, integration_id, installation_id, store,
-                 json_request=request_with_requests):
-        self.integration_id = integration_id
+    def __init__(self, config, installation_id, store, json_request=request_with_requests):
+        self.config = config
         self.installation_id = installation_id
         self.installation_url = self.installation_url % installation_id
         self.store = store
@@ -38,7 +38,6 @@ class InstallationManager(object):
         self.json_request = json_request
 
         # Stuff required for sync'ing token
-        self.pem_key = key
         self.remaining = 0
         self.reset_time = int(time.time()) - 60
         self.next_token_sync = datetime.now()
@@ -61,10 +60,10 @@ class InstallationManager(object):
         auth_payload = {
             'iat': since_epoch,
             'exp': since_epoch + 600,       # 10 mins expiration for JWT
-            'iss': self.integration_id,
+            'iss': self.config.integration_id,
         }
 
-        auth = 'Bearer %s' % jwt.encode(auth_payload, self.pem_key, 'RS256')
+        auth = 'Bearer %s' % jwt.encode(auth_payload, self.config.pem_key, 'RS256')
         resp = self._request('POST', self.installation_url, auth=auth)
         self.token = resp.data['token']     # installation token (expires in 1 hour)
         self.logger.debug('Token expires on %s', resp.data['expires_at'])
@@ -139,3 +138,8 @@ class InstallationManager(object):
         while not self.queue.empty():
             payload = self.queue.get()
             # TODO: pass to event handlers
+
+    def create_api_provider_for_payload(self, payload):
+        api = GithubAPIProvider(self.config, payload, self.store,
+                                api_json_request=self.request)
+        return api
