@@ -100,31 +100,31 @@ class EventHandler(object):
     # Wrapper methods over `InstallationStore` methods. This way, the handlers don't have to worry
     # about keys for their data.
 
-    def get_object(self):
+    def get_object(self, key=None):
         '''Get the object associated with this handler.'''
 
         if not self.api.store:
             return {}
 
-        key = self.name
+        key = self.name if key is None else '%s_%s' % (self.name, key)
         return self.api.store.get_object(key)
 
-    def remove_object(self):
+    def remove_object(self, key=None):
         '''Remove the object associated with this handler.'''
 
         if not self.api.store:
             return
 
-        key = self.name
+        key = self.name if key is None else '%s_%s' % (self.name, key)
         self.api.store.remove_object(key)
 
-    def write_object(self, data, key=''):
+    def write_object(self, data, key=None):
         '''Write data to the object associated with this handler.'''
 
         if not self.api.store:
             return
 
-        key = self.name
+        key = self.name if key is None else '%s_%s' % (self.name, key)
         self.api.store.write_object(key, data)
 
     # Methods corresponding to the actions

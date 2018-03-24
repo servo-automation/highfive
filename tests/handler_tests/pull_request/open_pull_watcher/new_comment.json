@@ -1,0 +1,68 @@
+{
+  "initial": {
+    "store": {
+      "OpenPullWatcher": {
+        "pulls": ["7075"]
+      },
+      "OpenPullWatcher_7075": {
+        "status": null,
+        "body": "",
+        "author": "jdm",
+        "number": "7075",
+        "assignee": null,
+        "last_active": "some time",
+        "last_push": "some time",
+        "labels": [],
+        "comments": []
+      }
+    }
+  },
+  "expected": {
+    "store": {
+      "OpenPullWatcher": {
+        "owner": "servo",
+        "repo": "servo",
+        "pulls": ["7075"]
+      },
+      "OpenPullWatcher_7075": {
+        "status": null,
+        "body": "",
+        "author": "jdm",
+        "number": "7075",
+        "assignee": null,
+        "last_active": "some new time",
+        "last_push": "some time",
+        "labels": [],
+        "comments": [{
+          "body": "blah blah",
+          "who": "jdm",
+          "when": "some new time"
+        }]
+      }
+    }
+  },
+  "payload": {
+    "comment": {
+      "body": "blah blah"
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
+    },
+    "action": "created",
+    "issue": {
+      "number": 7075,
+      "labels": [],
+      "state": "open",
+      "updated_at": "some new time",
+      "user": {
+        "login": "jdm"
+      }
+    },
+    "sender": {
+      "login": "jdm"
+    }
+  }
+}

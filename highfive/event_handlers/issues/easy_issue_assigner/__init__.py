@@ -172,21 +172,22 @@ class EasyIssueAssigner(EventHandler):
             self.logger.info("Issue #%s has had its time. Something's gonna happen.", number)
             assignee = issue['assignee']
             self.data['issues'][number]['last_active'] = str(now)
+            self.api.number = number
 
             if status == 'assigned':
                 self.logger.info('Pinging %r in issue #%s', assignee, number)
                 if assignee == self.anonymous_name:
                     comment = self.api.rand_choice(config['unknown_ping'])
-                    self.api.post_comment(comment, number=number)
+                    self.api.post_comment(comment)
                 else:
                     comment = self.api.rand_choice(config['known_ping']).format(assignee=assignee)
-                    self.api.post_comment(comment, number=number)
+                    self.api.post_comment(comment)
                 self.data['issues'][number]['status'] = 'commented'
 
             elif status == 'commented':
                 self.logger.info('Unassigning issue #%s after grace period', number)
-                self.api.update_labels(remove=[config['assign_label']], number=number)
-                self.api.post_comment(self.api.rand_choice(config['issue_unassign']), number=number)
+                self.api.update_labels(remove=[config['assign_label']])
+                self.api.post_comment(self.api.rand_choice(config['issue_unassign']))
                 self.data['issues'][number] = default()
 
 

@@ -5,8 +5,6 @@ from highfive.store import IntegrationStore, InstallationStore
 from highfive import event_handlers
 from json_cleaner import JsonCleaner
 
-from copy import deepcopy
-
 import json
 import os
 import os.path as path
