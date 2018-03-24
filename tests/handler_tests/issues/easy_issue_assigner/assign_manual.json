@@ -1,9 +1,9 @@
 {
   "initial": [{
-    "db": {}
+    "store": {}
   }, {
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -18,13 +18,13 @@
     }
   }],
   "expected": [{
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
           "84": {
-            "assignee": "0xdeadbeef",
+            "assignee": "__deadbeef__",
             "status": "assigned",
             "pr_number": null,
             "last_active": "some time"
@@ -33,13 +33,13 @@
       }
     }
   }, {
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
           "84": {
-            "assignee": "0xdeadbeef",
+            "assignee": "__deadbeef__",
             "status": "assigned",
             "pr_number": null,
             "last_active": "some time"
@@ -63,6 +63,7 @@
     },
     "action": "labeled",
     "issue": {
+      "labels": [],
       "updated_at": "some time",
       "state": "open",
       "number": 84,

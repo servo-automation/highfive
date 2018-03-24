@@ -1,7 +1,7 @@
 {
   "initial": [{
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -16,8 +16,8 @@
     }
   }],
   "expected": [{
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {}
@@ -40,6 +40,7 @@
     "action": "unlabeled",
     "issue": {
       "state": "open",
+      "labels": [],
       "number": 84,
       "user": {
         "login": "nox"

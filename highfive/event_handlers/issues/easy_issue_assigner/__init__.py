@@ -79,8 +79,10 @@ class EasyIssueAssigner(EventHandler):
             data['issues'].pop(self.api.number)
 
         elif self.api.is_pull:
-            issue_number = filter(lambda i: i['pr_number'] == self.api.number, self.data['issues'].values())
-            if not issue_number:
+            match = filter(lambda (_, i): i['pr_number'] == self.api.number, self.data['issues'].items())
+            if match:
+                issue_number = match[0][0]
+            else:
                 return
 
             if self.api.sender == self.api.creator:
@@ -89,9 +91,10 @@ class EasyIssueAssigner(EventHandler):
                 self.data['issues'][issue_number]['last_active'] = self.api.payload['pull_request']['updated_at']
                 self.data['issues'][issue_number]['pr_number'] = None
             else:
+                config = self.get_matched_subconfig()
                 self.logger.info('PR #%s has been closed by a collaborator. Removing related data...', self.api.number)
                 comment = self.api.rand_choice(config['previous_work']) + ' ' + self.api.rand_choice(config['issue_unassign'])
-                self.api.post_comment(comment.format(author=api.creator, pull=issue_number), number=issue_number)
+                self.api.post_comment(comment.format(author=self.api.creator, pull=self.api.number), number=issue_number)
                 self.api.update_labels(remove=[config['assign_label']], number=issue_number)
                 self.data['issues'][issue_number] = default()
 
@@ -100,6 +103,7 @@ class EasyIssueAssigner(EventHandler):
         if self.api.is_pull:
             return
 
+        config = self.get_matched_subconfig()
         if self.api.current_label == config['easy_label'] and not self.payload_issue_in_store:
             # NOTE: We also make sure that the issue isn't in our data (since we do the
             # same thing when an issue is opened with an easy label).
@@ -107,16 +111,16 @@ class EasyIssueAssigner(EventHandler):
                               self.api.number)
             self.data['issues'][self.api.number] = default()
             comment = self.api.rand_choice(config['issue_assign'])
-            self.api.post_comment(comment.format(bot=api.name))
+            self.api.post_comment(comment.format(bot=self.api.name))
 
         elif self.api.current_label == config['assign_label']:
-            self.logger.debug('Issue #%s has been assigned to... someone?', api.number)
+            self.logger.debug('Issue #%s has been assigned to... someone?', self.api.number)
             # We always override here, because labels can be added only by collaborators and
             # so, their decision is final.
             if not self.payload_issue_in_store:
                 self.data['issues'][self.api.number] = default()
 
-            self.data['issues'][self.api.number]['assignee'] = '0xdeadbeef'
+            self.data['issues'][self.api.number]['assignee'] = self.anonymous_name
             self.data['issues'][self.api.number]['status'] = 'assigned'
             self.data['issues'][self.api.number]['last_active'] = self.api.payload['issue']['updated_at']
 
@@ -125,6 +129,7 @@ class EasyIssueAssigner(EventHandler):
         if self.api.is_pull:
             return
 
+        config = self.get_matched_subconfig()
         if self.api.current_label == config['easy_label'] and self.payload_issue_in_store:
             self.logger.debug('Issue #%s is no longer E-easy. Removing related data...',
                               self.api.number)
@@ -280,7 +285,7 @@ class EasyIssueAssigner(EventHandler):
             self.data['issues'][self.api.number]['status'] = 'assigned'
             self.data['issues'][self.api.number]['last_active'] = self.api.payload['comment']['updated_at']
             self.api.update_labels(add=[config['assign_label']])
-            self.api.post_comment(api.rand_choice(config['assign_success']).format(assignee=target))
+            self.api.post_comment(self.api.rand_choice(config['assign_success']).format(assignee=target))
         else:
             self.api.post_comment(self.api.rand_choice(config['non_reviewer_ack']))
 

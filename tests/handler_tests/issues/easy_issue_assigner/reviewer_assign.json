@@ -1,42 +1,44 @@
 {
   "expected": [{
-    "comments": ["It looks like this has already been assigned to someone. I'll leave the decision to a core contributor."],
-    "db": {
-      "easy_assign": {
+    "labels": ["c-assigned"],
+    "comments": ["Hey @foobar! Thanks for your interest in working on this issue. It's now assigned to you!"],
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
           "7105": {
-            "assignee": "0xdeadbeef",
+            "assignee": "foobar",
             "status": "assigned",
             "pr_number": null,
-            "last_active": "some time"
+            "last_active": "some new time"
           }
         }
       }
     }
   }, {
-    "comments": ["It looks like this has already been assigned to someone. I'll leave the decision to a core contributor."],
-    "db": {
-      "easy_assign": {
+    "labels": ["c-assigned"],
+    "comments": ["Hey @foobar! Thanks for your interest in working on this issue. It's now assigned to you!"],
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
           "7105": {
-            "assignee": "someone",
+            "assignee": "foobar",
             "status": "assigned",
             "pr_number": null,
-            "last_active": "some time"
+            "last_active": "some new time"
           }
         }
       }
     }
   }],
   "initial": [{
-    "db": {}
+    "store": {}
   }, {
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -44,7 +46,7 @@
             "assignee": "someone",
             "status": "assigned",
             "pr_number": null,
-            "last_active": "some time"
+            "last_active": "some old time"
           }
         }
       }
@@ -52,11 +54,11 @@
   }],
   "payload": {
     "sender": {
-      "login": "someone_else"
+      "login": "wafflespeanut"
     },
     "comment": {
-      "body": "@highfive: assign me",
-      "updated_at": "some time"
+      "body": "@highfive: assign @foobar",
+      "updated_at": "some new time"
     },
     "repository": {
       "owner": {
@@ -74,9 +76,6 @@
         },
         {
           "name": "L-python"
-        },
-        {
-          "name": "C-assigned"
         }
       ],
       "user": {

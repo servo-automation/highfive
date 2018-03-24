@@ -1,8 +1,8 @@
 {
   "expected": {
     "comments": ["Previous work by @someone on #1234. This is now open for anyone to jump in!"],
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -17,8 +17,8 @@
     }
   },
   "initial": {
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -33,21 +33,19 @@
     }
   },
   "payload": {
-    "number": 1234,
     "pull_request": {
+      "number": 1234,
       "state": "closed",
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "servo"
-          },
-          "name": "servo"
-        }
-      },
       "url": null,
       "user": {
         "login": "someone"
       }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
     },
     "action": "closed",
     "sender": {

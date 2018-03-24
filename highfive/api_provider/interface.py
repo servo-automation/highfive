@@ -5,6 +5,7 @@ import random
 
 DEFAULTS = ['pull_url', 'is_open', 'is_pull', 'creator', 'last_updated', 'number', 'diff',
             'sender', 'owner', 'repo', 'current_label', 'assignee', 'comment']
+LIST_DEFAULTS = ['labels']
 
 class APIProvider(object):
     '''
@@ -28,6 +29,9 @@ class APIProvider(object):
 
         for attr in DEFAULTS:
             setattr(self, attr, None)
+
+        for attr in LIST_DEFAULTS:
+            setattr(self, attr, [])
 
         if payload.get('repository'):
             self.owner = payload['repository']['owner']['login']
@@ -56,7 +60,9 @@ class APIProvider(object):
         self.creator = issue['user']['login'].lower()
         self.is_open = issue['state'].lower() == 'open'
         self.last_updated = issue.get('updated_at')
-        self.number = issue['number']
+        # Issue and PR numbers are strings, because it we use issues as keys in our store
+        # and JSON keys should be strings (otherwise, test suite breaks).
+        self.number = str(issue['number'])
         self.labels = map(lambda obj: obj['name'].lower(), issue['labels'])
 
     def _init_pull_attributes(self):
@@ -70,7 +76,7 @@ class APIProvider(object):
         self.creator = pull['user']['login'].lower()
         self.is_open = pull['state'] == 'open'
         self.last_updated = pull.get('updated_at')
-        self.number = pull['number']
+        self.number = str(pull['number'])
 
     def _init_comment_attributes(self):
         self.comment = self.payload['comment']['body'].encode('utf-8')

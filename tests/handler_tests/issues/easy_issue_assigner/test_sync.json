@@ -8,13 +8,13 @@
     "comments": ["This is now open for anyone to jump in!"]
   }],
   "initial": [{
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
           "7105": {
-            "assignee": "0xdeadbeef",
+            "assignee": "__deadbeef__",
             "status": "assigned",
             "pr_number": null,
             "last_active": "1970-01-01T00:00:00Z"
@@ -23,8 +23,8 @@
       }
     }
   }, {
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -39,8 +39,8 @@
     }
   }, {
     "labels": ["e-easy", "c-assigned"],
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -54,5 +54,7 @@
       }
     }
   }],
-  "payload": {}
+  "payload": {
+    "action": "__tick"
+  }
 }

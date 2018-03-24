@@ -1,7 +1,7 @@
 {
   "expected": [{
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -19,10 +19,10 @@
     "comments": []
   }],
   "initial": [{
-    "db": {}
+    "store": {}
   }, {
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {

@@ -1,7 +1,7 @@
 {
   "expected": [{
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -16,8 +16,8 @@
     }
   }, {
     "comments": ["Hmm, it appears to me that the author of this pull request isn't the one who claimed #74 :thinking:"],
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -33,8 +33,8 @@
   }, {
     "comments": ["Hello there! Thanks for picking up this issue! We really appreciate your effort. But, in the future, please get the issue assigned to yourself before working on it, so that we can avoid duplicate efforts. :smile:"],
     "labels": ["c-assigned"],
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -49,8 +49,8 @@
     }
   }],
   "initial": [{
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -64,8 +64,8 @@
       }
     }
   }, {
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -79,8 +79,8 @@
       }
     }
   }, {
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -95,23 +95,21 @@
     }
   }],
   "payload": {
-    "number": 1,
     "pull_request": {
+      "number": 1,
       "state": "open",
       "updated_at": "some time",
       "body": "blah blah blah fixes #74",
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "servo"
-          },
-          "name": "servo"
-        }
-      },
       "url": null,
       "user": {
         "login": "someone"
       }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
     },
     "action": "opened",
     "sender": {

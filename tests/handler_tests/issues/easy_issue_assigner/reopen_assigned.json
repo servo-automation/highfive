@@ -1,12 +1,12 @@
 {
   "expected": [{
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
           "1754": {
-            "assignee": "0xdeadbeef",
+            "assignee": "__deadbeef__",
             "status": "assigned",
             "pr_number": null,
             "last_active": "some time"
@@ -16,11 +16,11 @@
     }
   }],
   "initial": [{
-    "db": {}
+    "store": {}
   }],
   "payload": {
-    "number": 1754,
     "issue": {
+      "number": 1754,
       "state": "open",
       "updated_at": "some time",
       "labels": [{
@@ -30,17 +30,15 @@
       }, {
         "name": "C-assigned"
       }],
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "servo"
-          },
-          "name": "servo"
-        }
-      },
       "user": {
         "login": "wafflespeanut"
       }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
     },
     "action": "reopened",
     "sender": {

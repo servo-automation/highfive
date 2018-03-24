@@ -1,8 +1,8 @@
 {
   "expected": {
     "comments": ["Hey @someone! Thanks for your interest in working on this issue. It's now assigned to you!"],
-    "db": {
-      "easy_assign": {
+    "store": {
+      "EasyIssueAssigner": {
         "owner": "servo",
         "repo": "servo",
         "issues": {
@@ -17,7 +17,7 @@
     }
   },
   "initial": {
-    "db": {}
+    "store": {}
   },
   "payload": {
     "sender": {

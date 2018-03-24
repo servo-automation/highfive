@@ -52,7 +52,7 @@ class APIProviderTests(TestCase):
         self.assertTrue(api.is_open)
         self.assertEqual(api.creator, 'foobar')
         self.assertEqual(api.last_updated, payload['issue']['updated_at'])
-        self.assertEqual(api.number, 200)
+        self.assertEqual(api.number, '200')
         self.assertTrue(api.pull_url is None)
         self.assertEqual(api.labels, ['foo', 'bar'])
 
@@ -84,7 +84,7 @@ class APIProviderTests(TestCase):
         self.assertEqual(api.creator, 'foobar')
         self.assertEqual(api.assignee, 'baz')
         self.assertEqual(api.last_updated, payload['pull_request']['updated_at'])
-        self.assertEqual(api.number, 50)
+        self.assertEqual(api.number, '50')
         self.assertEqual(api.pull_url, 'some url')
 
     def test_api_other_events(self):
