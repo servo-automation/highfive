@@ -60,13 +60,13 @@ class TestAPIProvider(APIProvider):
     def set_assignees(self, assignees=[]):
         self.assignees = assignees
 
-    def get_labels(self):
+    def get_labels(self, number=None):
         return self.labels
 
-    def replace_labels(self, labels=[]):
+    def replace_labels(self, labels=[], number=None):
         self.labels = labels
 
-    def post_comment(self, comment):
+    def post_comment(self, comment, number=None):
         self.comments.append(comment.decode('utf-8'))
 
     def get_diff(self):

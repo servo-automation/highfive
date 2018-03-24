@@ -35,6 +35,7 @@ class EventHandler(object):
     }
 
     def __init__(self, api, config):
+        self.name = self.__class__.__name__
         self.api = api
         self.config = config
         self.logger = get_logger(__name__)
@@ -96,6 +97,36 @@ class EventHandler(object):
             return '%s and %s' % (', '.join(names), last)
         return ''
 
+    # Wrapper methods over `InstallationStore` methods. This way, the handlers don't have to worry
+    # about keys for their data.
+
+    def get_object(self):
+        '''Get the object associated with this handler.'''
+
+        if not self.api.store:
+            return {}
+
+        key = self.name
+        return self.api.store.get_object(key)
+
+    def remove_object(self):
+        '''Remove the object associated with this handler.'''
+
+        if not self.api.store:
+            return
+
+        key = self.name
+        self.api.store.remove_object(key)
+
+    def write_object(self, data, key=''):
+        '''Write data to the object associated with this handler.'''
+
+        if not self.api.store:
+            return
+
+        key = self.name
+        self.api.store.write_object(key, data)
+
     # Methods corresponding to the actions
 
     def on_issue_assign(self):
@@ -133,7 +164,11 @@ class EventHandler(object):
         pass
 
     def reset(self):
-        '''Overridable method to reset the internal properties (if any)'''
+        '''Overridable method before handling payload to reset the internal properties (if any)'''
+        pass
+
+    def cleanup(self):
+        '''Overridable method to cleanup the handler after handling a payload.'''
         pass
 
     def handle_payload(self):
@@ -152,3 +187,4 @@ class EventHandler(object):
         if method is not None:
             self.reset()
             getattr(self, method)()
+            self.cleanup()

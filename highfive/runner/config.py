@@ -86,12 +86,8 @@ class Configuration(object):
         for key, value in config_dict.iteritems():
             setattr(self, key, value)
 
-        self.pem_key = read_file(self.pem_key)
-        # If we're not using a database, then we're storing JSON files.
-        if config_dict.get('database_url') is None and not path.isdir(self.dump_path):
-            os.makedirs(self.dump_path)
-
         # poke the necessary properties
+        self.pem_key = read_file(self.pem_key)
         _ = self.name, self.pem_key, self.secret, int(self.integration_id)
 
         handler_path = path.join(path.dirname(path.dirname(__file__)), 'event_handlers')

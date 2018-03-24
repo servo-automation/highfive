@@ -136,7 +136,7 @@ class InstallationManager(object):
         '''Clear this manager's payload queue.'''
 
         while not self.queue.empty():
-            payload = self.queue.get()
+            api = self.queue.get()
             # TODO: pass to event handlers
 
     def create_api_provider_for_payload(self, payload):

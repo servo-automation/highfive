@@ -36,7 +36,7 @@ class GithubAPIProvider(APIProvider):
         url = self.assignees_url % (self.owner, self.repo, self.number)
         self._request('POST', url, {'assignees': assignees})
 
-    def get_labels(self):
+    def get_labels(self, number=None):
         '''
         Fetches the labels for the issue/PR from which this payload was generated.
         This makes an API request only when the payload doesn't have any label information.
@@ -45,21 +45,23 @@ class GithubAPIProvider(APIProvider):
         if self.labels is not None:
             return self.labels
 
-        self.labels = self._handle_labels('GET')
+        self.labels = self._handle_labels('GET', number=number)
         return self.labels
 
-    def replace_labels(self, labels=[]):
+    def replace_labels(self, labels=[], number=None):
         '''
         Method to replace the labels in remote with the given list of labels.
         Clears all labels by default (i.e., empty list).
         '''
 
-        self.labels = self._handle_labels('PUT', labels)
+        number = number if number is not None else self.number
+        self.labels = self._handle_labels('PUT', labels=labels, number=number)
 
-    def post_comment(self, comment):
+    def post_comment(self, comment, number=None):
         '''Post a comment to the associated issue/PR.'''
 
-        url = self.comments_post_url % (self.owner, self.repo, self.number)
+        number = number if number is not None else self.number
+        url = self.comments_post_url % (self.owner, self.repo, number)
         self._request('POST', url, {'body': comment})
 
     def get_diff(self):
@@ -108,8 +110,9 @@ class GithubAPIProvider(APIProvider):
 
     # Private methods
 
-    def _handle_labels(self, method, labels=None):
-        url = self.labels_url % (self.owner, self.repo, self.number)
+    def _handle_labels(self, method, labels=None, number=None):
+        number = number if number is not None else self.number
+        url = self.labels_url % (self.owner, self.repo, number)
         data = self._request(method=method, url=url, data=labels)
         labels = map(lambda obj: obj['name'].lower(), data)
         return labels

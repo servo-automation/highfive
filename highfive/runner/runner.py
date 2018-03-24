@@ -92,7 +92,7 @@ class Runner(object):
 
         inst_id = payload['installation']['id']
         self.logger.info('Received payload for installation %s'
-                         '( event: %s, action: %s)' % (inst_id, x_github_event, payload.get('action')))
+                         ' (event: %s, action: %s)' % (inst_id, x_github_event, payload.get('action')))
         # If this is a new installation event, ignore it.
         if 'installation_repositories' in x_github_event:
             return HandlerError.NewInstallation
@@ -123,7 +123,7 @@ class Runner(object):
             self.logger.info('Skipping payload sent by self')
             return HandlerError.PayloadFromSelf
 
-        manager.queue.put(api)      # Queue the wrapped payload into the manager
+        manager.queue.put(api)      # Queue the wrapped payload into the manager's queue
 
     def _start_watching(self):
         '''
