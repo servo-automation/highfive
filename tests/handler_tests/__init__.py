@@ -1,9 +1,11 @@
 from highfive.api_provider.interface import APIProvider
 from highfive.runner import config as config_overridable
 from highfive.runner.config import Configuration
-from highfive.store import IntegrationStore
+from highfive.store import IntegrationStore, InstallationStore
 from highfive import event_handlers
 from json_cleaner import JsonCleaner
+
+from copy import deepcopy
 
 import json
 import os
@@ -15,13 +17,13 @@ class TestStore(IntegrationStore):
     def __init__(self, dict_obj):
         self.stuff = dict_obj
 
-    def get_object(self, _id, key):
+    def get_object(self, key):
         return self.stuff.get(key, {})
 
-    def remove_object(self, _id, key):
+    def remove_object(self, key):
         self.stuff.pop(key)
 
-    def write_object(self, _id, key, data):
+    def write_object(self, key, data):
         self.stuff[key] = data
 
 
@@ -91,6 +93,7 @@ class TestAPIProvider(APIProvider):
             return 'https://imgur.com/' + '-'.join(base64_data.lower().split())
 
     def evaluate(self):
+        self.store = self.store.stuff
         for key, expected_val in self.expected.iteritems():
             value = getattr(self, key)
             assert value == expected_val, \
@@ -100,7 +103,8 @@ class TestAPIProvider(APIProvider):
 def run():
     tests, failed, dirty = 0, 0, 0
     name, args = sys.argv[0], sys.argv[1:]
-    overwrite = os.getenv('CLEAN') is not None
+    overwrite = os.getenv('CLEAN') is not None              # Overwrites existing JSON files
+    ignore_dirty = os.getenv('IGNORE_DIRTY') is not None    # Ignores sanitizer completely
     warn = not overwrite
     config = Configuration()
     config_overridable.read_file = lambda p: 'booya'
@@ -112,12 +116,12 @@ def run():
         default_config = json.load(fd)
 
     config.initialize_defaults({
-        'name': 'test-app',
+        'name': 'highfive',
         'pem_key': None,
         'secret': 'baz',
         'integration_id': 0,
         'collaborators': default_config['collaborators'],
-        'database_url': 'foo',      # just to ignore dumping
+        'database_url': 'foo',      # just to ignore JSON dumping
     })
 
     event_handlers.load_handlers_using(config)
@@ -147,9 +151,14 @@ def run():
                 initial_vals = initial if isinstance(initial, list) else [initial]
                 expected_vals = expected if isinstance(expected, list) else [expected]
 
-                wrapper = JsonCleaner({'payload': test_data['payload']})
+                wrapper = None
+                payload = test_data['payload']
+                if not ignore_dirty:
+                    wrapper = JsonCleaner({'payload': test_data['payload']})
+                    payload = wrapper.json['payload']
+
                 for (initial, expected) in zip(initial_vals, expected_vals):
-                    api = TestAPIProvider(config, wrapper.json['payload'], initial, expected)
+                    api = TestAPIProvider(config, payload, initial, expected)
                     handler(api).handle_payload()
                     tests += 1
 
@@ -160,18 +169,19 @@ def run():
                               (path.join(*local_path), test_path_display, err)
                         failed += 1
 
-                cleaned = wrapper.clean(warn=warn)
-                if warn and wrapper.unused:
-                    print '%s has %d unused node(s)' % (test_path_display, wrapper.unused)
-                    dirty += 1
-                elif wrapper.unused and overwrite:
-                    test_data['payload'] = cleaned['payload']
-                    with open(test_path, 'w') as fd:
-                        contents = json.dumps(test_data, indent=2)
-                        trimmed = map(lambda line: line.rstrip() + '\n', contents.splitlines())
-                        fd.writelines(trimmed)
+                if wrapper:
+                    cleaned = wrapper.clean(warn=warn)
+                    if warn and wrapper.unused:
+                        print '%s has %d unused node(s)' % (test_path_display, wrapper.unused)
+                        dirty += 1
+                    elif wrapper.unused and overwrite:
+                        test_data['payload'] = cleaned['payload']
+                        with open(test_path, 'w') as fd:
+                            contents = json.dumps(test_data, indent=2)
+                            trimmed = map(lambda line: line.rstrip() + '\n', contents.splitlines())
+                            fd.writelines(trimmed)
+                            print 'Rewrote', test_path_display
 
-                    print 'Rewrote', test_path_display
 
     print '\nRan %d test(s): %d error(s), %d file(s) dirty' % (tests, failed, dirty)
 
