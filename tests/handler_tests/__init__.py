@@ -93,7 +93,7 @@ class TestAPIProvider(APIProvider):
             return 'https://imgur.com/' + '-'.join(base64_data.lower().split())
 
     def evaluate(self):
-        self.store = self.store.stuff
+        self.store = json.loads(json.dumps(self.store.stuff))
         for key, expected_val in self.expected.iteritems():
             value = getattr(self, key)
             assert value == expected_val, \
