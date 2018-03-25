@@ -93,6 +93,9 @@ class NodeMarker(object):
     def __int__(self):
         return int(self._node)
 
+    def __repr__(self):
+        return str(self._node)
+
 
 class JsonCleaner(object):
     '''

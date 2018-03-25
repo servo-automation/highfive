@@ -1,10 +1,12 @@
 {
   "expected": {
-    "db": {
-      "open_pulls": ["1"],
-      "open_pulls_1": {
+    "store": {
+      "OpenPullWatcher": {
         "owner": "servo",
         "repo": "servo",
+        "pulls": ["1"]
+      },
+      "OpenPullWatcher_1": {
         "status": null,
         "number": "1",
         "last_active": "some time",
@@ -19,19 +21,11 @@
   },
   "initial": {},
   "payload": {
-    "number": 1,
     "pull_request": {
+      "number": 1,
       "state": "open",
       "updated_at": "some time",
       "body": "blah blah blah",
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "servo"
-          },
-          "name": "servo"
-        }
-      },
       "assignee": {
         "login": "booya"
       },
@@ -39,6 +33,12 @@
       "user": {
         "login": "wafflespeanut"
       }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
     },
     "action": "opened",
     "sender": {

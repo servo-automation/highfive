@@ -61,12 +61,20 @@ class TestAPIProvider(APIProvider):
         self.assignees = assignees
 
     def get_labels(self, number=None):
+        if number is not None:
+            self.label_requested_from = number
         return self.labels
 
     def replace_labels(self, labels=[], number=None):
+        if number is not None:
+            self.label_replaced_in = number
+
         self.labels = labels
 
     def post_comment(self, comment, number=None):
+        if number is not None:
+            self.commented_issue = number
+
         self.comments.append(comment.decode('utf-8'))
 
     def get_diff(self):
@@ -81,6 +89,9 @@ class TestAPIProvider(APIProvider):
 
     def rand_choice(self, values):
         return values[0]    # so that the results are consistent
+
+    def close_issue(self):
+        self.closed = True
 
     def get_screenshots_for_build(self, build_url):
         return self.image_data

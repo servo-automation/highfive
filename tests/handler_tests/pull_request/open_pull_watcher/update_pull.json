@@ -1,0 +1,39 @@
+{
+  "initial": {
+    "store": {
+      "OpenPullWatcher": {
+        "pulls": ["7075"]
+      },
+      "OpenPullWatcher_7075": {
+        "status": null,
+        "body": "",
+        "author": "jdm",
+        "number": "7075",
+        "assignee": null,
+        "last_active": "some time",
+        "last_push": "some time",
+        "labels": [],
+        "comments": []
+      }
+    }
+  },
+  "expected": {},
+  "payload": {
+     "pull_request": {
+       "number": 7075,
+       "state": "open",
+       "url": null,
+       "updated_at": "some time",
+       "user": {
+         "login": "someone"
+       }
+     },
+     "repository": {
+       "owner": {
+         "login": "servo"
+       },
+       "name": "servo"
+     },
+     "action": "synchronize"
+   }
+}

@@ -108,6 +108,12 @@ class GithubAPIProvider(APIProvider):
 
         return contributors
 
+    def close_issue(self):
+        '''Close the issue/PR associated with this payload.'''
+
+        url = self.issue_url % (self.owner, self.repo, self.issue_number)
+        self._request('PATCH', url, {'state': 'closed'})
+
     # Private methods
 
     def _handle_labels(self, method, labels=None, number=None):

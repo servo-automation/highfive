@@ -1,10 +1,18 @@
 {
   "initial": [{
-    "db": {
-      "open_pulls": ["123"],
-      "open_pulls_123": {
+    "store": {
+      "OpenPullWatcher": {
+        "pulls": ["123"]
+      }
+    }
+  }, {
+    "store": {
+      "OpenPullWatcher": {
         "owner": "servo",
         "repo": "servo",
+        "pulls": ["123"]
+      },
+      "OpenPullWatcher_123": {
         "status": null,
         "body": "",
         "author": "jdm",
@@ -25,11 +33,13 @@
       }
     }
   }, {
-    "db": {
-      "open_pulls": ["123"],
-      "open_pulls_123": {
+    "store": {
+      "OpenPullWatcher": {
         "owner": "servo",
         "repo": "servo",
+        "pulls": ["123"]
+      },
+      "OpenPullWatcher_123": {
         "status": null,
         "body": "",
         "author": "jdm",
@@ -46,11 +56,13 @@
       }
     }
   }, {
-    "db": {
-      "open_pulls": ["123"],
-      "open_pulls_123": {
+    "store": {
+      "OpenPullWatcher": {
         "owner": "servo",
         "repo": "servo",
+        "pulls": ["123"]
+      },
+      "OpenPullWatcher_123": {
         "status": null,
         "body": "",
         "author": "jdm",
@@ -63,11 +75,13 @@
       }
     }
   }, {
-    "db": {
-      "open_pulls": ["123"],
-      "open_pulls_123": {
+    "store": {
+      "OpenPullWatcher": {
         "owner": "servo",
         "repo": "servo",
+        "pulls": ["123"]
+      },
+      "OpenPullWatcher_123": {
         "status": null,
         "body": "",
         "author": "jdm",
@@ -80,11 +94,13 @@
       }
     }
   }, {
-    "db": {
-      "open_pulls": ["123"],
-      "open_pulls_123": {
+    "store": {
+      "OpenPullWatcher": {
         "owner": "servo",
         "repo": "servo",
+        "pulls": ["123"]
+      },
+      "OpenPullWatcher_123": {
         "status": "commented",
         "body": "",
         "author": "jdm",
@@ -97,11 +113,13 @@
       }
     }
   }, {
-    "db": {
-      "open_pulls": ["123"],
-      "open_pulls_123": {
+    "store": {
+      "OpenPullWatcher": {
         "owner": "servo",
         "repo": "servo",
+        "pulls": ["123"]
+      },
+      "OpenPullWatcher_123": {
         "status": null,
         "body": "",
         "author": "jdm",
@@ -119,6 +137,12 @@
     }
   }],
   "expected": [{
+    "store": {
+      "OpenPullWatcher": {
+        "pulls": ["123"]
+      }
+    }
+  }, {
     "comments": ["What's the status of this?"]
   }, {
     "comments": ["Hey @jdm! Are you planning to finish this off?"]
@@ -127,9 +151,12 @@
   }, {
     "comments": ["@asajeffrey Could you review this pull request? (or maybe pass it to someone else?)"]
   }, {
-    "comments": ["Okay, I'm gonna close this based on inactivity. If you change your mind about working on this issue again, feel free to ping us and we'll reopen it for you. Thanks for taking a stab at this :smile:"]
+    "comments": ["Okay, I'm gonna close this based on inactivity. If you change your mind about working on this issue again, feel free to ping us and we'll reopen it for you. Thanks for taking a stab at this :smile:"],
+    "closed": true
   }, {
     "comments": ["@someone Could you review this pull request? (or maybe pass it to someone else?)"]
   }],
-  "payload": {}
+  "payload": {
+    "action": "__tick"
+  }
 }

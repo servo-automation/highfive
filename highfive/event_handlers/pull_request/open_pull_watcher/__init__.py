@@ -166,7 +166,7 @@ class OpenPullWatcher(EventHandler):
         if not self.data['assignee']:
             # Assign someone randomly if we don't find an assignee after grace period
             reviewers = filter(lambda name: name.lower() != self.data['author'],
-                               self.get_matches_from_config(self.api.config.reviewers))
+                               self.get_matches_from_config(self.api.config.collaborators))
             new_assignee = self.api.rand_choice(reviewers)
             self.api.set_assignees([new_assignee])
             comment = self.api.rand_choice(config['review_ping'])
@@ -178,7 +178,7 @@ class OpenPullWatcher(EventHandler):
         elif status == 'commented':
             self.logger.info('Closing PR #%s after grace period', self.api.number)
             comment = self.api.rand_choice(config['pr_close'])
-            self.api.post_comment(comment.format(author=data['author']))
+            self.api.post_comment(comment.format(author=self.data['author']))
             self.api.close_issue()
             self.pr_list['pulls'].remove(self.api.number)
             self.data['status'] = 'closed'
@@ -198,6 +198,7 @@ class OpenPullWatcher(EventHandler):
                 # Reviewer hasn't looked at this since the last push
                 should_ping_reviewer = True
             elif not author_comments:
+                # Author hasn't commented at all!
                 comment = self.api.rand_choice(config['pr_ping'])
                 self.api.post_comment(comment.format(author=self.data['author']))
                 self.data['status'] = 'commented'

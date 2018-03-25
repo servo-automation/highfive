@@ -170,6 +170,9 @@ class APIProvider(object):
     def get_contributors(self):
         raise NotImplementedError
 
+    def close_issue(self):
+        raise NotImplementedError
+
     # Default methods depending on the overriddable methods.
 
     def update_labels(self, add=[], remove=[], number=None):

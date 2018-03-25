@@ -1,5 +1,5 @@
 {
-  "initial": {
+  "initial": [{
     "store": {
       "OpenPullWatcher": {
         "pulls": ["7075"]
@@ -16,8 +16,25 @@
         "comments": []
       }
     }
-  },
-  "expected": {
+  }, {
+    "store": {
+      "OpenPullWatcher": {
+        "pulls": []
+      },
+      "OpenPullWatcher_7075": {
+        "status": null,
+        "body": "",
+        "author": "jdm",
+        "number": "7075",
+        "assignee": null,
+        "last_active": "some time",
+        "last_push": "some time",
+        "labels": [],
+        "comments": []
+      }
+    }
+  }],
+  "expected": [{
     "store": {
       "OpenPullWatcher": {
         "owner": "servo",
@@ -40,7 +57,26 @@
         }]
       }
     }
-  },
+  }, {
+    "store": {
+      "OpenPullWatcher": {
+        "owner": "servo",
+        "repo": "servo",
+        "pulls": []
+      },
+      "OpenPullWatcher_7075": {
+        "status": null,
+        "body": "",
+        "author": "jdm",
+        "number": "7075",
+        "assignee": null,
+        "last_active": "some time",
+        "last_push": "some time",
+        "labels": [],
+        "comments": []
+      }
+    }
+  }],
   "payload": {
     "comment": {
       "body": "blah blah"

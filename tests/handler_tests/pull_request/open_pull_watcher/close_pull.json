@@ -1,8 +1,12 @@
 {
   "initial": {
-    "db": {
-      "open_pulls": ["7075"],
-      "open_pulls_7075": {
+    "store": {
+      "OpenPullWatcher": {
+        "owner": "servo",
+        "repo": "servo",
+        "pulls": ["7075"]
+      },
+      "OpenPullWatcher_7075": {
         "status": null,
         "body": "",
         "author": "jdm",
@@ -16,30 +20,34 @@
     }
   },
   "expected": {
-    "db": {
-      "open_pulls": ["7075"],
-      "open_pulls_7075": {
+    "store": {
+      "OpenPullWatcher": {
         "owner": "servo",
         "repo": "servo",
+        "pulls": []
+      },
+      "OpenPullWatcher_7075": {
         "status": null,
         "body": "",
         "author": "jdm",
         "number": "7075",
         "assignee": null,
-        "last_active": "some new time",
+        "last_active": "some time",
         "last_push": "some time",
         "labels": [],
-        "comments": [{
-          "body": "blah blah",
-          "who": "jdm",
-          "when": "some new time"
-        }]
+        "comments": []
       }
     }
   },
   "payload": {
-    "comment": {
-      "body": "blah blah"
+    "pull_request": {
+      "updated_at": "some new time",
+      "number": 7075,
+      "state": "closed",
+      "url": null,
+      "user": {
+        "login": "someone"
+      }
     },
     "repository": {
       "owner": {
@@ -47,17 +55,9 @@
       },
       "name": "servo"
     },
-    "action": "created",
-    "issue": {
-      "number": 7075,
-      "state": "open",
-      "updated_at": "some new time",
-      "user": {
-        "login": "jdm"
-      }
-    },
+    "action": "closed",
     "sender": {
-      "login": "jdm"
+      "login": "highfive"
     }
   }
 }
