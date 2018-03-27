@@ -13,6 +13,7 @@ def default():      # create a new value every call, so that the values don't ge
         'pr_number': None,
     }
 
+
 class EasyIssueAssigner(EventHandler):
     def __init__(self, api, config):
         super(EasyIssueAssigner, self).__init__(api, config)

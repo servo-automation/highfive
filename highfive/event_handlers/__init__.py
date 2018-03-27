@@ -1,4 +1,5 @@
 from event_handler import EventHandler
+from modifier import Modifier
 
 import imp
 import json

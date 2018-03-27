@@ -122,12 +122,3 @@ class GithubAPIProvider(APIProvider):
         super(GithubAPIProvider, self).__init__(name, payload)
         self._request = request_method
         self.logger = get_logger(__name__)
-
-    def create_issue(self, title, body, labels=[], assignees=[]):
-        url = self.base_url + '/issues'
-        return self._request('POST', url, {
-            "title": title,
-            "assignees": assignees,
-            "labels": labels,
-            "body": body
-        })

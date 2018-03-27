@@ -16,6 +16,7 @@ def default():
         'comments': [],
     }
 
+
 class OpenPullWatcher(EventHandler):
     def __init__(self, api, config):
         super(OpenPullWatcher, self).__init__(api, config)

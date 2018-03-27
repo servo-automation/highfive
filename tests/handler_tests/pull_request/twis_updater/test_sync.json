@@ -1,7 +1,7 @@
 {
   "initial": [{
-    "db": {
-      "weekly_update": {
+    "store": {
+      "TwisUpdater": {
         "owner": "servo",
         "repo": "servo",
         "newcomers": ["wafflespeanut", "nox", "manishearth"],
@@ -11,8 +11,8 @@
       }
     }
   }, {
-    "db": {
-      "weekly_update": {
+    "store": {
+      "TwisUpdater": {
         "owner": "servo",
         "repo": "servo",
         "newcomers": ["wafflespeanut", "nox", "manishearth"],
@@ -23,7 +23,7 @@
     }
   }],
   "expected": [{
-    "db": {},
+    "store": {},
     "new_issue": {
       "repo": "servo/blog.servo.org",
       "title": "TWiS 1970-01-02",
@@ -34,5 +34,7 @@
   }, {
     "new_issue": {}
   }],
-  "payload": {}
+  "payload": {
+    "action": "__tick"
+  }
 }

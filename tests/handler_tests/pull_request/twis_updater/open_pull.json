@@ -1,7 +1,7 @@
 {
   "expected": [{
-    "db": {
-      "weekly_update": {
+    "store": {
+      "TwisUpdater": {
         "owner": "servo",
         "repo": "servo",
         "newcomers": ["wafflespeanut"],
@@ -11,8 +11,8 @@
       }
     }
   }, {
-    "db": {
-      "weekly_update": {
+    "store": {
+      "TwisUpdater": {
         "owner": "servo",
         "repo": "servo",
         "newcomers": [],
@@ -24,8 +24,8 @@
   }],
   "initial": [{
     "contributors": [],
-    "db": {
-      "weekly_update": {
+    "store": {
+      "TwisUpdater": {
         "owner": "servo",
         "repo": "servo",
         "newcomers": [],
@@ -36,8 +36,8 @@
     }
   }, {
     "contributors": ["wafflespeanut"],
-    "db": {
-      "weekly_update": {
+    "store": {
+      "TwisUpdater": {
         "owner": "servo",
         "repo": "servo",
         "newcomers": [],
@@ -48,19 +48,11 @@
     }
   }],
   "payload": {
-    "number": 1,
     "pull_request": {
+      "number": 1,
       "merged": true,
       "state": "closed",
       "updated_at": "some time",
-      "base": {
-        "repo": {
-          "owner": {
-            "login": "servo"
-          },
-          "name": "servo"
-        }
-      },
       "assignee": {
         "login": "booya"
       },
@@ -68,6 +60,12 @@
       "user": {
         "login": "wafflespeanut"
       }
+    },
+    "repository": {
+      "owner": {
+        "login": "servo"
+      },
+      "name": "servo"
     },
     "action": "closed",
     "sender": {

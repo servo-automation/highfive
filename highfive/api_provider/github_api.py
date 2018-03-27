@@ -79,15 +79,9 @@ class GithubAPIProvider(APIProvider):
 
         return self._request('GET', self.pull_url)
 
-    def get_contributors(self):
-        '''
-        Recursively traverses through the paginated data to get contributors list.
-        Call this only to update your local cache! It's forbidden to call this more than
-        required, since it will open one of the gates to Tartarus, exposing our world to
-        the Titans.
-        '''
+    def fetch_contributors(self):
+        '''Recursively traverses through the paginated data to get contributors list.'''
 
-        self.logger.debug('Updating contributors list...')
         contributors = []
         url = self.contributors_url % (self.owner, self.repo)
 
@@ -113,6 +107,18 @@ class GithubAPIProvider(APIProvider):
 
         url = self.issue_url % (self.owner, self.repo, self.issue_number)
         self._request('PATCH', url, {'state': 'closed'})
+
+
+    def create_issue(self, title, body, labels=[], assignees=[]):
+        '''Create an issue with the given title, body, labels and assignees.'''
+
+        url = self.base_url + '/issues'
+        return self._request('POST', url, {
+            "title": title,
+            "assignees": assignees,
+            "labels": labels,
+            "body": body
+        })
 
     # Private methods
 

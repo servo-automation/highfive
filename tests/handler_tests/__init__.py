@@ -93,6 +93,15 @@ class TestAPIProvider(APIProvider):
     def close_issue(self):
         self.closed = True
 
+    def create_issue(self, title, body, labels=[], assignees=[]):
+        self.new_issue = {
+            "repo": "%s/%s" % (self.owner, self.repo),
+            "title": title,
+            "body": body,
+            "assignees": assignees,
+            "labels": labels,
+        }
+
     def get_screenshots_for_build(self, build_url):
         return self.image_data
 

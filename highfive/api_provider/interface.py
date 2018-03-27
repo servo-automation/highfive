@@ -6,6 +6,7 @@ import random
 DEFAULTS = ['pull_url', 'is_open', 'is_pull', 'creator', 'last_updated', 'number', 'diff',
             'sender', 'owner', 'repo', 'current_label', 'assignee', 'comment']
 LIST_DEFAULTS = ['labels']
+CONTRIBUTORS_STORE_KEY = '__contributors__'
 
 class APIProvider(object):
     '''
@@ -164,16 +165,36 @@ class APIProvider(object):
     def get_diff(self):
         raise NotImplementedError
 
-    def get_pull(self):
+    def fetch_contributors(self):
         raise NotImplementedError
 
-    def get_contributors(self):
+    def get_pull(self):
         raise NotImplementedError
 
     def close_issue(self):
         raise NotImplementedError
 
     # Default methods depending on the overriddable methods.
+
+    def get_contributors(self, fetch=False):
+        '''
+        If `fetch` is disabled and if store exists, then this gets the contributors list from the
+        store. Otherwise, this calls the overriddable method, gets the list, writes to the store
+        (if it exists) and returns the list.
+        '''
+
+        if self.store and not fetch:
+            contributors = self.store.get_object(CONTRIBUTORS_STORE_KEY)
+            if contributors:
+                return contributors
+
+        self.logger.info('Updating contributors list...')
+        contributors = self.fetch_contributors()
+
+        if self.store:
+            self.store.write_object(CONTRIBUTORS_STORE_KEY, data=contributors)
+
+        return contributors
 
     def update_labels(self, add=[], remove=[], number=None):
         '''

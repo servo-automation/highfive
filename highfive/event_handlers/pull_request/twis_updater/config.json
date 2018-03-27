@@ -1,0 +1,10 @@
+{
+  "active": true,
+  "servo/servo": {
+    "repo": "servo/blog.servo.org",
+    "notify_day_time": "Monday 09:00+00:00",
+    "issue_title": "TWiS {date}",
+    "assignees": ["jdm"],
+    "labels": ["TWiS"]
+  }
+}
