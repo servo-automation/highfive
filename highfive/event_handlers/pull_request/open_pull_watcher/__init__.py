@@ -1,4 +1,4 @@
-from ... import EventHandler
+from ... import EventHandler, Modifier
 from copy import deepcopy
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
@@ -118,14 +118,16 @@ class OpenPullWatcher(EventHandler):
 
 
     def on_next_tick(self):
-        if self.pr_list.get('owner') and self.pr_list.get('repo'):
-            self.api.owner, self.api.repo = self.pr_list['owner'], self.pr_list['repo']
-        else:
-            self.logger.debug('No info about owner and repo in JSON. Skipping this cycle...')
+        if self.pr_list.get('owner') is None or self.pr_list.get('repo') is None:
+            self.logger.debug('No info about owner and/or repo in JSON. Skipping this cycle...')
             return
 
-        self._check_pulls()
-        self.api.number = None      # Reset so that we don't write the data again during cleanup
+        with Modifier(self.api, owner=self.pr_list['owner'], repo=self.pr_list['repo']):
+            self._check_pulls()
+
+        # Since this handler deals with multiple data objects, we don't have anything in particular
+        # in the end. We reset this so that we don't write any date anywhere during cleanup.
+        self.api.number = None
 
 
     def cleanup(self):
@@ -154,9 +156,10 @@ class OpenPullWatcher(EventHandler):
                 continue
 
             self.logger.info("PR #%s has had its time. Something's gonna happen.", number)
-            self.api.number = number
             self.data['last_active'] = str(now)
-            self._handle_indiscipline_pr(config)
+
+            with Modifier(self.api, number=number):
+                self._handle_indiscipline_pr(config)
 
             if self.old_data != self.data:
                 self.write_object(self.data, key=number)

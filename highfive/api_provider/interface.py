@@ -153,13 +153,13 @@ class APIProvider(object):
     def set_assignees(self, assignees):
         raise NotImplementedError
 
-    def get_labels(self, number=None):
+    def get_labels(self):
         raise NotImplementedError
 
-    def replace_labels(self, labels=[], number=None):
+    def replace_labels(self, labels=[]):
         raise NotImplementedError
 
-    def post_comment(self, comment, number=None):
+    def post_comment(self, comment):
         raise NotImplementedError
 
     def get_diff(self):
@@ -196,7 +196,7 @@ class APIProvider(object):
 
         return contributors
 
-    def update_labels(self, add=[], remove=[], number=None):
+    def update_labels(self, add=[], remove=[]):
         '''
         This fetches the labels corresponding to the given payload, adds/subtracts
         labels based on the method call, and finally replaces all the labels in the issue/PR.
@@ -205,10 +205,10 @@ class APIProvider(object):
         '''
 
         to_lower = lambda label: label.lower()      # str.lower doesn't work for unicode
-        current_labels = set(map(to_lower, self.get_labels(number=number)))
+        current_labels = set(map(to_lower, self.get_labels()))
         current_labels.update(map(to_lower, add))
         current_labels.difference_update(map(to_lower, remove))
-        self.replace_labels(list(current_labels), number=number)
+        self.replace_labels(list(current_labels))
 
     def get_added_lines(self):
         '''Generator over the added lines in the commit diff.'''

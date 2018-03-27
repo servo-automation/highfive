@@ -1,4 +1,4 @@
-from ... import EventHandler
+from ... import EventHandler, Modifier
 from copy import deepcopy
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
@@ -80,7 +80,8 @@ class EasyIssueAssigner(EventHandler):
             data['issues'].pop(self.api.number)
 
         elif self.api.is_pull:
-            match = filter(lambda (_, i): i['pr_number'] == self.api.number, self.data['issues'].items())
+            pull_number = self.api.number
+            match = filter(lambda (_, i): i['pr_number'] == pull_number, self.data['issues'].items())
             if match:
                 issue_number = match[0][0]
             else:
@@ -93,10 +94,13 @@ class EasyIssueAssigner(EventHandler):
                 self.data['issues'][issue_number]['pr_number'] = None
             else:
                 config = self.get_matched_subconfig()
-                self.logger.info('PR #%s has been closed by a collaborator. Removing related data...', self.api.number)
+                self.logger.info('PR #%s has been closed by a collaborator. Removing related data...', pull_number)
                 comment = self.api.rand_choice(config['previous_work']) + ' ' + self.api.rand_choice(config['issue_unassign'])
-                self.api.post_comment(comment.format(author=self.api.creator, pull=self.api.number), number=issue_number)
-                self.api.update_labels(remove=[config['assign_label']], number=issue_number)
+
+                with Modifier(self.api, number=issue_number):
+                    self.api.post_comment(comment.format(author=self.api.creator, pull=pull_number))
+                    self.api.update_labels(remove=[config['assign_label']])
+
                 self.data['issues'][issue_number] = default()
 
 
@@ -142,19 +146,21 @@ class EasyIssueAssigner(EventHandler):
 
 
     def on_next_tick(self):
-        if self.data.get('owner') and self.data.get('repo'):
-            self.api.owner, self.api.repo = self.data['owner'], self.data['repo']
-        else:   # We pass a fake payload here (so, owner and repo should be valid to proceed)
-            self.logger.debug('No info about owner and repo in JSON. Skipping this cycle...')
+        if self.data.get('owner') is None or self.data.get('repo') is None:
+            self.logger.debug('No info about owner and/or repo in JSON. Skipping this cycle...')
             return
 
-        config = self.get_matched_subconfig()
-        if not config:
-            return
+        with Modifier(self.api, owner=self.data['owner'], repo=self.data['repo']):
+            self._check_issue_states()
 
+
+    def _check_issue_states(self):
         # Note that the `api` variable beyond this point shouldn't be trusted for
         # anything more than the names of owner, repo and its methods.
         # All other variables are invalid.
+        config = self.get_matched_subconfig()
+        if not config:
+            return
 
         for number, issue in self.data['issues'].iteritems():
             status = issue['status']
@@ -173,23 +179,23 @@ class EasyIssueAssigner(EventHandler):
             self.logger.info("Issue #%s has had its time. Something's gonna happen.", number)
             assignee = issue['assignee']
             self.data['issues'][number]['last_active'] = str(now)
-            self.api.number = number
 
-            if status == 'assigned':
-                self.logger.info('Pinging %r in issue #%s', assignee, number)
-                if assignee == self.anonymous_name:
-                    comment = self.api.rand_choice(config['unknown_ping'])
-                    self.api.post_comment(comment)
-                else:
-                    comment = self.api.rand_choice(config['known_ping']).format(assignee=assignee)
-                    self.api.post_comment(comment)
-                self.data['issues'][number]['status'] = 'commented'
+            with Modifier(self.api, number=number):
+                if status == 'assigned':
+                    self.logger.info('Pinging %r in issue #%s', assignee, number)
+                    if assignee == self.anonymous_name:
+                        comment = self.api.rand_choice(config['unknown_ping'])
+                        self.api.post_comment(comment)
+                    else:
+                        comment = self.api.rand_choice(config['known_ping']).format(assignee=assignee)
+                        self.api.post_comment(comment)
+                    self.data['issues'][number]['status'] = 'commented'
 
-            elif status == 'commented':
-                self.logger.info('Unassigning issue #%s after grace period', number)
-                self.api.update_labels(remove=[config['assign_label']])
-                self.api.post_comment(self.api.rand_choice(config['issue_unassign']))
-                self.data['issues'][number] = default()
+                elif status == 'commented':
+                    self.logger.info('Unassigning issue #%s after grace period', number)
+                    self.api.update_labels(remove=[config['assign_label']])
+                    self.api.post_comment(self.api.rand_choice(config['issue_unassign']))
+                    self.data['issues'][number] = default()
 
 
     def cleanup(self):
@@ -239,8 +245,8 @@ class EasyIssueAssigner(EventHandler):
             self.logger.info('Assignee has not requested issue assignment.'
                              ' Marking issue as assigned')
             self.api.post_comment(self.api.rand_choice(config['dup_effort']))
-            self.api.issue_number = number
-            self.api.update_labels(add=[config['assign_label']])
+            with Modifier(self.api, number=number):
+                self.api.update_labels(add=[config['assign_label']])
 
         # PR author isn't the assignee
         elif self.api.creator != assignee:

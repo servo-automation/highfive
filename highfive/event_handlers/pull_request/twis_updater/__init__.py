@@ -66,10 +66,8 @@ class TwisUpdater(EventHandler):
 
 
     def on_next_tick(self):
-        if self.data.get('owner') and self.data.get('repo'):
-            self.api.owner, self.api.repo = self.data['owner'], self.data['repo']
-        else:
-            self.logger.debug('No info about owner and repo in JSON. Skipping this cycle...')
+        if self.data.get('owner') is None or self.data.get('repo') is None:
+            self.logger.debug('No info about owner and/or repo in JSON. Skipping this cycle...')
             return
 
         post_date = datetime_parse(self.data['post_date'])
@@ -77,7 +75,8 @@ class TwisUpdater(EventHandler):
         if now < post_date:
             return
 
-        self._prepare_for_update()
+        with Modifier(self.api, owner=self.data['owner'], repo=self.data['repo']):
+            self._prepare_for_update()
 
 
     def on_issue_closed(self):
@@ -113,10 +112,10 @@ class TwisUpdater(EventHandler):
                                owner=self.data['owner'], repo=self.data['repo'])
 
         owner, repo = config['repo'].split('/')
-        with Modifier(self.api, owner=owner, repo=repo) as new_api:
-            new_api.create_issue(title=title, body=body,
-                                 assignees=config.get('assignees', []),
-                                 labels=config.get('labels', []))
+        with Modifier(self.api, owner=owner, repo=repo):
+            self.api.create_issue(title=title, body=body,
+                                  assignees=config.get('assignees', []),
+                                  labels=config.get('labels', []))
 
         # Removing the data, so that next time a PR is opened, we'll start afresh
         self.logger.info('Removing existing data...')
