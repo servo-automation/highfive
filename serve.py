@@ -1,22 +1,27 @@
 from flask import Flask, abort, request
-from threading import Thread
 
-from helpers.methods import CONFIG, get_logger, init_logger
-from helpers.runner import Runner
+from highfive import event_handlers
+from highfive.runner.config import init_logger, get_logger
+from highfive.runner import Configuration, Runner
 
-import json, os
+import os
 
 if __name__ == '__main__':
     init_logger()
     logger = get_logger(__name__)
-    if not os.path.exists(CONFIG['dump_path']):
-        os.mkdir(CONFIG['dump_path'])
 
-    runner = Runner(CONFIG)
-    sync_thread = Thread(target=runner.start_sync)
-    sync_thread.daemon = True
-    sync_thread.start()
-    app = Flask(CONFIG['name'])
+    config = Configuration()
+    config_path = os.path.join('highfive', 'config.json')
+
+    # Load the configuration file
+    config.load_from_file(config_path)
+
+    # Load the handlers into memory
+    event_handlers.load_handlers_using(config)
+
+    # Launch app
+    runner = Runner(config)
+    app = Flask(config.name)
 
     @app.route('/', methods=['POST'])
     def handle_payload():

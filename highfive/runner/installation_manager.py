@@ -1,3 +1,4 @@
+from .. import event_handlers
 from ..api_provider import GithubAPIProvider
 from Queue import Queue
 from config import get_logger
@@ -137,7 +138,8 @@ class InstallationManager(object):
 
         while not self.queue.empty():
             api = self.queue.get()
-            # TODO: pass to event handlers
+            for _path, handler in event_handlers.get_handlers_for(event, cached=True):
+                handler(api)
 
     def create_api_provider_for_payload(self, payload):
         api = GithubAPIProvider(self.config, payload, self.store,

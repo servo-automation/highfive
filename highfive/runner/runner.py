@@ -95,6 +95,7 @@ class Runner(object):
                          ' (event: %s, action: %s)' % (inst_id, x_github_event, payload.get('action')))
         # If this is a new installation event, ignore it.
         if 'installation_repositories' in x_github_event:
+            self.logger.info('Ignoring installation event.')
             return HandlerError.NewInstallation
 
         manager = self.installations.get(inst_id)
@@ -133,14 +134,23 @@ class Runner(object):
         '''
 
         while True:
+            # Clear actual payload queue
             for manager in self.installations.itervalues():
                 manager.clear_queue()
+
+            # Produce 'tick' event for handlers that depend on time.
+            for manager in self.installations.itervalues():
+                api = manager.create_api_provider_for_payload({ 'action': '__tick' })
+                manager.queue.put(api)
+
+            # Sleep for a bit
             sleep(WORKER_SLEEP_SECS)
+
 
     def start_daemon(self):
         '''Launch the watcher in a daemon thread.'''
 
-        self.logger.info('Spawning a new thread for synchronization...')
+        self.logger.info('Spawning a new thread for handling payloads...')
         thread = Thread(target=self._start_watching)
         thread.daemon = True    # daemon because it should live only as long as the main thread
         thread.start()
