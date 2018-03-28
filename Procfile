@@ -1,1 +1,1 @@
-web: python cgi-bin/serve.py
+web: python serve.py

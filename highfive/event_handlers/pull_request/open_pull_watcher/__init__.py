@@ -18,6 +18,11 @@ def default():
 
 
 class OpenPullWatcher(EventHandler):
+    '''
+    A stateful handler which tracks pull requests and pings the reviewers and assignees when PRs
+    are prone to be inactive.
+    '''
+
     def __init__(self, api, config):
         super(OpenPullWatcher, self).__init__(api, config)
         self._load_pr_list()
@@ -33,7 +38,12 @@ class OpenPullWatcher(EventHandler):
 
 
     def _load_pr_list(self):
-        '''Initialize store data and set defaults if necessary.'''
+        '''
+        Initialize store data and set defaults if necessary.
+
+        Firstly, it needs the list of active PRs, for which it uses this handler's data object
+        directly. Then, it needs the actual PR data, for which it uses the PR number as the key.
+        '''
 
         data = self.get_object()
         if data.get('owner') is None and self.api.owner:
@@ -133,6 +143,7 @@ class OpenPullWatcher(EventHandler):
     def cleanup(self):
         if self.pr_list != self.old_list:
             self.write_object(self.pr_list)
+        # Since we're identifying PR data based on key, we write only when the PR number exists.
         if self.api.number and self.old_data != self.data:
             self.write_object(self.data, key=self.api.number)
 

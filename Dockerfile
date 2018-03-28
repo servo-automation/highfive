@@ -11,7 +11,8 @@ RUN apk add --no-cache build-base postgresql-dev
 RUN pip install --no-cache-dir -r requirements.txt
 RUN rm requirements.txt && apk del build-base
 
-COPY cgi-bin/ ./
+COPY highfive/ ./
+COPY serve.py ./
 
 ENV PORT 8000
 ENTRYPOINT ["python", "./serve.py"]

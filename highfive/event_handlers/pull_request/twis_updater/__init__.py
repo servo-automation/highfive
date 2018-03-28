@@ -26,6 +26,12 @@ def default():
 
 
 class TwisUpdater(EventHandler):
+    '''
+    Stateful handler for tracking this installation's statistics. Then, this opens an issue in a
+    configured repo with that data on a specific day in a week. Currently, this collects the list
+    of newcomers to this repo.
+    '''
+
     def __init__(self, api, config):
         super(TwisUpdater, self).__init__(api, config)
         self.now = datetime.now()

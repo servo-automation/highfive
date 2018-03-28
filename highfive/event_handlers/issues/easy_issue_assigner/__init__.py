@@ -15,6 +15,13 @@ def default():      # create a new value every call, so that the values don't ge
 
 
 class EasyIssueAssigner(EventHandler):
+    '''
+    This is a stateful handler. It tracks newcomer-friendly issues (also called "easy" issues),
+    assigns them to the newcomers (based on their request), pings them when they haven't responded
+    over a set period of time, tracks their PRs and once they've run out of time, it links the PR
+    (if required) and unassigns them from the issue.
+    '''
+
     def __init__(self, api, config):
         super(EasyIssueAssigner, self).__init__(api, config)
         self.__init_store_data()
@@ -97,6 +104,7 @@ class EasyIssueAssigner(EventHandler):
                 self.logger.info('PR #%s has been closed by a collaborator. Removing related data...', pull_number)
                 comment = self.api.rand_choice(config['previous_work']) + ' ' + self.api.rand_choice(config['issue_unassign'])
 
+                # This is a PR. Since we have to comment on the issue, we use a modifier.
                 with Modifier(self.api, number=issue_number):
                     self.api.post_comment(comment.format(author=self.api.creator, pull=pull_number))
                     self.api.update_labels(remove=[config['assign_label']])
@@ -112,8 +120,8 @@ class EasyIssueAssigner(EventHandler):
         if self.api.current_label == config['easy_label'] and not self.payload_issue_in_store:
             # NOTE: We also make sure that the issue isn't in our data (since we do the
             # same thing when an issue is opened with an easy label).
-            self.logger.debug('Issue #%s has been marked E-easy. Posting welcome comment...',
-                              self.api.number)
+            self.logger.debug('Issue #%s has been marked %s. Posting welcome comment...',
+                              self.api.number, config['easy_label'])
             self.data['issues'][self.api.number] = default()
             comment = self.api.rand_choice(config['issue_assign'])
             self.api.post_comment(comment.format(bot=self.api.name))
@@ -136,8 +144,8 @@ class EasyIssueAssigner(EventHandler):
 
         config = self.get_matched_subconfig()
         if self.api.current_label == config['easy_label'] and self.payload_issue_in_store:
-            self.logger.debug('Issue #%s is no longer E-easy. Removing related data...',
-                              self.api.number)
+            self.logger.debug('Issue #%s is no longer %s. Removing related data...',
+                              self.api.number, config['easy_label'])
             self.data['issues'].pop(self.api.number)
         elif self.api.current_label == config['assign_label']:
             self.logger.debug('Issue #%s has been unassigned. Setting issue to default data...',
@@ -155,9 +163,8 @@ class EasyIssueAssigner(EventHandler):
 
 
     def _check_issue_states(self):
-        # Note that the `api` variable beyond this point shouldn't be trusted for
-        # anything more than the names of owner, repo and its methods.
-        # All other variables are invalid.
+        # Note that the `api` class beyond this point shouldn't be trusted for anything more than
+        # the names of owner, repo and its methods. All other variables are invalid.
         config = self.get_matched_subconfig()
         if not config:
             return
@@ -283,6 +290,7 @@ class EasyIssueAssigner(EventHandler):
             self.data['issues'][self.api.number]['assignee'] = self.api.sender
             self.data['issues'][self.api.number]['status'] = 'assigned'
             self.data['issues'][self.api.number]['last_active'] = self.api.payload['comment']['updated_at']
+
 
     def _on_graceful_request(self, target):
         config = self.get_matched_subconfig()
