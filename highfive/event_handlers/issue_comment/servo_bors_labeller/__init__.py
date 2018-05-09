@@ -13,7 +13,7 @@ class ServoBorsLabeller(EventHandler):
             return
 
         self.logger.debug("Checking comment from bors...")
-        for action, subconfig in self.config.get("actions", {}).iteritems():
+        for _action, subconfig in self.config.get("actions", {}).iteritems():
             if not any(re.search(pat, self.api.comment) for pat in subconfig.get("comment_patterns", [])):
                 continue
 

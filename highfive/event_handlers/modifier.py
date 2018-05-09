@@ -24,7 +24,7 @@ class Modifier(object):
         self.new_attrs = kwargs
 
         # Store the old values of new attribute keys
-        for key, val in self.new_attrs.iteritems():
+        for key in self.new_attrs.iterkeys():
             old_value = getattr(self.object_, key, None)
             if old_value is not None:
                 self.old_attrs[key] = old_value

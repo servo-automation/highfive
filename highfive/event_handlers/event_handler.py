@@ -54,7 +54,7 @@ class EventHandler(object):
 
         Both these comments return ['foo', 'bar']
         '''
-        return re.findall('r\? @?([A-Za-z0-9]+)', str(comment), re.DOTALL)
+        return re.findall(r'r\? @?([A-Za-z0-9]+)', str(comment), re.DOTALL)
 
     def get_matched_subconfig(self):
         '''

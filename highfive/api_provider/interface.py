@@ -1,12 +1,16 @@
 from ..runner.config import get_logger
 from ..runner.request import request_with_requests
 
+from datetime import datetime
+from dateutil.parser import parse as datetime_parse
+
 import random
 
 DEFAULTS = ['pull_url', 'is_open', 'is_pull', 'creator', 'last_updated', 'number', 'diff',
             'sender', 'owner', 'repo', 'current_label', 'assignee', 'comment']
 LIST_DEFAULTS = ['labels']
 CONTRIBUTORS_STORE_KEY = '__contributors__'
+CONTRIBUTORS_UPDATE_INTERVAL_HOURS = 1
 
 class APIProvider(object):
     '''
@@ -183,18 +187,30 @@ class APIProvider(object):
         (if it exists) and returns the list.
         '''
 
-        if self.store and not fetch:
+        now = datetime.now()
+
+        if self.store:
             contributors = self.store.get_object(CONTRIBUTORS_STORE_KEY)
             if contributors:
-                return contributors
+                # Force fetch if last updated time is long back.
+                timestamp = contributors.get('last_update_time', str(now))
+                last_update = datetime_parse(timestamp)
+                if (now - last_update).seconds >= CONTRIBUTORS_UPDATE_INTERVAL_HOURS * 3600:
+                    fetch = True
+
+            if contributors.get('list') and not fetch:
+                return contributors['list']
 
         self.logger.info('Updating contributors list...')
-        contributors = self.fetch_contributors()
+        contributors = {
+            'last_update_time': str(now),
+            'list': self.fetch_contributors()
+        }
 
         if self.store:
             self.store.write_object(CONTRIBUTORS_STORE_KEY, data=contributors)
 
-        return contributors
+        return contributors['list']
 
     def update_labels(self, add=[], remove=[]):
         '''

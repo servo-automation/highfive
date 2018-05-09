@@ -84,7 +84,7 @@ class EasyIssueAssigner(EventHandler):
     def on_issue_closed(self):
         if self.payload_issue_in_store:
             self.logger.info('Issue #%s is being closed. Removing related data...', self.api.number)
-            data['issues'].pop(self.api.number)
+            self.data['issues'].pop(self.api.number)
 
         elif self.api.is_pull:
             pull_number = self.api.number

@@ -12,7 +12,7 @@ import sys
 
 
 class TestStore(IntegrationStore):
-    def __init__(self, dict_obj):
+    def __init__(self, dict_obj={}):
         self.stuff = dict_obj
 
     def get_object(self, key):

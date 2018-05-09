@@ -61,11 +61,11 @@ class TwisUpdater(EventHandler):
         day, time = config['notify_day_time'].split()
         day = day[:3]
         weekday = list(calendar.day_abbr).index(day)
-        days_ahead = weekday - now.weekday()
+        days_ahead = weekday - self.now.weekday()
         if days_ahead <= 0:     # this week's already gone
             days_ahead += 7
 
-        dt = datetime(now.year, now.month, now.day) + timedelta(days=days_ahead)
+        dt = datetime(self.now.year, self.now.month, self.now.day) + timedelta(days=days_ahead)
         dt = datetime_parse(str(dt) + ' ' + time)
         self.data['post_date'] = str(dt)
         self.logger.info('Handler scheduled to post on %s' % dt)

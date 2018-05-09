@@ -2,6 +2,7 @@ from .. import store
 from ..store import InstallationStore
 from config import get_logger
 from installation_manager import InstallationManager
+from threading import Thread
 from time import sleep
 
 import hashlib
@@ -124,7 +125,8 @@ class Runner(object):
             self.logger.info('Skipping payload sent by self')
             return HandlerError.PayloadFromSelf
 
-        manager.queue.put(api)      # Queue the wrapped payload into the manager's queue
+        # Queue the API with the payload into the manager's queue
+        manager.queue.put((api, x_github_event))
 
     def _start_watching(self):
         '''

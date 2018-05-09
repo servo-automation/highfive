@@ -1,5 +1,7 @@
 from interface import APIProvider
 
+import re
+
 class GithubAPIProvider(APIProvider):
     base_url = 'https://api.github.com/repos/%s/%s'
     issue_url = base_url + '/issues/%s'

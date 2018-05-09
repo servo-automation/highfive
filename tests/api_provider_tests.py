@@ -1,6 +1,9 @@
 from highfive.runner import Configuration, Response
-from highfive.api_provider.interface import APIProvider, DEFAULTS
+from highfive.api_provider.interface import APIProvider, CONTRIBUTORS_STORE_KEY, DEFAULTS
+from handler_tests import TestStore
 
+from datetime import datetime
+from dateutil.parser import parse as datetime_parse
 from unittest import TestCase
 
 
@@ -151,3 +154,60 @@ class APIProviderTests(TestCase):
         for func, expected in tests:
             resp = api.post_image_to_imgur('some data', json_request=func)
             self.assertEqual(resp, expected)
+
+    def test_contributors_update(self):
+        '''
+        Contributors list (cache) live only for an hour (by default). Once it's outdated,
+        the next call to `get_contributors` calls `fetch_contributors`, writes it to the store
+        and returns the list. Any calls within the next hour will return the existing contributors
+        without calling the API.
+        '''
+
+        class TestAPI(APIProvider):
+            fetched = False
+
+            def fetch_contributors(self):
+                self.fetched = True
+                return []
+
+        config = create_config()
+        api = TestAPI(config=config, payload={}, store=None)
+        self.assertFalse(api.fetched)
+        api.get_contributors()
+        # No store. This will always call the API.
+        self.assertTrue(api.fetched)
+
+        store = TestStore()
+        api = TestAPI(config=config, payload={}, store=store)
+        self.assertFalse(api.fetched)
+        now = datetime.now()
+        api.get_contributors()
+        data = store.get_object(CONTRIBUTORS_STORE_KEY)
+        updated_time = datetime_parse(data['last_update_time'])
+        # Store doesn't have contributors. It's been updated for the first time.
+        self.assertTrue(updated_time >= now)
+        self.assertTrue(api.fetched)
+
+        store = TestStore()
+        store.write_object(CONTRIBUTORS_STORE_KEY,
+                           { 'last_update_time': str(now), 'list': ['booya'] })
+        api = TestAPI(config=config, payload={}, store=store)
+        self.assertFalse(api.fetched)
+        api.get_contributors()
+        data = store.get_object(CONTRIBUTORS_STORE_KEY)
+        updated_time = datetime_parse(data['last_update_time'])
+        # Called within a cycle - no fetch occurs.
+        self.assertEqual(updated_time, now)
+        self.assertFalse(api.fetched)
+
+        store = TestStore()
+        store.write_object(CONTRIBUTORS_STORE_KEY,
+                           { 'last_update_time': str(now), 'list': ['booya'] })
+        api = TestAPI(config=config, payload={}, store=store)
+        self.assertFalse(api.fetched)
+        api.get_contributors(fetch=True)
+        # When `fetch` is enabled, API is called regardless.
+        self.assertTrue(api.fetched)
+        data = store.get_object(CONTRIBUTORS_STORE_KEY)
+        updated_time = datetime_parse(data['last_update_time'])
+        self.assertTrue(updated_time > now)

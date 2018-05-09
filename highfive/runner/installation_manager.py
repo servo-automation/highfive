@@ -137,7 +137,7 @@ class InstallationManager(object):
         '''Clear this manager's payload queue.'''
 
         while not self.queue.empty():
-            api = self.queue.get()
+            (api, event) = self.queue.get()
             for _path, handler in event_handlers.get_handlers_for(event, cached=True):
                 handler(api)
 
